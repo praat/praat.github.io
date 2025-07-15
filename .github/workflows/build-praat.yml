@@ -106,14 +106,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: macos-13
-            targetos: "macOS13"
-            version: Ventura
+          - runner: macos-15-large
+            targetos: "macOS15"
+            version: Sequoia
             extension: .dmg
             latest_tag: "v6.4.39"
             latest_zip: "praat6439_xcodeproj.zip"
-          - runner: macos-15
-            targetos: "macOS15"
+          - runner: macos-15-xlarge
+            targetos: "macOS15-arm64"
             version: Sequoia-arm64
             extension: .dmg
             latest_tag: "v6.4.39"
@@ -129,11 +129,7 @@ jobs:
 
       - name: Set up Xcode version
         run: |
-          if [[ "${{ matrix.runner }}" == "macos-13" ]]; then
-            sudo xcode-select -s /Applications/Xcode_15.2.app
-          elif [[ "${{ matrix.runner }}" == "macos-15" ]]; then
-            sudo xcode-select -s /Applications/Xcode_16.3.app
-          fi
+          sudo xcode-select -s /Applications/Xcode_16.4.app
 
       - name: Build Praat with xcodebuild
         run: |
