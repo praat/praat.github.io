@@ -40,6 +40,37 @@ multidimensional scaling, principal component analysis, and discriminant analysi
 For more information, consult the extensive manual in Praat (under Help),
 and the website [praat.org](https://praat.org), which has Praat tutorials in several languages.
 
+For code contributions, refer to [2. Compiling the source code](#2-compiling-the-source-code) and subsequent subheadings.
+
+
+## Contents
+  - [Contents](#contents)
+  - [1. Binary executables](#1-binary-executables)
+    - [1.1. Windows binaries](#11-windows-binaries)
+    - [1.2. Mac binaries](#12-mac-binaries)
+    - [1.3. Linux binaries](#13-linux-binaries)
+    - [1.4. Chromebook binaries](#14-chromebook-binaries)
+    - [1.5. Raspberry Pi binaries](#15-raspberry-pi-binaries)
+    - [1.6. Other Unix binaries (all obsolete)](#16-other-unix-binaries-all-obsolete)
+  - [2. Compiling the source code](#2-compiling-the-source-code)
+    - [2.1. License](#21-license)
+    - [2.2. Downloading the archive](#22-downloading-the-archive)
+    - [2.3. Steps to take if you want to extend Praat](#23-steps-to-take-if-you-want-to-extend-praat)
+    - [2.4. The programming language](#24-the-programming-language)
+  - [3. Developing Praat for one platform](#3-developing-praat-for-one-platform)
+    - [3.1. Developing Praat for Windows](#31-developing-praat-for-windows)
+    - [3.2. Compiling for Macintosh](#32-compiling-for-macintosh)
+    - [3.3. Compiling on Linux and other Unixes](#33-compiling-on-linux-and-other-unixes)
+  - [4. Developing Praat on all platforms simultaneously](#4-developing-praat-on-all-platforms-simultaneously)
+    - [4.1. MacOS development set-up](#41-macos-development-set-up)
+    - [4.2. Windows development set-up](#42-windows-development-set-up)
+    - [4.3. Linux development set-up](#43-linux-development-set-up)
+    - [4.4. Chromebook development set-up](#44-chromebook-development-set-up)
+    - [4.5. Raspberry Pi development set-up](#45-raspberry-pi-development-set-up)
+    - [4.6. s390x development set-up on LinuxONE](#46-s390x-development-set-up-on-linuxone)
+    - [4.7. Distributing Praat](#47-distributing-praat)
+
+
 ## 1. Binary executables
 
 While the [Praat website](https://praat.org) contains the latest executable for all platforms that we support
@@ -124,10 +155,13 @@ Most of the source code of Praat is distributed on GitHub under the General Publ
 or [version 3](https://praat.org/manual/General_Public_License__version_3.html) or later.
 However, as Praat includes software written by others,
 the whole of Praat is distributed under the General Public License,
-[version 3](https://praat.org/manual/General_Public_License__version_3.html) or later.
+[version 3](https://praat.org/manual/General_Public_License__version_3.html) or later. This can be found [linked here](LICENSE).
+
 See [Acknowledgments](https://praat.org/manual/Acknowledgments.html) for details on the licenses
 of software libraries by others that are included in Praat.
+
 Of course, any improvements in the Praat source code are welcomed by the authors.
+
 
 ### 2.2. Downloading the archive
 
