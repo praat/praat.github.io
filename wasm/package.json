@@ -1,0 +1,54 @@
+{
+  "name": "praat-wasm",
+  "version": "0.1.0",
+  "description": "Praat phonetic analysis library compiled to WebAssembly. Full-featured JS API modeled after Parselmouth.",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "main": "./js/praat-wasm.mjs",
+  "browser": "./js/praat-wasm.mjs",
+  "types": "./js/praat-wasm.d.ts",
+  "exports": {
+    ".": {
+      "import": "./js/praat-wasm.mjs",
+      "types": "./js/praat-wasm.d.ts"
+    },
+    "./worker": {
+      "import": "./js/worker.mjs"
+    },
+    "./worker-client": {
+      "import": "./js/worker-client.mjs",
+      "types": "./js/praat-wasm.d.ts"
+    }
+  },
+  "files": [
+    "js/",
+    "dist/praat.mjs",
+    "dist/praat.wasm"
+  ],
+  "keywords": [
+    "praat",
+    "phonetics",
+    "speech",
+    "audio",
+    "analysis",
+    "pitch",
+    "formant",
+    "spectrogram",
+    "textgrid",
+    "wasm",
+    "webassembly",
+    "linguistics"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/praat/praat.github.io"
+  },
+  "scripts": {
+    "build": "make -f ../Makefile.wasm -C ..",
+    "clean": "make -f ../Makefile.wasm -C .. clean",
+    "types": "tsc --declaration --allowJs --emitDeclarationOnly --moduleResolution node --outDir types js/praat-wasm.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
