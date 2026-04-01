@@ -1,0 +1,139 @@
+name: Publish praat-wasm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Run without actually publishing'
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sync and verify version
+        run: node wasm/sync-version.mjs --check
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+
+      - name: Verify emscripten
+        run: emcc --version
+
+      - name: Configure WASM build
+        run: cp makefiles/makefile.defs.wasm makefile.defs
+
+      - name: Build WASM
+        run: make -f Makefile.wasm
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-dist
+          path: |
+            wasm/dist/praat.mjs
+            wasm/dist/praat.wasm
+            wasm/js/
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-dist
+          path: wasm/
+
+      - name: Run smoke tests
+        run: node wasm/test_smoke.mjs
+
+      - name: Run wrapper tests
+        run: node wasm/test_wrapper.mjs
+
+      - name: Run class API tests
+        run: node wasm/test_classes.mjs
+
+      - name: Run Praat native script tests
+        run: node wasm/test_praat_scripts.mjs
+
+  publish-npm:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-dist
+          path: wasm/
+
+      - name: Publish to npm
+        working-directory: wasm
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.dry-run }}" == "true" ]]; then
+            npm publish --provenance --access public --dry-run
+          else
+            npm publish --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-gpr:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@praat'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-dist
+          path: wasm/
+
+      - name: Scope package for GitHub Packages
+        working-directory: wasm
+        run: npm pkg set name='@praat/praat-wasm'
+
+      - name: Publish to GitHub Packages
+        working-directory: wasm
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.dry-run }}" == "true" ]]; then
+            npm publish --access public --dry-run
+          else
+            npm publish --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

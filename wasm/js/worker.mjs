@@ -59,12 +59,43 @@ self.onmessage = async function (/** @type {MessageEvent} */ e) {
         result = praat.run(args[0])
         break
 
-      case 'call':
-        result = praat.call(args[0], ...args.slice(1))
+      case 'call': {
+        /*
+          args can be:
+            [command, ...commandArgs]                 -- string command
+            [{id, type, name}, command, ...commandArgs]  -- object + command
+            [[{id, type, name}, ...], command, ...]      -- array of objects + command
+        */
+        const first = args[0]
+        if (typeof first === 'object' && first !== null && !Array.isArray(first) && 'id' in first) {
+          /* Single object reference — select it first */
+          praat.select(first.id)
+          result = praat.call(args[1], ...args.slice(2))
+        } else if (Array.isArray(first) && first.length > 0 && first[0].id != null) {
+          /* Array of object references */
+          praat.select(first[0].id)
+          for (let i = 1; i < first.length; i++) {
+            praat.run('plusObject: ' + first[i].id + '\n')
+          }
+          result = praat.call(args[1], ...args.slice(2))
+        } else {
+          result = praat.call(args[0], ...args.slice(1))
+        }
+        /* Serialize PraatObject instances back to plain descriptors */
+        if (result && typeof result === 'object' && result.id != null && result.className != null) {
+          result = { id: result.id, type: result.type || result.className, name: result.name }
+        } else if (Array.isArray(result)) {
+          result = result.map(r =>
+            r && typeof r === 'object' && r.id != null && r.className != null
+              ? { id: r.id, type: r.type || r.className, name: r.name }
+              : r
+          )
+        }
         break
+      }
 
       case 'list':
-        result = praat.list()
+        result = praat.list().map(o => ({ id: o.id, type: o.type || o.className, name: o.name }))
         break
 
       case 'select':
@@ -77,13 +108,16 @@ self.onmessage = async function (/** @type {MessageEvent} */ e) {
           args[0] is an ArrayBuffer (transferred from main thread).
           args[1] is an optional filename.
         */
-        result = praat.readAudio(args[0], args[1])
+        const obj = praat.readAudio(args[0], args[1])
+        result = obj ? { id: obj.id, type: obj.type || obj.className, name: obj.name } : null
         break
       }
 
-      case 'readFile':
-        result = praat.readFile(args[0])
+      case 'readFile': {
+        const obj = praat.readFile(args[0])
+        result = obj ? { id: obj.id, type: obj.type || obj.className, name: obj.name } : null
         break
+      }
 
       case 'writeFile':
         praat.writeFile(args[0], new Uint8Array(args[1]))
@@ -111,6 +145,12 @@ self.onmessage = async function (/** @type {MessageEvent} */ e) {
         praat.removeAll()
         result = undefined
         break
+
+      case 'createTextGrid': {
+        const tg = praat.createTextGrid(args[0], args[1], args[2], args[3])
+        result = tg ? { id: tg.id, type: tg.type || tg.className, name: tg.name } : null
+        break
+      }
 
       case 'removeSelected':
         praat.removeSelected()

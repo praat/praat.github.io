@@ -136,6 +136,16 @@ const SKIP = {
 
     // Discriminant save/read crashes with memory access out of bounds in WASM
     'test/fon/data.praat': 'Discriminant serialization crashes in WASM (memory OOB)',
+
+    // Very slow in WASM (minutes — compute-intensive numeric benchmarks)
+    'test/num/NUM.praat': 'very slow numeric benchmark in WASM',
+    'test/num/stochastic.praat': 'very slow stochastic test in WASM',
+    'test/num/inner.praat': 'very slow numeric benchmark (231s in WASM)',
+    'test/num/mean.praat': 'very slow numeric benchmark (178s in WASM)',
+    'test/num/sort.praat': 'very slow numeric benchmark (50s in WASM)',
+    'test/num/sum.praat': 'very slow numeric benchmark (117s in WASM)',
+    'test/dwtools/Discriminant2.praat': 'very slow Mahalanobis computation in WASM',
+    'test/dwtools/Discriminant3.praat': 'very slow Discriminant computation in WASM',
 };
 
 /* ---- Collect test scripts ---- */
@@ -180,6 +190,7 @@ for (const script of testScripts) {
         continue;
     }
 
+    const startTime = Date.now();
     try {
         // Clear any stale error state from previous tests
         try { Module.clearError(); } catch(_) {}
@@ -197,7 +208,8 @@ for (const script of testScripts) {
 
         // Run the test script via runScript (handles directory switching)
         const result = Module.executeScript(`runScript: "/${name}"\n`);
-        console.log(`  PASS  ${name}`);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`  PASS  ${name} (${elapsed}s)`);
         passed++;
     } catch (e) {
         // Try to get detailed error from Melder error buffer

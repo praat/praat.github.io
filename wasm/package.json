@@ -1,6 +1,6 @@
 {
   "name": "praat-wasm",
-  "version": "0.1.0",
+  "version": "6.4.6200",
   "description": "Praat phonetic analysis library compiled to WebAssembly. Full-featured JS API modeled after Parselmouth.",
   "license": "GPL-3.0-or-later",
   "type": "module",
@@ -12,6 +12,9 @@
       "import": "./js/praat-wasm.mjs",
       "types": "./js/praat-wasm.d.ts"
     },
+    "./classes": {
+      "import": "./js/classes.mjs"
+    },
     "./worker": {
       "import": "./js/worker.mjs"
     },
@@ -21,7 +24,11 @@
     }
   },
   "files": [
-    "js/",
+    "js/praat-wasm.mjs",
+    "js/praat-wasm.d.ts",
+    "js/classes.mjs",
+    "js/worker.mjs",
+    "js/worker-client.mjs",
     "dist/praat.mjs",
     "dist/praat.wasm"
   ],
@@ -37,18 +44,29 @@
     "textgrid",
     "wasm",
     "webassembly",
-    "linguistics"
+    "linguistics",
+    "parselmouth"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/praat/praat.github.io"
   },
+  "homepage": "https://github.com/praat/praat.github.io#praat-wasm",
   "scripts": {
     "build": "make -f ../Makefile.wasm -C ..",
     "clean": "make -f ../Makefile.wasm -C .. clean",
-    "types": "tsc --declaration --allowJs --emitDeclarationOnly --moduleResolution node --outDir types js/praat-wasm.mjs"
+    "test": "node ../wasm/test_smoke.mjs && node ../wasm/test_wrapper.mjs && node ../wasm/test_classes.mjs",
+    "test:praat": "node ../wasm/test_praat_scripts.mjs",
+    "test:browser": "node ../docs/wasm-test/run-browser-test.mjs",
+    "version:sync": "node sync-version.mjs",
+    "version:bump": "node sync-version.mjs --bump",
+    "version:check": "node sync-version.mjs --check"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
