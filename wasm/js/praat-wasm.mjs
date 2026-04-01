@@ -20,7 +20,7 @@ export { Sound, Pitch, Formant, Intensity, Harmonicity, Spectrum, Spectrogram,
  * Package version (Praat patch × 100 + JS revision).
  * @type {string}
  */
-export const version = '6.4.6200'
+export const version = '6.4.6201'
 
 /**
  * @typedef {Object} PraatWasmInstance
