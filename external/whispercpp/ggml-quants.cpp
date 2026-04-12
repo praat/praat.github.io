@@ -2903,7 +2903,7 @@ void iq2xs_init_impl(enum ggml_type type) {
     uint16_t * kneighbors_q2xs;
 
     //printf("================================================================= %s(grid_size = %d)\n", __func__, grid_size);
-    uint64_t * the_grid = (uint64_t *)malloc(grid_size*sizeof(uint64_t));
+    uint64_t * the_grid = (uint64_t *)ggml_malloc(grid_size*sizeof(uint64_t));
     for (int k = 0; k < grid_size; ++k) {
         int8_t * pos = (int8_t *)(the_grid + k);
         for (int i = 0; i < 8; ++i) {
@@ -2913,7 +2913,7 @@ void iq2xs_init_impl(enum ggml_type type) {
     }
     kgrid_q2xs = the_grid;
     iq2_data[gindex].grid = the_grid;
-    kmap_q2xs = (int *)malloc(kmap_size*sizeof(int));
+    kmap_q2xs = (int *)ggml_malloc(kmap_size*sizeof(int));
     iq2_data[gindex].map = kmap_q2xs;
     for (int i = 0; i < kmap_size; ++i) kmap_q2xs[i] = -1;
     uint64_t aux64;
@@ -2928,7 +2928,7 @@ void iq2xs_init_impl(enum ggml_type type) {
         kmap_q2xs[index] = i;
     }
     int8_t pos[8];
-    int * dist2 = (int *)malloc(2*grid_size*sizeof(int));
+    int * dist2 = (int *)ggml_malloc(2*grid_size*sizeof(int));
     int num_neighbors = 0, num_not_in_map = 0;
     for (int i = 0; i < kmap_size; ++i) {
         if (kmap_q2xs[i] >= 0) continue;
@@ -2958,7 +2958,7 @@ void iq2xs_init_impl(enum ggml_type type) {
         num_neighbors += n;
     }
     //printf("%s: %d neighbours in total\n", __func__, num_neighbors);
-    kneighbors_q2xs = (uint16_t *)malloc((num_neighbors + num_not_in_map)*sizeof(uint16_t));
+    kneighbors_q2xs = (uint16_t *)ggml_malloc((num_neighbors + num_not_in_map)*sizeof(uint16_t));
     iq2_data[gindex].neighbours = kneighbors_q2xs;
     int counter = 0;
     for (int i = 0; i < kmap_size; ++i) {
@@ -2990,16 +2990,16 @@ void iq2xs_init_impl(enum ggml_type type) {
         }
         *start = n;
     }
-    free(dist2);
+    ggml_raw_free(dist2);
 }
 
 void iq2xs_free_impl(enum ggml_type type) {
     GGML_ASSERT(type == GGML_TYPE_IQ2_XXS || type == GGML_TYPE_IQ2_XS || type == GGML_TYPE_IQ1_S || type == GGML_TYPE_IQ1_M || type == GGML_TYPE_IQ2_S);
     const int gindex = iq2_data_index(type);
     if (iq2_data[gindex].grid) {
-        free(iq2_data[gindex].grid);       iq2_data[gindex].grid = NULL;
-        free(iq2_data[gindex].map);        iq2_data[gindex].map  = NULL;
-        free(iq2_data[gindex].neighbours); iq2_data[gindex].neighbours = NULL;
+        ggml_raw_free(iq2_data[gindex].grid);       iq2_data[gindex].grid = NULL;
+        ggml_raw_free(iq2_data[gindex].map);        iq2_data[gindex].map  = NULL;
+        ggml_raw_free(iq2_data[gindex].neighbours); iq2_data[gindex].neighbours = NULL;
     }
 }
 
@@ -3497,7 +3497,7 @@ void iq3xs_init_impl(int grid_size) {
     uint16_t * kneighbors_q3xs;
 
     //printf("================================================================= %s(grid_size = %d)\n", __func__, grid_size);
-    uint32_t * the_grid = (uint32_t *)malloc(grid_size*sizeof(uint32_t));
+    uint32_t * the_grid = (uint32_t *)ggml_malloc(grid_size*sizeof(uint32_t));
     for (int k = 0; k < grid_size; ++k) {
         int8_t * pos = (int8_t *)(the_grid + k);
         for (int i = 0; i < 4; ++i) {
@@ -3507,7 +3507,7 @@ void iq3xs_init_impl(int grid_size) {
     }
     kgrid_q3xs = the_grid;
     iq3_data[gindex].grid = the_grid;
-    kmap_q3xs = (int *)malloc(kmap_size*sizeof(int));
+    kmap_q3xs = (int *)ggml_malloc(kmap_size*sizeof(int));
     iq3_data[gindex].map = kmap_q3xs;
     for (int i = 0; i < kmap_size; ++i) kmap_q3xs[i] = -1;
     uint32_t aux32;
@@ -3522,7 +3522,7 @@ void iq3xs_init_impl(int grid_size) {
         kmap_q3xs[index] = i;
     }
     int8_t pos[4];
-    int * dist2 = (int *)malloc(2*grid_size*sizeof(int));
+    int * dist2 = (int *)ggml_malloc(2*grid_size*sizeof(int));
     int num_neighbors = 0, num_not_in_map = 0;
     for (int i = 0; i < kmap_size; ++i) {
         if (kmap_q3xs[i] >= 0) continue;
@@ -3552,7 +3552,7 @@ void iq3xs_init_impl(int grid_size) {
         num_neighbors += n;
     }
     //printf("%s: %d neighbours in total\n", __func__, num_neighbors);
-    kneighbors_q3xs = (uint16_t *)malloc((num_neighbors + num_not_in_map)*sizeof(uint16_t));
+    kneighbors_q3xs = (uint16_t *)ggml_malloc((num_neighbors + num_not_in_map)*sizeof(uint16_t));
     iq3_data[gindex].neighbours = kneighbors_q3xs;
     int counter = 0;
     for (int i = 0; i < kmap_size; ++i) {
@@ -3584,16 +3584,16 @@ void iq3xs_init_impl(int grid_size) {
         }
         *start = n;
     }
-    free(dist2);
+    ggml_raw_free(dist2);
 }
 
 void iq3xs_free_impl(int grid_size) {
     GGML_ASSERT(grid_size == 256 || grid_size == 512);
     const int gindex = iq3_data_index(grid_size);
     if (iq3_data[gindex].grid) {
-        free(iq3_data[gindex].grid);       iq3_data[gindex].grid = NULL;
-        free(iq3_data[gindex].map);        iq3_data[gindex].map  = NULL;
-        free(iq3_data[gindex].neighbours); iq3_data[gindex].neighbours = NULL;
+        ggml_raw_free(iq3_data[gindex].grid);       iq3_data[gindex].grid = NULL;
+        ggml_raw_free(iq3_data[gindex].map);        iq3_data[gindex].map  = NULL;
+        ggml_raw_free(iq3_data[gindex].neighbours); iq3_data[gindex].neighbours = NULL;
     }
 }
 

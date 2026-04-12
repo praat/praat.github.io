@@ -159,7 +159,7 @@ static int ggml_dyn_tallocr_new_chunk(struct ggml_dyn_tallocr * alloc, size_t mi
     if (alloc->n_chunks >= GGML_VBUFFER_MAX_CHUNKS) {
         return -1;
     }
-    struct tallocr_chunk * chunk = calloc(1, sizeof(struct tallocr_chunk));
+    struct tallocr_chunk * chunk = ggml_calloc(1, sizeof(struct tallocr_chunk));
     chunk->n_free_blocks = 1;
     chunk->free_blocks[0].offset = 0;
     // available space in a chunk is limited to max_chunk_size, but can be higher if:
@@ -349,7 +349,7 @@ static void ggml_dyn_tallocr_free_bytes(struct ggml_dyn_tallocr * alloc, struct 
 
 static void ggml_dyn_tallocr_reset(struct ggml_dyn_tallocr * alloc) {
     for (int i = 0; i < GGML_VBUFFER_MAX_CHUNKS; i++) {
-        free(alloc->chunks[i]);
+        ggml_raw_free(alloc->chunks[i]);
         alloc->chunks[i] = NULL;
     }
     alloc->n_chunks = 0;
@@ -362,7 +362,7 @@ static void ggml_dyn_tallocr_reset(struct ggml_dyn_tallocr * alloc) {
 }
 
 static struct ggml_dyn_tallocr * ggml_dyn_tallocr_new(size_t alignment, size_t max_buffer_size) {
-    struct ggml_dyn_tallocr * alloc = (struct ggml_dyn_tallocr *)malloc(sizeof(struct ggml_dyn_tallocr));
+    struct ggml_dyn_tallocr * alloc = (struct ggml_dyn_tallocr *)ggml_malloc(sizeof(struct ggml_dyn_tallocr));
 
     *alloc = (struct ggml_dyn_tallocr) {
         /*.alignment      = */ alignment,
@@ -381,9 +381,9 @@ static struct ggml_dyn_tallocr * ggml_dyn_tallocr_new(size_t alignment, size_t m
 
 static void ggml_dyn_tallocr_free(struct ggml_dyn_tallocr * alloc) {
     for (int i = 0; i < alloc->n_chunks; ++i) {
-        free(alloc->chunks[i]);
+        ggml_raw_free(alloc->chunks[i]);
     }
-    free(alloc);
+    ggml_raw_free(alloc);
 }
 
 static size_t ggml_dyn_tallocr_max_size(struct ggml_dyn_tallocr * alloc, int chunk) {
@@ -404,7 +404,7 @@ static void ggml_vbuffer_free(struct vbuffer * buf) {
     for (int i = 0; i < GGML_VBUFFER_MAX_CHUNKS; ++i) {
         ggml_backend_buffer_free(buf->chunks[i]);
     }
-    free(buf);
+    ggml_raw_free(buf);
 }
 
 static size_t ggml_vbuffer_chunk_size(struct vbuffer * buf, int chunk) {
@@ -420,7 +420,7 @@ static size_t ggml_vbuffer_size(struct vbuffer * buf) {
 }
 
 static struct vbuffer * ggml_vbuffer_alloc(ggml_backend_buffer_type_t buft, const struct ggml_dyn_tallocr * talloc, enum ggml_backend_buffer_usage usage) {
-    struct vbuffer * buf = (struct vbuffer *)calloc(1, sizeof(struct vbuffer));
+    struct vbuffer * buf = (struct vbuffer *)ggml_calloc(1, sizeof(struct vbuffer));
     if (buf == NULL) {
         return NULL;
     }
@@ -494,16 +494,16 @@ struct ggml_gallocr {
 };
 
 ggml_gallocr_t ggml_gallocr_new_n(ggml_backend_buffer_type_t * bufts, int n_bufs) {
-    ggml_gallocr_t galloc = (ggml_gallocr_t)calloc(1, sizeof(struct ggml_gallocr));
+    ggml_gallocr_t galloc = (ggml_gallocr_t)ggml_calloc(1, sizeof(struct ggml_gallocr));
     GGML_ASSERT(galloc != NULL);
 
-    galloc->bufts = calloc(n_bufs, sizeof(ggml_backend_buffer_type_t));
+    galloc->bufts = ggml_calloc(n_bufs, sizeof(ggml_backend_buffer_type_t));
     GGML_ASSERT(galloc->bufts != NULL);
 
-    galloc->buffers = calloc(n_bufs, sizeof(struct vbuffer *));
+    galloc->buffers = ggml_calloc(n_bufs, sizeof(struct vbuffer *));
     GGML_ASSERT(galloc->buffers != NULL);
 
-    galloc->buf_tallocs = calloc(n_bufs, sizeof(struct ggml_dyn_tallocr *));
+    galloc->buf_tallocs = ggml_calloc(n_bufs, sizeof(struct ggml_dyn_tallocr *));
     GGML_ASSERT(galloc->buf_tallocs != NULL);
 
     for (int i = 0; i < n_bufs; i++) {
@@ -568,13 +568,13 @@ void ggml_gallocr_free(ggml_gallocr_t galloc) {
     }
 
     ggml_hash_set_free(&galloc->hash_set);
-    free(galloc->hash_values);
-    free(galloc->bufts);
-    free(galloc->buffers);
-    free(galloc->buf_tallocs);
-    free(galloc->node_allocs);
-    free(galloc->leaf_allocs);
-    free(galloc);
+    ggml_raw_free(galloc->hash_values);
+    ggml_raw_free(galloc->bufts);
+    ggml_raw_free(galloc->buffers);
+    ggml_raw_free(galloc->buf_tallocs);
+    ggml_raw_free(galloc->node_allocs);
+    ggml_raw_free(galloc->leaf_allocs);
+    ggml_raw_free(galloc);
 }
 
 typedef struct ggml_gallocr * ggml_gallocr_t;
@@ -832,8 +832,8 @@ static bool ggml_gallocr_reserve_n_impl(
         galloc->hash_set = ggml_hash_set_new(min_hash_size);
         GGML_ASSERT(galloc->hash_set.keys != NULL);
 
-        free(galloc->hash_values);
-        galloc->hash_values = malloc(sizeof(struct hash_node) * galloc->hash_set.size);
+        ggml_raw_free(galloc->hash_values);
+        galloc->hash_values = ggml_malloc(sizeof(struct hash_node) * galloc->hash_set.size);
         GGML_ASSERT(galloc->hash_values != NULL);
     }
 
@@ -847,8 +847,8 @@ static bool ggml_gallocr_reserve_n_impl(
 
     // set the node_allocs from the hash table
     if (galloc->n_nodes < graph->n_nodes) {
-        free(galloc->node_allocs);
-        galloc->node_allocs = calloc(graph->n_nodes, sizeof(struct node_alloc));
+        ggml_raw_free(galloc->node_allocs);
+        galloc->node_allocs = ggml_calloc(graph->n_nodes, sizeof(struct node_alloc));
         GGML_ASSERT(galloc->node_allocs != NULL);
     }
     galloc->n_nodes = graph->n_nodes;
@@ -880,8 +880,8 @@ static bool ggml_gallocr_reserve_n_impl(
         }
     }
     if (galloc->n_leafs < graph->n_leafs) {
-        free(galloc->leaf_allocs);
-        galloc->leaf_allocs = calloc(graph->n_leafs, sizeof(galloc->leaf_allocs[0]));
+        ggml_raw_free(galloc->leaf_allocs);
+        galloc->leaf_allocs = ggml_calloc(graph->n_leafs, sizeof(galloc->leaf_allocs[0]));
         GGML_ASSERT(galloc->leaf_allocs != NULL);
     }
     galloc->n_leafs = graph->n_leafs;
@@ -1119,7 +1119,7 @@ static void free_buffers(ggml_backend_buffer_t ** buffers, const size_t * n_buff
     for (size_t i = 0; i < *n_buffers; i++) {
         ggml_backend_buffer_free((*buffers)[i]);
     }
-    free(*buffers);
+    ggml_raw_free(*buffers);
 }
 
 static bool alloc_tensor_range(struct ggml_context * ctx,
@@ -1134,7 +1134,7 @@ static bool alloc_tensor_range(struct ggml_context * ctx,
         return false;
     }
 
-    *buffers = realloc(*buffers, sizeof(ggml_backend_buffer_t) * (*n_buffers + 1));
+    *buffers = ggml_realloc(*buffers, sizeof(ggml_backend_buffer_t) * (*n_buffers + 1));
     (*buffers)[(*n_buffers)++] = buffer;
 
     struct ggml_tallocr tallocr = ggml_tallocr_new(buffer);
@@ -1222,7 +1222,7 @@ static ggml_backend_buffer_t ggml_backend_alloc_ctx_tensors_from_buft_impl(
         buffer = ggml_backend_multi_buffer_alloc_buffer(buffers, n_buffers);
     }
     if (buffers) {
-        free(buffers); // can be NULL if context is empty or no_alloc
+        ggml_raw_free(buffers); // can be NULL if context is empty or no_alloc
     }
     return buffer;
 }

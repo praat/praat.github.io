@@ -482,30 +482,30 @@ struct whisper_batch {
 static struct whisper_batch whisper_batch_init(int32_t n_tokens, int32_t n_seq_max) {
     whisper_batch batch = { 0, nullptr, nullptr, nullptr, nullptr, nullptr, };
 
-    batch.token    = (whisper_token *  ) malloc(sizeof(whisper_token)    * (n_tokens));
-    batch.pos      = (whisper_pos *)     malloc(sizeof(whisper_pos)      * (n_tokens));
-    batch.n_seq_id = (int32_t *)         malloc(sizeof(int32_t)          * (n_tokens));
-    batch.seq_id   = (whisper_seq_id **) malloc(sizeof(whisper_seq_id *) * (n_tokens + 1));
+    batch.token    = (whisper_token *  ) ggml_malloc(sizeof(whisper_token)    * (n_tokens));
+    batch.pos      = (whisper_pos *)     ggml_malloc(sizeof(whisper_pos)      * (n_tokens));
+    batch.n_seq_id = (int32_t *)         ggml_malloc(sizeof(int32_t)          * (n_tokens));
+    batch.seq_id   = (whisper_seq_id **) ggml_malloc(sizeof(whisper_seq_id *) * (n_tokens + 1));
     for (int i = 0; i < n_tokens; ++i) {
-        batch.seq_id[i] = (whisper_seq_id *) malloc(sizeof(whisper_seq_id)   * n_seq_max);
+        batch.seq_id[i] = (whisper_seq_id *) ggml_malloc(sizeof(whisper_seq_id)   * n_seq_max);
     }
     batch.seq_id[n_tokens] = nullptr;
-    batch.logits   = (int8_t *)          malloc(sizeof(int8_t)           * n_tokens);
+    batch.logits   = (int8_t *)          ggml_malloc(sizeof(int8_t)           * n_tokens);
 
     return batch;
 }
 
 static void whisper_batch_free(struct whisper_batch batch) {
-    if (batch.token)    free(batch.token);
-    if (batch.pos)      free(batch.pos);
-    if (batch.n_seq_id) free(batch.n_seq_id);
+    if (batch.token)    ggml_raw_free(batch.token);
+    if (batch.pos)      ggml_raw_free(batch.pos);
+    if (batch.n_seq_id) ggml_raw_free(batch.n_seq_id);
     if (batch.seq_id) {
         for (int i = 0; batch.seq_id[i]; ++i) {
-            free(batch.seq_id[i]);
+            ggml_raw_free(batch.seq_id[i]);
         }
-        free(batch.seq_id);
+        ggml_raw_free(batch.seq_id);
     }
-    if (batch.logits)   free(batch.logits);
+    if (batch.logits)   ggml_raw_free(batch.logits);
 }
 
 static void whisper_batch_prep_legacy(whisper_batch & batch, const whisper_token * tokens, int n_tokens, int n_past, int seq_id) {
@@ -8188,8 +8188,8 @@ WHISPER_API const char * whisper_bench_memcpy_str(int n_threads) {
 
     // heat-up
     {
-        char * src = (char *) malloc(size);
-        char * dst = (char *) malloc(size);
+        char * src = (char *) ggml_malloc(size);
+        char * dst = (char *) ggml_malloc(size);
 
         for (size_t i = 0; i < size; i++) src[i] = i;
 
@@ -8217,14 +8217,14 @@ WHISPER_API const char * whisper_bench_memcpy_str(int n_threads) {
             for (size_t i = 0; i < size; i++) sum += dst[i];
         }
 
-        free(src);
-        free(dst);
+        ggml_raw_free(src);
+        ggml_raw_free(dst);
     }
 
     // single-thread
     {
-        char * src = (char *) malloc(size);
-        char * dst = (char *) malloc(size);
+        char * src = (char *) ggml_malloc(size);
+        char * dst = (char *) ggml_malloc(size);
 
         for (size_t i = 0; i < size; i++) src[i] = i;
 
@@ -8252,15 +8252,15 @@ WHISPER_API const char * whisper_bench_memcpy_str(int n_threads) {
             for (size_t i = 0; i < size; i++) sum += dst[i];
         }
 
-        free(src);
-        free(dst);
+        ggml_raw_free(src);
+        ggml_raw_free(dst);
     }
 
     // multi-thread
 
     for (int32_t k = 1; k <= n_threads; k++) {
-        char * src = (char *) malloc(size);
-        char * dst = (char *) malloc(size);
+        char * src = (char *) ggml_malloc(size);
+        char * dst = (char *) ggml_malloc(size);
 
         for (size_t i = 0; i < size; i++) src[i] = i;
 
@@ -8304,8 +8304,8 @@ WHISPER_API const char * whisper_bench_memcpy_str(int n_threads) {
             for (size_t i = 0; i < size; i++) sum += dst[i];
         }
 
-        free(src);
-        free(dst);
+        ggml_raw_free(src);
+        ggml_raw_free(dst);
     }
 
     snprintf(strbuf, sizeof(strbuf), "sum:    %f\n", sum);

@@ -367,6 +367,11 @@ extern "C" {
     GGML_NORETURN GGML_ATTRIBUTE_FORMAT(3, 4)
     GGML_API void ggml_abort(const char * file, int line, const char * fmt, ...);
 
+    GGML_API void * ggml_malloc(size_t size);
+    GGML_API void * ggml_calloc(size_t num, size_t size);
+    GGML_API void * ggml_realloc(void * ptr, size_t size);
+    GGML_API void ggml_raw_free(void * ptr);
+
     enum ggml_status {
         GGML_STATUS_ALLOC_FAILED = -2,
         GGML_STATUS_FAILED = -1,

@@ -112,6 +112,13 @@ To make GGML and Whisper-cpp compatible with Praat, we add the following to the 
 This works because `ggml.h` is included, directly or indirectly,
 at the very top of all `ggml` and `whisper` files (last checked 20260312), except:
 ggml-common.h, ggml-backend-dl.cpp, ggml-backend-dl.h, unary-ops.cpp, and unary-ops.h.
+Also, we add GGML_API memory wrappers declaration in `ggml.h` after declaring `ggml_abort()``:
+```
+    GGML_API void * ggml_malloc(size_t size);
+    GGML_API void * ggml_calloc(size_t num, size_t size);
+    GGML_API void * ggml_realloc(void * ptr, size_t size);
+    GGML_API void ggml_raw_free(void * ptr);
+```
 
 3.2. ggml.cpp
 -------------
@@ -136,6 +143,7 @@ Also, to register the allocations in our GGML memory pool, we add the following 
         theGgmlMemoryPool -> add (aligned_memory, size, true);   // third argument bool aligned = true
     }
 ```
+
 and the following to both ggml_malloc() and ggml_calloc():
 ```
     if (theGgmlMemoryPool) {
@@ -143,24 +151,34 @@ and the following to both ggml_malloc() and ggml_calloc():
         theGgmlMemoryPool -> add (result, size, false);   // third argument bool aligned = false
     }
 ```
+
 We also add the following to ggml_aligned_free():
 ```
     if (theGgmlMemoryPool)
         theGgmlMemoryPool -> remove (ptr, size);
 ```
-And we change `GGML_FREE` macro from `free(ptr)` to `ggml_raw_free(ptr)`:
+
+We define these two functions in ggml.cpp:
 ```
-#define GGML_FREE(ptr)         ggml_raw_free(ptr)
-```
-Now we declare a new GGML_API function in ggml-impl.h, right below `ggml_aligned_free()`:
-```
-GGML_API void * ggml_aligned_malloc(size_t size);
-GGML_API void ggml_aligned_free(void * ptr, size_t size);
-GGML_API void ggml_raw_free(void * ptr);   // <------------------- THIS ONE
-```
-And we also define this function in ggml.cpp:
-```
+void * ggml_realloc(void * ptr, size_t size) {
+    if (size == 0)
+        GGML_ABORT("Behavior may be unexpected when allocating 0 bytes for ggml_malloc!\n");
+
+    void * result = realloc(ptr, size);
+    if (! result)
+        GGML_ABORT("%s: failed to reallocate %6.2f MB\n", __func__, size/(1024.0*1024.0));
+
+    trace (U"Reallocated to new size ", size, U" bytes, old location ", Melder_pointer (ptr), U", new location ", Melder_pointer (result));
+    if (theGgmlMemoryPool) {
+        Melder_assert (size > 0);
+        theGgmlMemoryPool -> remove (ptr);
+        theGgmlMemoryPool -> add (result, size, false);
+    }
+    return result;
+}
+
 void ggml_raw_free(void *ptr) {
+    trace (U"Freeing memory at ", Melder_pointer (ptr));
     if (theGgmlMemoryPool)
         theGgmlMemoryPool -> remove (ptr);
 
@@ -168,9 +186,26 @@ void ggml_raw_free(void *ptr) {
 }
 ```
 
-3.3. whisper.h and whisper.cpp
+We remove `inline static` function specifiers from ggml_malloc() and ggml_calloc()
+and move following three macros definitions to the top, after ggml_abort,
+and we change `GGML_FREE` macro from `free(ptr)` to `ggml_raw_free(ptr)`:
+```
+#define GGML_MALLOC(size)      ggml_malloc(size)
+#define GGML_CALLOC(num, size) ggml_calloc(num, size)
+#define GGML_FREE(ptr)         ggml_raw_free(ptr)   // <------- CHANGE THIS
+```
+
+3.4. Find all the occurrences of raw `malloc`/`calloc`/`realloc`/`free` in the following files:
+    ggml.cpp,
+    ggml-alloc.cpp,
+    ggml-backend.cpp
+    ggml-quants.cpp
+    whisper.cpp
+and replace them with `ggml_malloc`/`ggml_calloc`/`ggml_realloc`/`ggml_raw_free`(be careful, NOT `ggml_free`, but `ggml_raw_free`).
+
+3.5. whisper.h and whisper.cpp
 ------------------------------
-3.3.1.
+3.5.1.
 ------
 To use silero model for speech detection from memory rather than from the external binary file,
 we add the following two variables to the `struct whisper_full_params` in whisper.h (in the section for VAD):
@@ -184,7 +219,7 @@ And we initialize them in whisper.cpp in whisper_full_default_params() (also in 
 		/*.vad_model_data_size		   =*/ 0,
 ```
 
-3.3.2.
+3.5.2.
 ------
 Then we declare a function which is responsible for loading the silero model from internal memory.
 We place it among other WHISPER_API in the section "Voice Activity Detection (VAD)"
@@ -228,7 +263,7 @@ struct whisper_vad_context * whisper_vad_init_from_memory_with_params (
 }
 ```
 
-3.3.3.
+3.5.3.
 ------
 In the same section "Voice Activity Detection (VAD)" in whisper.h, we also declare 5 functions which are meant to
 provide an interface for accessing information about VAD segments.
@@ -265,7 +300,7 @@ int64_t whisper_full_get_vad_segment_vad_end(struct whisper_context * ctx, int i
 }
 ```
 
-3.3.4.
+3.5.4.
 ------
 In whisper.cpp, function whisper_vad() is modified to include the reading from memory. This line:
 ```
@@ -281,7 +316,7 @@ is changed to these lines:
 		}
 ```
 
-3.3.5. Endianness
+3.5.5. Endianness
 -----------------
 Replace any occurrences of
 ```

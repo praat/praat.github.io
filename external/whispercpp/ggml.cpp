@@ -259,6 +259,10 @@ void ggml_abort(const char * file, int line, const char * fmt, ...) {
  	Melder_throw (Melder_peek8to32 (message));
 }
 
+#define GGML_MALLOC(size)      ggml_malloc(size)
+#define GGML_CALLOC(num, size) ggml_calloc(num, size)
+#define GGML_FREE(ptr)         ggml_raw_free(ptr)
+
 // ggml_print_backtrace is registered with std::set_terminate by ggml.cpp
 
 //
@@ -282,11 +286,11 @@ static void ggml_log_internal_v(enum ggml_log_level level, const char * format, 
     if (len < 128) {
         g_logger_state.log_callback(level, buffer, g_logger_state.log_callback_user_data);
     } else {
-        char * buffer2 = (char *) calloc(len + 1, sizeof(char));
+        char * buffer2 = (char *) GGML_CALLOC(len + 1, sizeof(char));
         vsnprintf(buffer2, len + 1, format, args_copy);
         buffer2[len] = 0;
         g_logger_state.log_callback(level, buffer2, g_logger_state.log_callback_user_data);
-        free(buffer2);
+        GGML_FREE(buffer2);
     }
     va_end(args_copy);
 }
@@ -406,7 +410,7 @@ void ggml_aligned_free(void * ptr, size_t size) {
 #endif
 }
 
-inline static void * ggml_malloc(size_t size) {
+void * ggml_malloc(size_t size) {
     if (size == 0)
         GGML_ABORT("Behavior may be unexpected when allocating 0 bytes for ggml_malloc!\n");
 
@@ -423,7 +427,7 @@ inline static void * ggml_malloc(size_t size) {
 }
 
 // calloc - allowing to return NULL
-inline static void * ggml_calloc(size_t num, size_t size) {
+void * ggml_calloc(size_t num, size_t size) {
     if (num == 0 || size == 0) {
         GGML_LOG_WARN("Behavior may be unexpected when allocating 0 bytes for ggml_calloc!\n");
         trace (U"Behavior may be unexpected when allocating 0 bytes for ggml_calloc!");
@@ -441,6 +445,23 @@ inline static void * ggml_calloc(size_t num, size_t size) {
     return result;
 }
 
+void * ggml_realloc(void * ptr, size_t size) {
+    if (size == 0)
+        GGML_ABORT("Behavior may be unexpected when allocating 0 bytes for ggml_malloc!\n");
+
+    void * result = realloc(ptr, size);
+    if (! result)
+        GGML_ABORT("%s: failed to reallocate %6.2f MB\n", __func__, size/(1024.0*1024.0));
+
+    trace (U"Reallocated to new size ", size, U" bytes, old location ", Melder_pointer (ptr), U", new location ", Melder_pointer (result));
+    if (theGgmlMemoryPool) {
+        Melder_assert (size > 0);
+        theGgmlMemoryPool -> remove (ptr);
+        theGgmlMemoryPool -> add (result, size, false);
+    }
+    return result;
+}
+
 void ggml_raw_free(void *ptr) {
     trace (U"Freeing memory at ", Melder_pointer (ptr));
     if (theGgmlMemoryPool)
@@ -448,11 +469,6 @@ void ggml_raw_free(void *ptr) {
 
     free (ptr);
 }
-
-#define GGML_MALLOC(size)      ggml_malloc(size)
-#define GGML_CALLOC(num, size) ggml_calloc(num, size)
-
-#define GGML_FREE(ptr)         ggml_raw_free(ptr)
 
 const char * ggml_status_to_string(enum ggml_status status) {
     switch (status) {
@@ -6613,7 +6629,7 @@ void ggml_build_backward_expand(
 
     memset(cgraph->grads,     0, cgraph->visited_hash_set.size*sizeof(struct ggml_tensor *));
     memset(cgraph->grad_accs, 0, cgraph->visited_hash_set.size*sizeof(struct ggml_tensor *));
-    bool * grads_needed = calloc(cgraph->visited_hash_set.size, sizeof(bool));
+    bool * grads_needed = GGML_CALLOC(cgraph->visited_hash_set.size, sizeof(bool));
 
     {
         bool any_params = false;
@@ -6697,7 +6713,7 @@ void ggml_build_backward_expand(
         ggml_compute_backward(ctx, cgraph, i, grads_needed);
     }
 
-    free(grads_needed);
+    GGML_FREE(grads_needed);
 }
 
 static void * incr_ptr_aligned(void ** p, size_t size, size_t align) {

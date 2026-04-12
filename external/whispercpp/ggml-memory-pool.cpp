@@ -17,7 +17,7 @@
  */
 
 #include "ggml-memory-pool.h"
-#include "ggml-impl.h"
+#include "ggml.h"
 #include "melder.h"
 
 GgmlMemoryPool *theGgmlMemoryPool = nullptr;

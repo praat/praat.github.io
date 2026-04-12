@@ -353,7 +353,6 @@ GGML_API bool ggml_op_can_inplace(enum ggml_op op);
 
 GGML_API void * ggml_aligned_malloc(size_t size);
 GGML_API void ggml_aligned_free(void * ptr, size_t size);
-GGML_API void ggml_raw_free(void * ptr);
 
 // FP16 <-> FP32
 // ref: https://github.com/Maratyszcza/FP16
