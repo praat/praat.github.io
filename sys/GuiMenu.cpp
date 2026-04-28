@@ -269,7 +269,7 @@ Thing_implement (GuiMenu, GuiThing, 0);
 		completionHandler: (void (^)(NSWindow *, NSError *)) completionHandler
 	{
 		//TRACE
-		trace (U"restoring window “", Melder_peek8to32 ([identifier UTF8String]), U"”");
+		trace (U"restoring window “", Melder_peek8to32_u ([identifier UTF8String]), U"”");
 		completionHandler (nil, nil);
 		return false;   // do nothing (implementing this function silences a warning at start-up)
 	}

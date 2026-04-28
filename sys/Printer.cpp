@@ -1,10 +1,10 @@
 /* Printer.cpp
  *
- * Copyright (C) 1998-2017,2021,2023,2025 Paul Boersma
+ * Copyright (C) 1998-2017,2021,2023,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -213,7 +213,7 @@ int Printer_print (void (*draw) (void *boss, Graphics g), void *boss) {
 			structMelderFile tempFile { };
 			char tempPath_utf8 [] = "/tmp/picXXXXXX";
 			close (mkstemp (tempPath_utf8));
-			Melder_pathToFile (Melder_peek8to32 (tempPath_utf8), & tempFile);
+			Melder_pathToFile (Melder_peek8to32_u (tempPath_utf8), & tempFile);
 			{// scope
 				autoGraphics graphics = Graphics_create_postscriptjob (& tempFile, thePrinter. resolution,
 					thePrinter. spots, thePrinter. paperSize, thePrinter. orientation, thePrinter. magnification);

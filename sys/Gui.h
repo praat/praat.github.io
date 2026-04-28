@@ -1197,9 +1197,8 @@ void GuiObject_destroy (GuiObject me);
 void Gui_setOpenDocumentCallback (void (*openDocumentCallback) (MelderFile file), void (*finishedOpeningDocumentsCallback) ());
 #endif
 
-#if defined (macintosh)
-void Gui_setQuitApplicationCallback (int (*quitApplicationCallback) (void));
-#endif
+void Gui_setQuitApplicationCallback (void (*quitApplicationCallback) ());
+void Gui_runQuitApplicationCallback ();
 
 extern uinteger theGuiTopLowAccelerators [8];
 

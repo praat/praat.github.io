@@ -2,11 +2,11 @@
 #define _melder_arg_h_
 /* MelderArg.h
  *
- * Copyright (C) 1992-2020,2022,2024 Paul Boersma
+ * Copyright (C) 1992-2020,2022,2024-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -55,7 +55,7 @@ struct MelderArg {
 	/*
 		There could be more types of arguments, but those are rare;
 		you have to use explicit conversion to one of the types above.
-		For instance, you can write a char* string by using Melder_peek8to32()
+		For instance, you can write a char* string by using Melder_peek8to32_u()
 		(which sometimes involves memory allocation),
 		and you can write a void* by using Melder_pointer()
 		(which never involves memory allocation).

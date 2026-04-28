@@ -1,6 +1,6 @@
 /* Sound_audio.cpp
  *
- * Copyright (C) 1992-2020,2022-2025 Paul Boersma
+ * Copyright (C) 1992-2020,2022-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -172,7 +172,7 @@ autoSound Sound_record_fixedTime (int inputSource, double gain, double balance, 
 			if (! MelderAudio_hasBeenInitialized) {
 				PaError err = Pa_Initialize ();
 				if (err)
-					Melder_throw (U"Pa_Initialize: ", Melder_peek8to32 (Pa_GetErrorText (err)));
+					Melder_throw (U"Pa_Initialize: ", Melder_peek8to32_u (Pa_GetErrorText (err)));
 				MelderAudio_hasBeenInitialized = true;
 			}
 		} else {
@@ -219,7 +219,7 @@ autoSound Sound_record_fixedTime (int inputSource, double gain, double balance, 
 			streamParameters. device = Pa_GetDefaultInputDevice ();
 			Melder_casual (U"streamParameters. device: ", (integer) streamParameters. device);
 			const PaDeviceInfo *paDeviceInfo = Pa_GetDeviceInfo (streamParameters. device);
-			Melder_casual (U"Name: ", Melder_peek8to32 (paDeviceInfo -> name));
+			Melder_casual (U"Name: ", Melder_peek8to32_u (paDeviceInfo -> name));
 		} else {
 			#if defined (macintosh)
 			#elif defined (linux) && ! defined (NO_AUDIO)
@@ -352,10 +352,10 @@ autoSound Sound_record_fixedTime (int inputSource, double gain, double balance, 
 				0,   // this gives the default of 64 samples per buffer on Paul's 2018 MacBook Pro (checked 20200813)
 				paNoFlag, portaudioStreamCallback, (void *) & info);
 			if (err)
-				Melder_throw (U"open ", Melder_peek8to32 (Pa_GetErrorText (err)));
+				Melder_throw (U"open ", Melder_peek8to32_u (Pa_GetErrorText (err)));
 			Pa_StartStream (portaudioStream);
 			if (err)
-				Melder_throw (U"start ", Melder_peek8to32 (Pa_GetErrorText (err)));
+				Melder_throw (U"start ", Melder_peek8to32_u (Pa_GetErrorText (err)));
 		} else {
 			#if defined (macintosh)
 			#elif defined (_WIN32)

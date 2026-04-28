@@ -1,13 +1,13 @@
 # meson.build of the external library "whisper"
-# David Weenink, 30 March 2026
+# David Weenink, 18 April 2026
 
 whisper_and_ggml_objects = '''
-	whisper.cpp	diarize.cpp ggml.c ggml-backend.cpp ggml-backend-dl.cpp
-	ggml-backend-reg.cpp ggml-alloc.c ggml-threading.cpp
-	ggml-quants.c'''.split()
+	whisper.cpp	diarize.cpp ggml.cpp ggml-type-traits.c ggml-memory-pool.cpp
+	ggml-backend.cpp ggml-backend-dl.cpp ggml-backend-reg.cpp ggml-alloc.cpp
+	ggml-threading.cpp ggml-quants.cpp'''.split()
 	
 ggml_cpu_objects = '''
-	ggml-cpu.c ggml-cpu-cpp.cpp traits.cpp quants.c
+	ggml-cpu.cpp ggml-cpu-cpp.cpp traits.cpp quants.c
 	unary-ops.cpp binary-ops.cpp ops.cpp vec.cpp'''.split()
 
 model_objects = '''
@@ -19,7 +19,7 @@ sources = whisper_and_ggml_objects + ggml_cpu_objects + model_objects
 libwhisper = static_library (
 	'whisper',
 	sources : sources,
-	include_directories : melder_inc
+	include_directories : [melder_inc, fon_inc, sys_inc]
 )
 
 libwhisper_dep = declare_dependency (

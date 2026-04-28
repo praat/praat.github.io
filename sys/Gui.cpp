@@ -1,6 +1,6 @@
 /* Gui.cpp
  *
- * Copyright (C) 1992-2008,2010-2017,2019-2021,2024,2025 Paul Boersma
+ * Copyright (C) 1992-2008,2010-2017,2019-2021,2024-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,11 +49,11 @@ int Gui_getResolution (GuiObject widget) {
 	void GuiGtk_initialize () {
 		static bool gtkHasBeenInitialized = false;
 		if (! gtkHasBeenInitialized) {
-			trace (U"before initing GTK: locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
+			trace (U"before initing GTK: locale is ", Melder_peek8to32_u (setlocale (LC_ALL, nullptr)));
 			gtk_disable_setlocale ();   // otherwise 1.5 will be written "1,5" on computers with a French or German locale
-			trace (U"during initing GTK: locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
+			trace (U"during initing GTK: locale is ", Melder_peek8to32_u (setlocale (LC_ALL, nullptr)));
 			gtk_init_check (nullptr, nullptr);
-			trace (U"after initing GTK: locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
+			trace (U"after initing GTK: locale is ", Melder_peek8to32_u (setlocale (LC_ALL, nullptr)));
 			gtkHasBeenInitialized = true;
 		}
 	}

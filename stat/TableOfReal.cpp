@@ -1,6 +1,6 @@
 /* TableOfReal.cpp
  *
- * Copyright (C) 1992-2023 Paul Boersma
+ * Copyright (C) 1992-2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -686,7 +686,7 @@ void TableOfReal_drawAsNumbers (TableOfReal me, Graphics graphics, integer rowmi
 		for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
 			char text [40];
 			print4 (text, my data [irow] [icol], iformat, 0, precision);
-			Graphics_text (graphics, icol, y, Melder_peek8to32 (text));
+			Graphics_text (graphics, icol, y, Melder_peek8to32_u (text));
 		}
 	}
 	if (maxTextHeight != 0.0) {
@@ -726,7 +726,7 @@ void TableOfReal_drawAsNumbers_if (TableOfReal me, Graphics graphics, integer ro
 			for (integer icol = 1; icol <= my numberOfColumns; icol ++) if (conditions -> z [irow] [icol] != 0.0) {
 				char text [40];
 				print4 (text, my data [irow] [icol], iformat, 0, precision);
-				Graphics_text (graphics, icol, y, Melder_peek8to32 (text));
+				Graphics_text (graphics, icol, y, Melder_peek8to32_u (text));
 			}
 		}
 		if (maxTextHeight != 0.0) {

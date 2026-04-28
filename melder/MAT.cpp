@@ -1,6 +1,6 @@
 /* MAT.cpp
  *
- * Copyright (C) 2017-2021,2025 Paul Boersma
+ * Copyright (C) 2017-2021,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -493,7 +493,7 @@ void MATmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU co
 				int externalGpuDeviceNumber = -1, discreteGpuDeviceNumber = -1;
 				for (NSUInteger idevice = 0; idevice < numberOfGpuDevices; idevice ++) {
 					id <MTLDevice> device = [gpuDeviceList objectAtIndex: idevice];
-					autostring32 deviceName = Melder_8to32 ([[device name] UTF8String]);
+					autostring32 deviceName = Melder_8to32_e ([[device name] UTF8String]);
 					Melder_casual (U"GPU device ", idevice, U": ", deviceName.get());
 					if (device. removable)
 						externalGpuDeviceNumber = int (idevice);
@@ -507,7 +507,7 @@ void MATmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU co
 				else
 					gpuDevice = MTLCreateSystemDefaultDevice ();   // unlikely fallback
 			}
-			autostring32 deviceName = Melder_8to32 ([[gpuDevice name] UTF8String]);
+			autostring32 deviceName = Melder_8to32_e ([[gpuDevice name] UTF8String]);
 			Melder_casual (U"GPU device for computing: ", deviceName.get());
 			gpuInited = true;
 			gpuQueue = [gpuDevice newCommandQueue];
@@ -613,9 +613,9 @@ void MATmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU co
 			/*
 				Save the error messages before the release of `commandBuffer` invalidates `error`.
 			*/
-			autostring32 localizedDescription = Melder_8to32 ([[error localizedDescription] UTF8String]);
-			autostring32 localizedFailureReason = Melder_8to32 ([[error localizedFailureReason] UTF8String]);
-			autostring32 localizedRecoverySuggestion = Melder_8to32 ([[error localizedRecoverySuggestion] UTF8String]);
+			autostring32 localizedDescription = Melder_8to32_e ([[error localizedDescription] UTF8String]);
+			autostring32 localizedFailureReason = Melder_8to32_e ([[error localizedFailureReason] UTF8String]);
+			autostring32 localizedRecoverySuggestion = Melder_8to32_e ([[error localizedRecoverySuggestion] UTF8String]);
 			[bufferX release];
 			[bufferY release];
 			[bufferTarget release];

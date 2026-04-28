@@ -1,6 +1,6 @@
 /* Table_dataSets.cpp
 	 *
- * Copyright (C) 1997-2022 David Weenink
+ * Copyright (C) 1997-2022 David Weenink, 2023,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -6527,7 +6527,7 @@ autoTable Table_create_hillenbrandEtAl1995 () {
 	autoTable me = Table_create (numberOfRows, numberOfColumns);
 	for (integer irow = 1; irow <= numberOfRows; irow ++) {
 		const TableRow row = my rows.at [irow];
-		conststring32 name = Melder_peek8to32 (hillenbranddata [irow - 1].name);
+		conststring32 name = Melder_peek8to32_u (hillenbranddata [irow - 1].name);
 		if (name [0] == U'm') {
 			row -> cells [1]. string = Melder_dup (U"m"); // Type
 			row -> cells [2]. string = Melder_dup (U"m"); // Sex

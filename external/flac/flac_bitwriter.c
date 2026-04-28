@@ -59,7 +59,7 @@ typedef FLAC__uint64 FLAC__bwtemp;
 #define FLAC__TEMP_BITS 64
 #define FLAC__HALF_TEMP_BITS 32
 /* SWAP_BE_WORD_TO_HOST swaps bytes in a bwword (which is always big-endian) if necessary to match host byte order */
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
 #define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_32(x)
@@ -74,7 +74,7 @@ typedef FLAC__uint64 FLAC__bwtemp;
 #define FLAC__TEMP_BITS 64
 #define FLAC__HALF_TEMP_BITS 32
 /* SWAP_BE_WORD_TO_HOST swaps bytes in a bwword (which is always big-endian) if necessary to match host byte order */
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
 #define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_64(x)

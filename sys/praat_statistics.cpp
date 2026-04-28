@@ -1,6 +1,6 @@
 /* praat_statistics.cpp
  *
- * Copyright (C) 1992-2012,2014-2022,2024,2025 Paul Boersma & David Weenink
+ * Copyright (C) 1992-2012,2014-2022,2024-2026 Paul Boersma & David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ void praat_statistics_prefsChanged () {
 	if (! statistics.dateOfFirstSession [0]) {
 		time_t today = time (nullptr);
 		char32 *newLine;
-		str32cpy (statistics.dateOfFirstSession, Melder_peek8to32 (ctime (& today)));
+		str32cpy (statistics.dateOfFirstSession, Melder_peek8to32_u (ctime (& today)));
 		newLine = str32chr (statistics.dateOfFirstSession, U'\n');
 		if (newLine) *newLine = '\0';
 	}
@@ -104,7 +104,7 @@ void praat_reportFloatingPointProperties () {
 void praat_reportTextProperties () {
 	MelderInfo_open ();
 	MelderInfo_writeLine (U"Text properties of this edition of Praat on this computer:\n");
-	MelderInfo_writeLine (U"Locale: ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
+	MelderInfo_writeLine (U"Locale: ", Melder_peek8to32_u (setlocale (LC_ALL, nullptr)));
 	MelderInfo_writeLine (U"A \"char\" is ",                                      8, U" bits.");
 	constexpr bool charIsSigned = ( (int) (char) 200 < 0 );
 	if (charIsSigned)
@@ -143,7 +143,7 @@ static kleenean hasFullDiskAccess () {
 		[nsUserHomeFolderPath stringByAppendingPathComponent: @"Library/Safari/CloudTabs.db"]
 	);
 	structMelderFile file { };
-	Melder_pathToFile (Melder_peek8to32 ([perhapsUnreadableFilePath UTF8String]), & file);
+	Melder_pathToFile (Melder_peek8to32_u ([perhapsUnreadableFilePath UTF8String]), & file);
 	if (! MelderFile_exists (& file))
 		return kleenean_UNKNOWN;
 	if (! MelderFile_readable (& file))
@@ -223,14 +223,14 @@ void praat_reportSystemProperties () {
 		MelderInfo_writeLine (U"Full Disk Access: ", Melder_kleenean (hasFullDiskAccess ()));
 		MelderInfo_writeLine (U"Sandboxed: ", Melder_boolean (isSandboxed ()));
 		if (isSandboxed ())
-			MelderInfo_writeLine (U"Sandbox (application home) folder: ", Melder_peek8to32 ([NSHomeDirectory ()   UTF8String]));
-		MelderInfo_writeLine (U"User home folder: ", Melder_peek8to32 ([getRealHomeDirectory ()   UTF8String]));
+			MelderInfo_writeLine (U"Sandbox (application home) folder: ", Melder_peek8to32_u ([NSHomeDirectory ()   UTF8String]));
+		MelderInfo_writeLine (U"User home folder: ", Melder_peek8to32_u ([getRealHomeDirectory ()   UTF8String]));
 		NSRunningApplication *currentApplication = [NSRunningApplication currentApplication];
 		pid_t processID = [currentApplication processIdentifier];
 		Melder_assert (processID == getpid());
 		MelderInfo_writeLine (U"Process ID: ", processID);
-		MelderInfo_writeLine (U"Localized app name: ", Melder_peek8to32 ([[currentApplication localizedName] UTF8String]));
-		MelderInfo_writeLine (U"App bundle identifier: ", Melder_peek8to32 ([[currentApplication bundleIdentifier] UTF8String]));
+		MelderInfo_writeLine (U"Localized app name: ", Melder_peek8to32_u ([[currentApplication localizedName] UTF8String]));
+		MelderInfo_writeLine (U"App bundle identifier: ", Melder_peek8to32_u ([[currentApplication bundleIdentifier] UTF8String]));
 	#endif // macintosh
 	#ifdef _WIN32
 		MelderInfo_writeLine (U"SM_CXFIXEDFRAME: ", GetSystemMetrics (SM_CXFIXEDFRAME));
@@ -289,7 +289,7 @@ static void testFont (PangoFontMap *pangoFontMap, PangoContext *pangoContext, co
 	PangoFont *pangoFont = pango_font_map_load_font (pangoFontMap, pangoContext, pangoFontDescription);
 	PangoFontDescription *pangoFontDescription2 = pango_font_describe (pangoFont);
 	const char *familyName = pango_font_description_get_family (pangoFontDescription2);
-	MelderInfo_writeLine (U"Asking for font ", fontName, U" gives ", Melder_peek8to32 (familyName), U".");
+	MelderInfo_writeLine (U"Asking for font ", fontName, U" gives ", Melder_peek8to32_u (familyName), U".");
 }
 #endif // cairo
 void praat_reportFontProperties () {
@@ -315,7 +315,7 @@ void praat_reportFontProperties () {
 		int numberOfFamilies;
 		pango_font_map_list_families (pangoFontMap, & families, & numberOfFamilies);
 		for (int i = 0; i < numberOfFamilies; i ++)
-			MelderInfo_writeLine (i, U" ", Melder_peek8to32 (pango_font_family_get_name (families [i])));
+			MelderInfo_writeLine (i, U" ", Melder_peek8to32_u (pango_font_family_get_name (families [i])));
 		g_free (families);
 	#endif // cairo
 	MelderInfo_close ();

@@ -1,6 +1,6 @@
 /* Praat_tests.cpp
  *
- * Copyright (C) 2001-2007,2009,2011-2025 Paul Boersma, David Weenink 2025
+ * Copyright (C) 2001-2007,2009,2011-2026 Paul Boersma, David Weenink 2025
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -244,7 +244,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 					strcpy (buffer + strlen (buffer), word);
 			}
 			t = Melder_stopwatch ();
-			MelderInfo_writeLine (Melder_peek8to32 (buffer));
+			MelderInfo_writeLine (Melder_peek8to32_u (buffer));
 		} break;
 		case kPraatTests::TIME_WCSCPY: {
 			wchar_t buffer [100];

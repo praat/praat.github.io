@@ -1,10 +1,10 @@
 /* Editor.cpp
  *
- * Copyright (C) 1992-2024 Paul Boersma, 2008 Stefan de Konink, 2010 Franz Brausse
+ * Copyright (C) 1992-2024,2026 Paul Boersma, 2008 Stefan de Konink, 2010 Franz Brausse
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -364,7 +364,7 @@ void structEditor :: v1_info () {
 	MelderInfo_writeLine (U"Editor type: ", Thing_className (this));
 	MelderInfo_writeLine (U"Editor name: ", our name ? our name.get() : U"<no name>");
 	time_t today = time (nullptr);
-	MelderInfo_writeLine (U"Date: ", Melder_peek8to32 (ctime (& today)));   // includes a newline
+	MelderInfo_writeLine (U"Date: ", Melder_peek8to32_u (ctime (& today)));   // includes a newline
 	if (our data()) {
 		MelderInfo_writeLine (U"Data type: ", our data() -> classInfo -> className);
 		MelderInfo_writeLine (U"Data name: ", our data() -> name.get());
@@ -404,7 +404,11 @@ static void menu_cb_sendBackToCallingProgram (Editor me, EDITOR_ARGS) {
 static void menu_cb_close (Editor me, EDITOR_ARGS) {
 	my v_goAway ();
 	if (optionalInterpreter && (optionalInterpreter -> optionalOwningEnvironmentEditor() == me || optionalInterpreter -> optionalDynamicEnvironmentEditor() == me))
-		optionalInterpreter -> undangleEditorEnvironments();
+		optionalInterpreter -> undangleEditorEnvironments ();
+}
+
+static void menu_cb_quit (Editor /* me */, EDITOR_ARGS) {
+	Gui_runQuitApplicationCallback ();
 }
 
 static void menu_cb_undo (Editor me, EDITOR_ARGS) {
@@ -654,6 +658,9 @@ void Editor_init (Editor me, int x, int y, int width, int height, conststring32 
 		if (my callbackSocket)
 			EditorMenu_addCommand (my fileMenu, U"Send back to calling program", 0, menu_cb_sendBackToCallingProgram);
 		EditorMenu_addCommand (my fileMenu, U"Close", 'W', menu_cb_close);
+		#ifndef macintosh
+			EditorMenu_addCommand (my fileMenu, Melder_cat (U"Quit ", Melder_upperCaseAppName (), U" || Quit"), 'Q', menu_cb_quit);
+		#endif
 	}
 	GuiThing_show (my windowForm);
 }

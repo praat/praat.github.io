@@ -1,7 +1,7 @@
 # File: makefile.defs.cygwin-mingw64
 
 # System: MinGW on Windows under Cygwin
-# Paul Boersma, 29 December 2025
+# Paul Boersma, 5 April 2026
 
 PREFIX ?= x86_64-w64-mingw32-
 
@@ -10,7 +10,6 @@ CXX = $(PREFIX)g++
 LINK = $(CXX)
 
 COMMONFLAGS = -municode -D_FILE_OFFSET_BITS=64 \
-	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
 	-O3
 # Probably implicit: -m64 -mwin32 -march=x86_64 -mtune=generic
 

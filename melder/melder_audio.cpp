@@ -1,6 +1,6 @@
 /* melder_audio.cpp
  *
- * Copyright (C) 1992-2022 Paul Boersma, David Weenink
+ * Copyright (C) 1992-2022,2025,2026 Paul Boersma, David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -620,22 +620,22 @@ void pulseAudio_server_info_cb (pa_context *context, const pa_server_info *info,
 	if ((my pulseAudio.occupation & PA_QUERY_NUMBEROFCHANNELS) != PA_QUERY_NUMBEROFCHANNELS) {
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"PulseAudio Server characteristics:");
-		MelderInfo_writeLine (U"User name: ", Melder_peek8to32 (info -> user_name));
-		MelderInfo_writeLine (U"Host name: ", Melder_peek8to32 (info -> host_name));
-		MelderInfo_writeLine (U"Server version: ", Melder_peek8to32 (info -> server_version));
-		MelderInfo_writeLine (U"Server name: ", Melder_peek8to32 (info -> server_name));
+		MelderInfo_writeLine (U"User name: ", Melder_peek8to32_u (info -> user_name));
+		MelderInfo_writeLine (U"Host name: ", Melder_peek8to32_u (info -> host_name));
+		MelderInfo_writeLine (U"Server version: ", Melder_peek8to32_u (info -> server_version));
+		MelderInfo_writeLine (U"Server name: ", Melder_peek8to32_u (info -> server_name));
 		MelderInfo_writeLine (U"Sample specification: ");
 			MelderInfo_writeLine (U"\tNumber of channels: ", my numberOfChannels);
 			MelderInfo_writeLine (U"\tSampling frequency: ", sp -> rate);
 			const char *sample_format_string = pa_sample_format_to_string (sp -> format);
-			MelderInfo_writeLine (U"\tSample format: ", Melder_peek8to32 (sample_format_string));
-		MelderInfo_writeLine (U"Default sink name: ", Melder_peek8to32 (info -> default_sink_name));
-		MelderInfo_writeLine (U"Default source name: ", Melder_peek8to32 (info -> default_source_name));
+			MelderInfo_writeLine (U"\tSample format: ", Melder_peek8to32_u (sample_format_string));
+		MelderInfo_writeLine (U"Default sink name: ", Melder_peek8to32_u (info -> default_sink_name));
+		MelderInfo_writeLine (U"Default source name: ", Melder_peek8to32_u (info -> default_source_name));
 		const pa_channel_map *cm = &(info -> channel_map);
 		MelderInfo_writeLine (U"Channel specification: ");
 		for (integer channel = 1; channel <= cm -> channels; channel++) {
 			const char *channel_text = pa_channel_position_to_pretty_string (cm -> map[channel - 1]); // 0-..
-			MelderInfo_writeLine (U"\t Channel ", channel, U": ", Melder_peek8to32 (channel_text));
+			MelderInfo_writeLine (U"\t Channel ", channel, U": ", Melder_peek8to32_u (channel_text));
 		}
 		MelderInfo_close ();
 	}
@@ -655,7 +655,7 @@ void pulseAudio_serverReport () {
 			pa_operation *operation = pa_context_get_server_info (my pulseAudio.context, pulseAudio_server_info_cb, me);
 			trace (U"operation started");
 			if (! operation) {
-				Melder_throw (U"pulseAudioServer report: ", Melder_peek8to32 (pa_strerror (pa_context_errno (my pulseAudio.context))));
+				Melder_throw (U"pulseAudioServer report: ", Melder_peek8to32_u (pa_strerror (pa_context_errno (my pulseAudio.context))));
 			}
 			while ((my pulseAudio.occupation & PA_GETTINGINFO_DONE) != PA_GETTINGINFO_DONE) {
 				pa_threaded_mainloop_wait (my pulseAudio.mainloop);
@@ -752,7 +752,7 @@ void stream_write_cb2 (pa_stream *stream, size_t length, void *userdata) {
 			} else {
 				writeSize_samples = my samplesLeft < writeSize_samples ? my samplesLeft : writeSize_samples;
 				if (pa_stream_write (stream, my playBuffer + my samplesSent * my numberOfChannels, 2 * writeSize_samples * my numberOfChannels, free_cb, 0, PA_SEEK_RELATIVE) < 0) {
-					 Melder_throw (U"pa_stream_write() failed: ", Melder_peek8to32 (pa_strerror (pa_context_errno (my pulseAudio.context))));
+					 Melder_throw (U"pa_stream_write() failed: ", Melder_peek8to32_u (pa_strerror (pa_context_errno (my pulseAudio.context))));
 				}
 				integer samplesSent = writeSize_samples;
 				my samplesSent += samplesSent;
@@ -815,7 +815,7 @@ void stream_write_cb (pa_stream *stream, size_t length, void *userdata) {
 				//memset (pa_buffer, 0, nbytes);
 				
 				if (pa_stream_write (stream, pa_buffer, nbytes, nullptr, 0, PA_SEEK_RELATIVE) < 0) {
-					 Melder_throw (U"pa_stream_write() failed: ", Melder_peek8to32 (pa_strerror (pa_context_errno (my pulseAudio.context))));
+					 Melder_throw (U"pa_stream_write() failed: ", Melder_peek8to32_u (pa_strerror (pa_context_errno (my pulseAudio.context))));
 				}
 				Melder_assert (nbytes % (my numberOfChannels * 2) == 0);
 				integer samplesSent = nbytes / (my numberOfChannels * 2);
@@ -898,7 +898,7 @@ void prepare_and_play (struct MelderPlay *me) {
 	my pulseAudio.sample_spec.channels = my numberOfChannels;
 	my pulseAudio.stream = pa_stream_new (my pulseAudio.context, "Praat", &(my pulseAudio.sample_spec), nullptr);
 	if (! my pulseAudio.stream) {
-		Melder_throw (U"Cannot connect to sound server: ", Melder_peek8to32 (pa_strerror (pa_context_errno (my pulseAudio.context))));
+		Melder_throw (U"Cannot connect to sound server: ", Melder_peek8to32_u (pa_strerror (pa_context_errno (my pulseAudio.context))));
 	}
 
 	//my pulseAudio.stream_flags = PA_STREAM_NOFLAGS;
@@ -924,7 +924,7 @@ void prepare_and_play (struct MelderPlay *me) {
 	//
 	my pulseAudio.stream_flags = PA_STREAM_NOFLAGS;
 	if (pa_stream_connect_playback (my pulseAudio.stream, nullptr, & my pulseAudio.buffer_attr, my pulseAudio.stream_flags, nullptr, nullptr) < 0) {
-		Melder_throw (U"pa_stream_connect_playback() failed: ", Melder_peek8to32 (pa_strerror (pa_context_errno (my pulseAudio.context))));
+		Melder_throw (U"pa_stream_connect_playback() failed: ", Melder_peek8to32_u (pa_strerror (pa_context_errno (my pulseAudio.context))));
 	}
 	trace (U"tlength = ", my pulseAudio.buffer_attr.tlength, U", channels = ", my numberOfChannels);
 }
@@ -958,7 +958,7 @@ void context_state_cb (pa_context *context, void *userdata) {
 				my pulseAudio.operation_info = pa_context_get_server_info (my pulseAudio.context, pulseAudio_server_info_cb, me);
 				trace (U"operation started");
 				if (! my pulseAudio.operation_info) {
-					Melder_throw (U"pulseAudioServer report: ", Melder_peek8to32 (pa_strerror (pa_context_errno (my pulseAudio.context))));
+					Melder_throw (U"pulseAudioServer report: ", Melder_peek8to32_u (pa_strerror (pa_context_errno (my pulseAudio.context))));
 				}
 			} else if ((my pulseAudio.occupation & PA_WRITING) == PA_WRITING) {
 				prepare_and_play (me);
@@ -1079,7 +1079,7 @@ void MelderAudio_play16 (int16 *buffer, integer sampleRate, integer numberOfSamp
 		if (! MelderAudio_hasBeenInitialized) {
 			err = Pa_Initialize ();
 			if (err)
-				Melder_crash (U"PortAudio does not initialize: ", Melder_peek8to32 (Pa_GetErrorText (err)));
+				Melder_crash (U"PortAudio does not initialize: ", Melder_peek8to32_u (Pa_GetErrorText (err)));
 			MelderAudio_hasBeenInitialized = true;
 		}
 		my supports_paComplete = Pa_GetHostApiInfo (Pa_GetDefaultHostApi ()) -> type != paDirectSound &&0;
@@ -1090,7 +1090,7 @@ void MelderAudio_play16 (int16 *buffer, integer sampleRate, integer numberOfSamp
 		const PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo (outputParameters. device);
 		if (! deviceInfo)
 			Melder_throw (U"PortAudio finds no info for device ", outputParameters. device, U".\nCannot play sound.");
-		//Melder_casual (U"MelderAudio_play16: ", Melder_peek8to32 (deviceInfo -> name));
+		//Melder_casual (U"MelderAudio_play16: ", Melder_peek8to32_u (deviceInfo -> name));
 		trace (U"the device can handle ", deviceInfo -> maxOutputChannels, U" channels");
 		Melder_clipRight (& my numberOfChannels, integer (deviceInfo -> maxOutputChannels));
 		if (numberOfChannels > my numberOfChannels) {
@@ -1127,11 +1127,11 @@ void MelderAudio_play16 (int16 *buffer, integer sampleRate, integer numberOfSamp
 		err = Pa_OpenStream (& my stream, nullptr, & outputParameters, my sampleRate, paFramesPerBufferUnspecified,
 			paDitherOff, thePaStreamCallback, me);
 		if (err)
-			Melder_throw (U"PortAudio cannot open sound output: ", Melder_peek8to32 (Pa_GetErrorText (err)), U".");
+			Melder_throw (U"PortAudio cannot open sound output: ", Melder_peek8to32_u (Pa_GetErrorText (err)), U".");
 		theStartingTime = Melder_clock ();
 		err = Pa_StartStream (my stream);
 		if (err)
-			Melder_throw (U"PortAudio cannot start sound output: ", Melder_peek8to32 (Pa_GetErrorText (err)), U".");
+			Melder_throw (U"PortAudio cannot start sound output: ", Melder_peek8to32_u (Pa_GetErrorText (err)), U".");
 		my paStartingTime = Pa_GetStreamTime (my stream);
 		if (my asynchronicity <= kMelder_asynchronicityLevel::INTERRUPTABLE) {
 			for (;;) {

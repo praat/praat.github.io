@@ -28,6 +28,10 @@ oo_DEFINE_CLASS (SpeechRecognizer, Daata)
 		autoWhisperContext whisperContext;
 	#endif
 
+	#if oo_DESTROYING
+		theLivingSpeechRecognizers.erase (this);   // undangle
+	#endif
+
 oo_END_CLASS (SpeechRecognizer)
 #undef ooSTRUCT
 

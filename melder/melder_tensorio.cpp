@@ -1,10 +1,10 @@
 /* melder_tensorio.cpp
  *
- * Copyright (C) 1992-2018,2020 Paul Boersma
+ * Copyright (C) 1992-2018,2020,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -39,7 +39,7 @@
 			try { \
 				result [i] = texget##storage (text); \
 			} catch (MelderError) { \
-				Melder_throw (U"Could not read ", Melder_peek8to32 (name), U" [", i, U"]."); \
+				Melder_throw (U"Could not read ", Melder_peek8to32_u (name), U" [", i, U"]."); \
 			} \
 		} \
 		return result; \
@@ -76,7 +76,7 @@
 			try { \
 				result [irow] [icol] = texget##storage (text); \
 			} catch (MelderError) { \
-				Melder_throw (U"Could not read ", Melder_peek8to32 (name), U" [", irow, U"] [", icol, U"]."); \
+				Melder_throw (U"Could not read ", Melder_peek8to32_u (name), U" [", irow, U"] [", icol, U"]."); \
 			} \
 		} \
 		return result; \
@@ -120,7 +120,7 @@
 					try { \
 						result [idim1] [idim2] [idim3] = texget##storage (text); \
 					} catch (MelderError) { \
-						Melder_throw (U"Could not read ", Melder_peek8to32 (name), U" [", idim1, U"] [", idim2, U"] [", idim3, U"]."); \
+						Melder_throw (U"Could not read ", Melder_peek8to32_u (name), U" [", idim1, U"] [", idim2, U"] [", idim3, U"]."); \
 					} \
 				} \
 			} \

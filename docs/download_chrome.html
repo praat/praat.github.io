@@ -55,23 +55,23 @@ If you also see <b>x86_64</b> on <i>your</i> Chromebook, then you are lucky,
 because a Linux edition for Intel64 processors is available from
 the download page that you are reading now. Here it is:</p>
 <dl>
-<dd><b><a href="https://github.com/praat/praat/releases/download/v6.4.62/praat6462_chrome-intel64.tar.gz">praat6462_chrome-intel64.tar.gz</a></b> (13 March 2026; 31.3 MB)
+<dd><b><a href="https://github.com/praat/praat/releases/download/v6.4.65/praat6465_chrome-intel64.tar.gz">praat6465_chrome-intel64.tar.gz</a></b> (24 April 2026; 62.7 MB)
 </dl>
 <p>If the next-to-last word is <b>aarch64</b> instead,
 this means that your Chromebook is powered by an ARM64 (i.e. 64-bit ARM) processor.
 Again, you are lucky, because a Linux edition for ARM64 processors is also available:</p>
 <dl>
-<dd><b><a href="https://github.com/praat/praat/releases/download/v6.4.62/praat6462_chrome-arm64.tar.gz">praat6462_chrome-arm64.tar.gz</a></b> (13 March 2026; 30.0 MB)
+<dd><b><a href="https://github.com/praat/praat/releases/download/v6.4.65/praat6465_chrome-arm64.tar.gz">praat6465_chrome-arm64.tar.gz</a></b> (24 April 2026; 61.4 MB)
 </dl>
 
 <p>When you download one of these two files, it will appear in your <b>Downloads</b> folder,
 which is another folder under <b>My files</b> (if the file doesn’t download when you click on it,
 then try right-click and choose <b>Save link as...</b> in your browser).</p>
 
-<p>Once the file praat6462_chrome-intel64.tar.gz or praat6462_chrome-arm64.tar.gz
+<p>Once the file praat6465_chrome-intel64.tar.gz or praat6465_chrome-arm64.tar.gz
 is in your <b>Downloads</b> folder, drag it from your <b>Downloads</b> folder to your <b>Linux files</b> folder.</p>
 
-<p>After you confirm that your <b>Linux files</b> folder contains praat6462_chrome-intel64.tar.gz (or its ARM64 friend),
+<p>After you confirm that your <b>Linux files</b> folder contains praat6465_chrome-intel64.tar.gz (or its ARM64 friend),
 you are ready to install Praat via the Terminal. Thus, open your Terminal app again and type:</p>
 <code>
 &nbsp;&nbsp;&nbsp;ls -al
@@ -80,7 +80,7 @@ you are ready to install Praat via the Terminal. Thus, open your Terminal app ag
 the resulting list shows a number of hidden files, with names that start with “.”,
 but it should also show you the file that you downloaded, probably in a line like this:</p>
 <code>
--rw-r--r-- 1 yourname yourname 14764270 Nov  7 09:52 praat6462_chrome-intel64.tar.gz
+-rw-r--r-- 1 yourname yourname 14764270 Nov  7 09:52 praat6465_chrome-intel64.tar.gz
 </code>
 <p>Here, 14764270 is the size of the file in bytes (i.e., the file is 14.7 MB big), “Nov 7 09:52” is the date and time
 at which the file was created (i.e. downloaded or copied), and “yourname” is the name
@@ -90,7 +90,7 @@ has been compressed by <b>gzip</b>,
 so you have to uncompress it by typing the following command into the Terminal window
 (i.e. type the text, followed by Enter):</p>
 <code>
-&nbsp;&nbsp;&nbsp;gunzip praat6462_chrome-intel64.tar.gz
+&nbsp;&nbsp;&nbsp;gunzip praat6465_chrome-intel64.tar.gz
 </code>
 <p>After this command, do</p>
 <code>
@@ -98,13 +98,13 @@ so you have to uncompress it by typing the following command into the Terminal w
 </code>
 <p>again, and you see that the file has been unpacked to something that is 55.2 MB big:</p>
 <code>
--rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6462_chrome-intel64.tar
+-rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6465_chrome-intel64.tar
 </code>
 <p>This file is still not the Praat app. The extension <b>.tar</b> means that the file
 has been archived by <b>tar</b>,
 so you have to unpack it again with the following command:</p>
 <code>
-&nbsp;&nbsp;&nbsp;tar xvf praat6462_chrome-intel64.tar
+&nbsp;&nbsp;&nbsp;tar xvf praat6465_chrome-intel64.tar
 </code>
 <p>where <b> xvf</b> stands for eXtract - Verbose - File. After this command, do</p>
 <code>
@@ -115,7 +115,7 @@ so you have to unpack it again with the following command:</p>
 in the <b>Linux files</b> folder):</p>
 <code>
 -rwxr-xr-x 1 yourname yourname 55235168 Jan &nbsp;3 00:51 praat<br>
--rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6462_chrome-intel64.tar
+-rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6465_chrome-intel64.tar
 </code>
 <p>You see that the file <b>praat</b> has the date and time at which it was originally
 created by the authors of Praat. The three little <i>x</i>es in <b>-rwxr-xr-x</b> mean
@@ -139,9 +139,9 @@ If you use Praat for the first time, choose <b>Intro</b> from the Help menu.</p>
 <p>This is the name by which the <b>Linux files</b> folder is known to Linux!
 So they are the same folder, known under two different names,
 depending on whether you look from the ChromeOS side or from the Linux side.</p>
-<p>You no longer need the file praat6462_chrome-intel64.tar. You can throw it away by typing</p>
+<p>You no longer need the file praat6465_chrome-intel64.tar. You can throw it away by typing</p>
 <code>
-&nbsp;&nbsp;&nbsp;rm praat6462_chrome-intel64.tar
+&nbsp;&nbsp;&nbsp;rm praat6465_chrome-intel64.tar
 </code>
 <p>where <code>rm</code> stands for “remove”.</p>
 
@@ -152,12 +152,12 @@ depending on whether you look from the ChromeOS side or from the Linux side.</p>
 <p>If instead of</p>
 <code>
 -rwxr-xr-x 1 yourname yourname 55235168 Jan &nbsp;3 00:51 praat<br>
--rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6462_chrome-intel64.tar
+-rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6465_chrome-intel64.tar
 </code>
 <p>you see</p>
 <code>
 -rw-r--r-- 1 yourname yourname 55235168 Jan &nbsp;3 00:51 praat<br>
--rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6462_chrome-intel64.tar
+-rw-r--r-- 1 yourname yourname 55200000 Jan &nbsp;3 00:51 praat6465_chrome-intel64.tar
 </code>
 <p>then the file <b>praat</b> is not executable, i.e. the command</p>
 <code>
@@ -261,5 +261,5 @@ you may want to start up Praat with X11 instead of Wayland:</p>
 
 <hr>
 Back to the <a href="/">Praat home page</a>.
-<font size=-1><br><br>(This page: &copy; Paul Boersma &amp; David Weenink 1992–2025, CC-BY-SA 4.0)</font>
+<font size=-1><br><br>(This page: &copy; Paul Boersma &amp; David Weenink 1992–2026, CC-BY-SA 4.0)</font>
 </body></html>

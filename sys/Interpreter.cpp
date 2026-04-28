@@ -1123,7 +1123,7 @@ void Interpreter_getArgumentsFromCommandLine (Interpreter me, integer argc, char
 		*/
 		if (iarg == argc)
 			Melder_throw (U"Found ", argc, U" arguments but expected more.");
-		my arguments [ipar] = Melder_8to32 (argv [iarg ++]);
+		my arguments [ipar] = Melder_8to32_e (argv [iarg ++]);
 		Melder_assert (my arguments [ipar]);
 	}
 	if (iarg < argc)

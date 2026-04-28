@@ -15,10 +15,10 @@ Acknowledgments
 <dl>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Paul Boersma: user interface, graphics, <a href="Printing.html">printing</a>, <a href="Intro.html">sound</a>, <a href="Intro_3__Spectral_analysis.html">spectral analysis</a>, <a href="Intro_4__Pitch_analysis.html">pitch analysis</a>, <a href="Intro_5__Formant_analysis.html">formant analysis</a>, <a href="Intro_6__Intensity_analysis.html">intensity analysis</a>, <a href="Intro_7__Annotation.html">annotation</a>, <a href="Intro_8__Manipulation.html">speech manipulation</a>, <a href="Voice.html">voice report</a>, <a href="ExperimentMFC.html">listening experiments</a>, <a href="Articulatory_synthesis.html">articulatory synthesis</a>, <a href="OT_learning.html">optimality-theoretic learning</a>, tables, <a href="Formulas.html">formulas</a>, <a href="Scripting.html">scripting</a>, and adaptation of PortAudio, GLPK, regular expressions, eSpeak, Opus and LAME.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;David Weenink: <a href="Feedforward_neural_networks.html">feedforward neural networks</a>, <a href="Principal_component_analysis.html">principal component analysis</a>, <a href="Multidimensional_scaling.html">multidimensional scaling</a>, <a href="Discriminant_analysis.html">discriminant analysis</a>, <a href="LPC.html">LPC</a>, <a href="KlattGrid.html">Acoustic synthesis (Klatt)</a>, automatic alignment, <a href="VowelEditor.html">VowelEditor</a>, <a href="FormantPath.html">FormantPath</a>, and adaptation of GSL, LAPACK, fftpack, regular expressions, eSpeak, Ogg Vorbis, Opus and LAME.</dd>
-<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Anastasia Shchupak: speech recognition, automatic orthographic transcription and alignment, and adaptation of Whisper.cpp.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Anastasia Shchupak: automatic speech recognition with word-level timestamps, automatic speaker diarization, and adaptation of Whisper.cpp, Silero VAD and Pyannote.</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Erez Volk: adaptation of FLAC and MAD.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Stefan de Konink and Franz Brau&#223;e: major help in port to GTK.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Tom Naughton: major help in port to Cocoa.</dd>
-<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Erez Volk: adaptation of FLAC and MAD.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Ola S&#246;der: kNN classifiers, k-means clustering.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Rafael Laboissi&#232;re: adaptation of XIPA, audio bug fixes for Linux.</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Darryl Purnell created the first version of audio for Praat for Linux.</dd>
@@ -41,7 +41,9 @@ Acknowledgments
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Regular expressions by Henry Spencer, Mark Edel, Christopher Conrad, Eddy De Greef (<a href="General_Public_License__version_2.html">GPL 2</a> or later).</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Unicode Character Database by Unicode Inc., version 16.0 of August 2024 (<a href="Unicode_Inc__license_agreement.html">Unicode Inc. license agreement</a>).</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Quickselect and Median of ninthers, by Andrei Alexandrescu 2016 (<a href="Boost_Software_License_1_0.html">Boost Software License 1.0</a>).</dd>
-<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;GGML (version 0.9.7) and Whisper.cpp (version 1.8.3), by Georgi Gerganov and many others (<a href="MIT_License.html">MIT License</a>), using separately installed Whisper models by OpenAI (also MIT License).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;GGML (version 0.9.7) and Whisper.cpp (version 1.8.3), by Georgi Gerganov and many others (<a href="GGML_and_whisper_cpp_MIT_License.html">GGML and whisper.cpp MIT License</a>), using separately installed Whisper models by OpenAI (<a href="Whisper_OpenAI_MIT_License.html">Whisper OpenAI MIT License</a>).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Silero VAD: Voice Activity Detection model (version 6.2.0) by the Silero Team, embedded in GGML format (<a href="Silero_VAD_MIT_License.html">Silero VAD MIT License</a>).</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;Pyannote: automatic speaker diarization by Herv&#233; Bredin, version 4.0.4 of February 2026.</dd>
 </dl>
 <p>Our own parts of the source code of Praat are distributed either under the <a href="General_Public_License__version_2.html">General Public License, version 2</a> or later, or under the <a href="General_Public_License__version_3.html">General Public License, version 3</a> or later. Because of this, combined with the inclusion of the above software written by others, the whole of Praat is distributed under the <a href="General_Public_License__version_3.html">General Public License, version 3</a> or later.</p>
 <p>For their financial support during the development of Praat:</p>
@@ -78,6 +80,8 @@ Acknowledgments
 <ul>
 <li><a href="eSpeak.html">eSpeak</a>
 <li><a href="License.html">License</a>
+<li><a href="Silero_VAD.html">Silero VAD</a>
+<li><a href="whisper_cpp.html">whisper.cpp</a>
 </ul>
 <hr>
 <address>

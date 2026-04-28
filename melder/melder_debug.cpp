@@ -1,6 +1,6 @@
 /* melder_debug.cpp
  *
- * Copyright (C) 2000-2025 Paul Boersma
+ * Copyright (C) 2000-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,7 +91,8 @@ the behaviour of Praat will temporarily change in the following ways:
 181: read and write native-endian real64
 900: use DG Meta Serif Science instead of Palatino
 1264: Mac: Sound_record_fixedTime uses microphone "FW Solo (1264)"
-2001: trace timing for Whispercpp
+2001: trace timing for whisper.cpp
+2002: use greedy sampling strategy for whisper.cpp (instead of the beam search)
 
 (negative values are for David)
 
@@ -259,7 +260,7 @@ void Melder_setTracing (bool tracing) {
 	if (! tracing)
 		trace (U"switch tracing off"
 			U" in Praat version ", Melder_appVersionSTR(),
-			U" at ", Melder_peek8to32 (ctime (& today))
+			U" at ", Melder_peek8to32_u (ctime (& today))
 		);
 	Melder_isTracingGlobally = tracing;
 	#if defined (linux) && ! defined (NO_GUI)
@@ -278,7 +279,7 @@ void Melder_setTracing (bool tracing) {
 	if (tracing)
 		trace (U"switch tracing on"
 			U" in Praat version ", Melder_appVersionSTR(),
-			U" at ", Melder_peek8to32 (ctime (& today))
+			U" at ", Melder_peek8to32_u (ctime (& today))
 		);
 }
 

@@ -1,0 +1,41 @@
+<html><head><meta name="robots" content="index,follow"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>TextGrid & Sound: Transcribe interval</title>
+<style>
+   td { padding-left: 5pt; padding-right: 5pt; }
+   th { padding-left: 5pt; padding-right: 5pt; }
+   code { white-space: pre-wrap; }
+   dd { white-space: pre-wrap; }
+</style>
+</head><body bgcolor="#FFFFFF">
+
+<table border=0 cellpadding=0 cellspacing=0><tr><td bgcolor="#CCCC00"><table border=4 cellpadding=9><tr><td align=middle bgcolor="#000000"><font face="Palatino,Times" size=6 color="#999900"><b>
+TextGrid & Sound: Transcribe interval
+</b></font></table></table>
+<p>Transcribes the audio in a specific interval of the selected <a href="TextGrid.html">TextGrid</a> using the <a href="whisper_cpp.html">whisper.cpp</a> engine, and writes the transcription result into the TextGrid.</p>
+<p>This command extracts the sound corresponding to the selected interval, runs speech recognition on it, and splits the interval into sentence-level sub-intervals with the recognized text as labels. Optionally, a word-level tier is also created.</p>
+<p>The original interval is split into multiple intervals, one per recognized sentence. Sentence boundaries are determined by terminal punctuation (periods, exclamation marks, question marks). If <b>Include words</b> is selected, then word-level alignment is also performed. For this, a new word tier is created if one does not already exist. The word tier then contains one interval per recognized word, with boundaries derived from Whisper's token-level timestamps produced using Dynamic Time Warping (DTW).</p>
+<h2>Settings</h2>
+<dl>
+<dt><b>Tier number</b>
+<dd>the number of the interval tier in which the interval to be transcribed resides.</dd>
+<dt><b>Interval number</b>
+<dd>the number of the interval within the tier to transcribe.</dd>
+<dt><b>Include words</b>
+<dd>if on, a new word-level tier is created (or reused if it already exists) directly below the selected tier. This tier is named by appending <b>/word</b> to the name of the selected tier. Then, each recognized word gets its own interval in the word tier, with word-level boundaries computed using <a href="whisper_cpp.html">whisper.cpp</a>'s internal DTW.</dd>
+<dt><b>Allow silences</b>
+<dd>if on, <a href="Silero_VAD.html">Silero VAD</a> (Voice Activity Detection) is used to detect and skip non-speech portions of the audio before recognition. This generally improves both speed and accuracy. Speed is improved by making the audio for recognition shorter, and accuracy by preventing Whisper from hallucinating text for silent segments.</dd>
+<dt><b>Whisper model</b>
+<dd>determines which Whisper model to use for recognition. The list is populated with the <b>.bin</b> files found in the <b>whispercpp</b> subfolder of the <b>models</b> folder in the Praat preferences folder. Models that contain <b>.en</b> in their name are English-only; all other models are multilingual.</dd>
+<dt><b>Language</b>
+<dd>determines the language to be recognized. Choose <b>Autodetect language</b> to let the model detect the language automatically. If you know the language of the audio, selecting it explicitly may improve recognition accuracy. Note that English-only models (those with <b>.en</b> in the name) can only be used with <b>Autodetect language</b> or <b>English</b>.</dd>
+</dl>
+<h2>Installing Whisper models</h2>
+<p>Before you can use the SpeechRecognizer, you need to install one or more Whisper model files (in GGML format, with extension <b>.bin</b>) into the subfolder <b>whispercpp</b> of the folder <b>models</b> in the Praat preferences folder.</p>
+<p>Whisper models come in several sizes, each offering a different trade-off between speed and accuracy. Model names that contain <b>.en</b> are English-only models. All other models are multilingual. Available model sizes are: <i>tiny</i>, <i>base</i>, <i>small</i>, <i>medium</i>, <i>large-v1</i>, <i>large-v2</i>, <i>large-v3</i>, and <i>large-v3-turbo</i> (also known as <i>turbo</i>). Larger models are more accurate but require more memory and processing time.</p>
+<p>Model files can be obtained from the Hugging Face repository at <b>https://huggingface.co/ggerganov/whisper.cpp/tree/main</b>.</p>
+<hr>
+<address>
+	<p>© Anastasia Shchupak 2026-03-15</p>
+</address>
+</body>
+</html>

@@ -1,10 +1,10 @@
 /* EditDistanceTable.cpp
  *
- * Copyright (C) 2012-2020,2022 David Weenink, 2025 Paul Boersma
+ * Copyright (C) 2012-2020,2022 David Weenink, 2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -352,7 +352,7 @@ void EditDistanceTable_draw (EditDistanceTable me, Graphics graphics, int iforma
 			char text [40];
 			print4 (text, my data [irow] [icol], iformat, 0, precision);
 			Graphics_setBold (graphics, onPath [irow] [icol]);
-			Graphics_text (graphics, icol, y, Melder_peek8to32 (text));
+			Graphics_text (graphics, icol, y, Melder_peek8to32_u (text));
 			if (onPath [irow] [icol]) {
 				Graphics_rectangle (graphics, icol - 0.5, icol + 0.5, y - 0.5 * lineSpacing, y + 0.5 * lineSpacing);
 			}

@@ -1,14 +1,13 @@
 # File: makefile.defs.msys-gcc
 
 # System: Mingw64 or Mingw32 on Windows under MSYS2
-# Paul Boersma, 29 December 2025
+# Paul Boersma, 5 April 2026
 
 CC = gcc
 CXX = g++
 LINK = $(CXX)
 
 COMMONFLAGS = -municode -D_FILE_OFFSET_BITS=64 \
-	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
 	-O3
 # Probably implicit: -m64 -mwin32 -march=x86_64 -mtune=generic
 

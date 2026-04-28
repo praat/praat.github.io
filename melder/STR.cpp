@@ -1,6 +1,6 @@
 /* STR.cpp
  *
- * Copyright (C) 2012-2017 David Weenink, 2008,2018,2020-2022,2024,2025 Paul Boersma
+ * Copyright (C) 2012-2017 David Weenink, 2008,2018,2020-2022,2024-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ autostring8 hex_STR8 (conststring8 string, uint64 key) {
 autostring32 hex_STR (conststring32 string, uint64 key) {
 	autostring8 string8 = Melder_32to8 (string);
 	string8 = hex_STR8 (string8.get(), key);
-	return Melder_8to32 (string8.get());
+	return Melder_8to32_e (string8.get());
 }
 
 autostring32 left_STR (conststring32 string, integer newLength) {
@@ -389,7 +389,7 @@ autostring8 unhex_STR8 (conststring8 string, uint64 key) {
 			Melder_throw (U"(unhex$:) incomplete hexadecimal string.");
 		const char *index1 = strchr (hexSymbols, code1), *index2 = strchr (hexSymbols, code2);
 		if (! index1 || ! index2)
-			Melder_throw (U"(unhex$:) not a hexadecimal string: ", Melder_peek8to32 (string));
+			Melder_throw (U"(unhex$:) not a hexadecimal string: ", Melder_peek8to32_u (string));
 		integer value = (index1 - hexSymbols) * 16 + (index2 - hexSymbols);
 		if (key != 0)
 			value = (value + 256 - NUMrandomInteger (0, 255)) % 256;
@@ -404,7 +404,7 @@ autostring8 unhex_STR8 (conststring8 string, uint64 key) {
 autostring32 unhex_STR (conststring32 string, uint64 key) {
 	autostring8 string8 = Melder_32to8 (string);
 	string8 = unhex_STR8 (string8.get(), key);
-	return Melder_8to32 (string8.get());
+	return Melder_8to32_e (string8.get());
 }
 
 autostring32 upperCase_STR (conststring32 string) {

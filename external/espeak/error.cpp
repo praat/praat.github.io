@@ -161,19 +161,19 @@ espeak_ng_PrintStatusCodeMessage(espeak_ng_STATUS status,
 		switch (context->type)
 		{
 		case ERROR_CONTEXT_FILE:
-			Melder_throw (U"Error processing file\"", Melder_peek8to32 (context->name), 
-				U"\":", Melder_peek8to32 (error)
+			Melder_throw (U"Error processing file\"", Melder_peek8to32_u (context->name), 
+				U"\":", Melder_peek8to32_u (error)
 			);
 			break;
 		case ERROR_CONTEXT_VERSION:
-			Melder_throw (U"eSpeak error: ", Melder_peek8to32  (error), U" at \"", 
-				Melder_peek8to32 (context->name), U"\" (expected ", context->expected_version, 
+			Melder_throw (U"eSpeak error: ", Melder_peek8to32_u  (error), U" at \"", 
+				Melder_peek8to32_u (context->name), U"\" (expected ", context->expected_version, 
 				U", got ", context->version
 			);
 			break;
 		}
 	} else
-		Melder_throw (U"eSpeak error: ", Melder_peek8to32  (error));
+		Melder_throw (U"eSpeak error: ", Melder_peek8to32_u  (error));
 }
 
 #pragma GCC visibility pop

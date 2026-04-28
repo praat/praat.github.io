@@ -1,6 +1,6 @@
 /* Graphics_record.cpp
  *
- * Copyright (C) 1992-2005,2007-2020,2023,2025 Paul Boersma
+ * Copyright (C) 1992-2005,2007-2020,2023,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,7 +121,7 @@ void Graphics_play (Graphics me, Graphics thee) {
 				const double x = get, y = get;
 				const integer length = iget;
 				const conststring8 text_utf8 = sget (length);
-				Graphics_text (thee, x, y, Melder_peek8to32 (text_utf8));
+				Graphics_text (thee, x, y, Melder_peek8to32_u (text_utf8));
 			} break;
 			case POLYLINE: {
 				const integer n = iget;
@@ -381,7 +381,7 @@ void Graphics_play (Graphics me, Graphics thee) {
 				const double x1 = get, x2 = get, y1 = get, y2 = get;
 				const integer length = iget;
 				const conststring8 text_utf8 = sget (length);
-				Graphics_imageFromFile (thee, Melder_peek8to32 (text_utf8), x1, x2, y1, y2);
+				Graphics_imageFromFile (thee, Melder_peek8to32_u (text_utf8), x1, x2, y1, y2);
 			}  break;
 			case POLYLINE_CLOSED: {
 				const integer n = iget;
@@ -434,7 +434,7 @@ void Graphics_play (Graphics me, Graphics thee) {
 				const double x1 = get, x2 = get, y1 = get, y2 = get;
 				const integer length = iget;
 				const conststring8 text_utf8 = sget (length);
-				Graphics_rectangleText_wrapAndTruncate (thee, x1, x2, y1, y2, Melder_peek8to32 (text_utf8));
+				Graphics_rectangleText_wrapAndTruncate (thee, x1, x2, y1, y2, Melder_peek8to32_u (text_utf8));
 			} break;
 			case RECTANGLE_TEXT_MAXIMAL_FIT: {
 				const double x1 = get, x2 = get, minimumHorizontalMargin_in_textHeights = get, minimumHorizontalMargin_mm = get;
@@ -442,7 +442,7 @@ void Graphics_play (Graphics me, Graphics thee) {
 				const integer length = iget;
 				const conststring8 text_utf8 = sget (length);
 				Graphics_rectangleText_maximalFit (thee, x1, x2, minimumHorizontalMargin_in_textHeights, minimumHorizontalMargin_mm,
-						y1, y2, minimumVerticalMargin_in_textHeights, minimumVerticalMargin_mm, Melder_peek8to32 (text_utf8));
+						y1, y2, minimumVerticalMargin_in_textHeights, minimumVerticalMargin_mm, Melder_peek8to32_u (text_utf8));
 			} break;
 			default:
 				my recording = wasRecording;

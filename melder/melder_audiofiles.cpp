@@ -1,6 +1,6 @@
 /* melder_audiofiles.cpp
  *
- * Copyright (C) 1992-2008,2010-2019,2021,2023-2025 Paul Boersma & David Weenink, 2007 Erez Volk (for FLAC)
+ * Copyright (C) 1992-2008,2010-2019,2021,2023-2026 Paul Boersma & David Weenink, 2007 Erez Volk (for FLAC)
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -471,7 +471,7 @@ static void Melder_checkAiffFile (FILE *f, integer *numberOfChannels, int *encod
 					U"File too small: no compression info.");
 				if (! strnequ (data, "NONE", 4) && ! strnequ (data, "sowt", 4)) {
 					data [4] = '\0';
-					Melder_throw (U"Cannot read compressed AIFC files (compression type ", Melder_peek8to32 (data), U").");
+					Melder_throw (U"Cannot read compressed AIFC files (compression type ", Melder_peek8to32_u (data), U").");
 				}
 				if (strnequ (data, "sowt", 4))
 					*encoding =
@@ -948,7 +948,7 @@ static void Melder_DecodeMp3_convert (const MP3F_SAMPLE *channels [MP3F_MAX_CHAN
 static void Melder_DecodeFlac_error (const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
 	(void) decoder;
 	(void) client_data;
-	Melder_warning (U"FLAC decoder error: ", Melder_peek8to32 (FLAC__StreamDecoderErrorStatusString [status]));
+	Melder_warning (U"FLAC decoder error: ", Melder_peek8to32_u (FLAC__StreamDecoderErrorStatusString [status]));
 }
 
 static void Melder_readFlacFile (FILE *f, MAT buffer) {

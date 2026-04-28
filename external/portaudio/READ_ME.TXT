@@ -25,6 +25,16 @@ Around pa_unix_util.c, do
 ...
 #endif
 
+Replace all occurrences of
+	#if defined (PA_BIG_ENDIAN)
+with
+	#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+and all occurrences of
+	#if defined (PA_LITTLE_ENDIAN)
+with
+	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+and as a result remove all of pa_endianness.h that has to do with these macros.
+
 Copy declarations from pa_unix_hostapis.c and pa_win_hostapis.c to pa_hostapi.h, like this:
 
 /*

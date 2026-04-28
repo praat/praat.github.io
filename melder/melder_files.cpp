@@ -87,9 +87,9 @@ void Melder_8bitFileRepresentationToStr32_inplace (const char *path8, char32 *pa
 				Probably something wrong, like a disk was disconnected in the meantime.
 			*/
 			try {
-				Melder_8to32_inplace (path8, path32, kMelder_textInputEncoding::UTF8);
+				Melder_8to32_inplace_e (path8, path32, kMelder_textInputEncoding::UTF8);
 			} catch (MelderError) {
-				Melder_8to32_inplace (path8, path32, kMelder_textInputEncoding::MACROMAN);   // cannot fail
+				Melder_8to32_inplace_e (path8, path32, kMelder_textInputEncoding::MACROMAN);   // cannot fail
 				Melder_throw (U"Unusual error finding or creating file <<", path32, U">> (MacRoman).");
 			}
 			Melder_throw (U"Unusual error finding or creating file ", path32, U".");
@@ -114,7 +114,7 @@ void Melder_8bitFileRepresentationToStr32_inplace (const char *path8, char32 *pa
 		path32 [n_utf32] = U'\0';
 		CFRelease (cfpath2);
 	#else
-		Melder_8to32_inplace (path8, path32, kMelder_textInputEncoding::UTF8);
+		Melder_8to32_inplace_e (path8, path32, kMelder_textInputEncoding::UTF8);
 	#endif
 }
 #endif
@@ -175,7 +175,7 @@ void Melder_relativePathToFile (conststring32 path, MelderFile file) {
 			We assume that Unix complete path names start with a slash.
 		*/
 		if (path [0] == U'~' && path [1] == U'/') {
-			Melder_sprint (file -> path,kMelder_MAXPATH+1, Melder_peek8to32 (getenv ("HOME")), & path [1]);
+			Melder_sprint (file -> path,kMelder_MAXPATH+1, Melder_peek8to32_u (getenv ("HOME")), & path [1]);
 		} else if (path [0] == U'/' || str32equ (path, U"<stdout>") || str32str (path, U"://")) {
 			Melder_sprint (file -> path,kMelder_MAXPATH+1, path);
 		} else {
@@ -240,7 +240,7 @@ void Melder_relativePathToFolder (conststring32 path, MelderFolder folder) {
 	*/
 	#if defined (UNIX)
 		if (const bool pathIsHomeRelative = ( path [0] == U'~' && (path [1] == U'/' || path [1] == U'\0') )) {
-			Melder_sprint (folder -> path,kMelder_MAXPATH+1, Melder_peek8to32 (getenv ("HOME")), & path [1]);
+			Melder_sprint (folder -> path,kMelder_MAXPATH+1, Melder_peek8to32_u (getenv ("HOME")), & path [1]);
 		} else if (const bool pathIsAbsolute = (
 				path [0] == U'/'   // path is on local disk
 				||
@@ -538,7 +538,7 @@ void MelderFolder_getSubfolder (MelderFolder parentFolder, conststring32 subfold
 void Melder_getHomeDir (MelderFolder homeDir) {
 	#if defined (UNIX)
 		char *home = getenv ("HOME");
-		Melder_sprint (homeDir -> path,kMelder_MAXPATH+1, home ? Melder_peek8to32 (home) : U"/");
+		Melder_sprint (homeDir -> path,kMelder_MAXPATH+1, home ? Melder_peek8to32_u (home) : U"/");
 	#elif defined (_WIN32)
 		WCHAR driveW [kMelder_MAXPATH+1], pathW [kMelder_MAXPATH+1];
 		DWORD n = GetEnvironmentVariableW (L"USERPROFILE", pathW, kMelder_MAXPATH+1);
@@ -606,7 +606,7 @@ MelderFolder Melder_preferencesFolder7() {
 
 void Melder_getTempDir (MelderFolder temporaryFolder) {
 	#if defined (macintosh)
-		Melder_sprint (temporaryFolder -> path,kMelder_MAXPATH+1, Melder_peek8to32 (getenv ("TMPDIR")));   // or append /TemporaryItems
+		Melder_sprint (temporaryFolder -> path,kMelder_MAXPATH+1, Melder_peek8to32_u (getenv ("TMPDIR")));   // or append /TemporaryItems
 		// confstr with _CS_DARWIN_USER_TEMP_DIR
 	#else
 		(void) temporaryFolder;
@@ -633,7 +633,7 @@ FILE * Melder_fopen (MelderFile file, const char *type) {
 	} else {
 		//TRACE
 		#if defined (_WIN32) && ! defined (__CYGWIN__)
-			f = _wfopen (MelderFile_peekPathW (file), Melder_peek32toW (Melder_peek8to32 (type)));
+			f = _wfopen (MelderFile_peekPathW (file), Melder_peek32toW (Melder_peek8to32_u (type)));
 		#else
 			struct stat statbuf;
 			int status = stat ((char *) utf8path, & statbuf);
@@ -890,7 +890,7 @@ void Melder_getCurrentFolder (MelderFolder folder) {
 		else if (errno == EPERM)
 			str32cpy (folder -> path, theDefaultDir. path);
 		else
-			Melder_throw (Melder_peek8to32 (strerror (errno)));
+			Melder_throw (Melder_peek8to32_u (strerror (errno)));
 		Melder_assert (Melder_length (folder -> path) <= kMelder_MAXPATH);
 	#elif defined (_WIN32)
 		static WCHAR folderPathW [kMelder_MAXPATH+1];
@@ -1055,7 +1055,7 @@ autostring32 MelderFile_readText (MelderFile file, autostring8 *string8) {
 				(void) Melder_killReturns_inplace (string8->get());
 				return autostring32();   // OK
 			} else {
-				text = Melder_8to32 (text8bit.get(), kMelder_textInputEncoding::UNDEFINED);
+				text = Melder_8to32_e (text8bit.get(), kMelder_textInputEncoding::UNDEFINED);
 			}
 		} else {
 			length = length / 2 - 1;   // Byte Order Mark subtracted. Length = number of UTF-16 codes

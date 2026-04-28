@@ -43,7 +43,7 @@ void structTextEditor :: v9_destroy () noexcept {
 }
 
 void structTextEditor :: v_nameChanged () {
-	if (v_fileBased ()) {
+	if (our v_fileBased ()) {
 		/*
 			We totally ignore the name that our boss wants to give us.
 			Instead, we compose the window title from three ingredients:

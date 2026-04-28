@@ -530,6 +530,8 @@ static void UiField_widgetToValue (UiField me) {
 					Melder_warning (U"More than one item selected.");
 				my integerValue = selected [1];
 			}
+			if (my integerValue >= 1 && my integerValue <= my strings.size)
+				my previouslySelectedListString = Melder_dup (my strings [my integerValue]);
 			if (my integerVariable)
 				*my integerVariable = my integerValue;
 			if (my stringVariable)
@@ -2806,30 +2808,38 @@ void UiForm_setString (UiForm me, conststring32 *p_variable, conststring32 value
 }
 
 void UiForm_setList (UiForm me, integer *p_integerVariable, conststring32 *p_stringVariable,
-		constSTRVEC strings, integer defaultValue)
-{
+		constSTRVEC strings, integer defaultValue) {
 	for (int ifield = 1; ifield <= my numberOfFields; ifield ++) {
 		UiField field = my field [ifield].get();
 		if (field -> integerVariable == p_integerVariable || field -> stringVariable == p_stringVariable) {
 			switch (field -> type)
 			{
-			case _kUiField_type::LIST_:
-			{
-				field -> strings = strings;
-				GuiList_deleteAllItems (field -> list);
-				for (integer i = 1; i <= strings.size; i ++)
-					GuiList_insertItem (field -> list, strings [i], 0);
+				case _kUiField_type::LIST_:
+				{
+					field -> strings = strings;
+					GuiList_deleteAllItems (field -> list);
+					for (integer i = 1; i <= strings.size; i ++)
+						GuiList_insertItem (field -> list, strings [i], 0);
 
-				if (defaultValue < 1 || defaultValue > strings.size)
-					defaultValue = 1;   // guard against invalid default
-				if (strings.size > 0)
-					GuiList_selectItem (field -> list, defaultValue);
-			}
-			break;
-			default:
-			{
-				fatalField (me);
-			}
+					integer currentlySelectedStringIndex = defaultValue;
+					if (field -> previouslySelectedListString)
+						for (integer i = 1; i <= strings.size; i ++) {
+							if (str32equ (strings [i], field -> previouslySelectedListString.get())) {
+								currentlySelectedStringIndex = i;
+								break;
+							}
+						}
+
+					if (currentlySelectedStringIndex < 1 || currentlySelectedStringIndex > strings.size)
+						currentlySelectedStringIndex = 1;
+					if (strings.size > 0)
+						GuiList_selectItem (field -> list, currentlySelectedStringIndex);
+				}
+				break;
+				default:
+				{
+					fatalField (me);
+				}
 			}
 			return;
 		}

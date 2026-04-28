@@ -352,7 +352,12 @@ GGML_API bool ggml_op_can_inplace(enum ggml_op op);
 // Memory allocation
 
 GGML_API void * ggml_aligned_malloc(size_t size);
-GGML_API void ggml_aligned_free(void * ptr, size_t size);
+#ifdef __cplusplus
+GGML_API void ggml_aligned_free(void * ptr, size_t size, bool toRemoveFromPool = true);
+#else
+GGML_API void ggml_aligned_free(void * ptr, size_t size, bool toRemoveFromPool);
+#endif
+
 
 // FP16 <-> FP32
 // ref: https://github.com/Maratyszcza/FP16

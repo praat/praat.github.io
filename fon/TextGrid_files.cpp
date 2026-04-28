@@ -1,6 +1,6 @@
 /* TextGrid_files.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -397,7 +397,7 @@ static void sgmlToPraat (char *text) {
 				}
 			}
 			if (! translations [i]. sgml)
-				Melder_throw (U"Unknown SGML code &", Melder_peek8to32 (sgmlCode), U";.");
+				Melder_throw (U"Unknown SGML code &", Melder_peek8to32_u (sgmlCode), U";.");
 		} else {
 			* praat ++ = * sgml ++;
 		}
@@ -617,7 +617,7 @@ autoTextGrid TextGrid_readFromCgnSyntaxFile (MelderFile file) {
 				/* mutable search */ integer speakerTier = 0;
 				for (integer itier = 1; itier <= my tiers->size; itier ++) {
 					IntervalTier tier = static_cast <IntervalTier> (my tiers->at [itier]);
-					if (str32equ (tier -> name.get(), Melder_peek8to32 (speakerName))) {
+					if (str32equ (tier -> name.get(), Melder_peek8to32_u (speakerName))) {
 						speakerTier = itier;
 						break;
 					}
@@ -629,12 +629,12 @@ autoTextGrid TextGrid_readFromCgnSyntaxFile (MelderFile file) {
 					autoIntervalTier newSentenceTier = Thing_new (IntervalTier);
 					newSentenceTier -> xmin = 0.0;
 					newSentenceTier -> xmax = my xmax;
-					Thing_setName (newSentenceTier.get(), Melder_peek8to32 (speakerName));
+					Thing_setName (newSentenceTier.get(), Melder_peek8to32_u (speakerName));
 					sentenceTier = (IntervalTier) my tiers -> addItem_move (newSentenceTier.move());
 					autoIntervalTier newPhraseTier = Thing_new (IntervalTier);
 					newPhraseTier -> xmin = 0.0;
 					newPhraseTier -> xmax = my xmax;
-					Thing_setName (newPhraseTier.get(), Melder_peek8to32 (speakerName));
+					Thing_setName (newPhraseTier.get(), Melder_peek8to32_u (speakerName));
 					phraseTier = (IntervalTier) my tiers -> addItem_move (newPhraseTier.move());
 				} else {
 					sentenceTier = (IntervalTier) my tiers->at [speakerTier];
@@ -693,7 +693,7 @@ autoTextGrid TextGrid_readFromCgnSyntaxFile (MelderFile file) {
 					*/
 					if (lastInterval) {
 						sgmlToPraat (phrase);
-						TextInterval_setText (lastInterval, Melder_peek8to32 (phrase));
+						TextInterval_setText (lastInterval, Melder_peek8to32_u (phrase));
 					}
 					phrase [0] = '\0';
 					const integer length_w = Melder8_length (arg7);
@@ -729,7 +729,7 @@ autoTextGrid TextGrid_readFromCgnSyntaxFile (MelderFile file) {
 		}
 		if (lastInterval) {
 			sgmlToPraat (phrase);
-			TextInterval_setText (lastInterval, Melder_peek8to32 (phrase));
+			TextInterval_setText (lastInterval, Melder_peek8to32_u (phrase));
 		}
 		for (integer itier = 1; itier <= my tiers->size; itier ++) {
 			IntervalTier tier = static_cast <IntervalTier> (my tiers->at [itier]);
@@ -1039,7 +1039,7 @@ autoTextGrid TextGrid_readFromTimitLabelFile (
 			for (integer iinterval = 1; iinterval <= ipa -> intervals.size; iinterval ++) {
 				const mutableTextInterval interval = ipa -> intervals.at [iinterval];
 				TextInterval_setText (ipa -> intervals.at [iinterval],
-						Melder_peek8to32 (timitLabelToIpaLabel (Melder_peek32to8 (interval -> text.get()))));
+						Melder_peek8to32_u (timitLabelToIpaLabel (Melder_peek32to8 (interval -> text.get()))));
 			}
 			TextGrid_addTier_move (result.get(), ipa.move());
 		}

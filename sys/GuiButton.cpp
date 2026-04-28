@@ -1,11 +1,11 @@
 /* GuiButton.cpp
  *
- * Copyright (C) 1993-2008,2010-2020,2024 Paul Boersma,
+ * Copyright (C) 1993-2008,2010-2020,2024,2026 Paul Boersma,
  *               2007-2008 Stefan de Konink, 2010 Franz Brausse, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -42,7 +42,7 @@ Thing_implement (GuiButton, GuiControl, 0);
 			try {
 				my d_activateCallback (my d_activateBoss, & event);
 			} catch (MelderError) {
-				Melder_flushError (U"Your click on button \"", Melder_peek8to32 (gtk_widget_get_name (GTK_WIDGET (widget))), U"\" was not completely handled.");
+				Melder_flushError (U"Your click on button \"", Melder_peek8to32_u (gtk_widget_get_name (GTK_WIDGET (widget))), U"\" was not completely handled.");
 			}
 		}
 	}

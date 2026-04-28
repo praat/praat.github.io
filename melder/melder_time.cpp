@@ -1,6 +1,6 @@
 /* melder_time.cpp
  *
- * Copyright (C) 1992-2008,2011,2014-2018,2020,2021,2025 Paul Boersma
+ * Copyright (C) 1992-2008,2011,2014-2018,2020,2021,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ void Melder_sleep (double duration) {
 
 autostring32 date_STR () {
 	time_t today = time (nullptr);
-	autostring32 date = Melder_8to32 (ctime (& today));
+	autostring32 date = Melder_8to32_e (ctime (& today));
 	mutablestring32 newline = str32chr (date.get(), U'\n');
 	if (newline)
 		*newline = U'\0';
@@ -71,7 +71,7 @@ autostring32 date_STR () {
 autostring32 date_utc_STR () {
 	time_t today = time (nullptr);
 	tm *today_utc = gmtime (& today);
-	autostring32 date = Melder_8to32 (asctime (today_utc));
+	autostring32 date = Melder_8to32_e (asctime (today_utc));
 	mutablestring32 newline = str32chr (date.get(), U'\n');
 	if (newline)
 		*newline = U'\0';
@@ -117,12 +117,12 @@ autostring32 date_iso_STR () {
 	*/
 	const bool isInTheExpectedRawTimeZoneFormat = ( strlen (result8) == 24 && result8 [16] == ':' );
 	if (! isInTheExpectedRawTimeZoneFormat)
-		return Melder_8to32 (result8);   // give up (perhaps time zone information is not available)
+		return Melder_8to32_e (result8);   // give up (perhaps time zone information is not available)
 	result8 [25] = '\0';   // new trailing null byte
 	result8 [24] = result8 [23];   // shift the last digit
 	result8 [23] = result8 [22];   // shift the penultimate digit
 	result8 [22] = ':';   // insert the semicolon between the 22 characters and the two digits
-	return Melder_8to32 (result8);
+	return Melder_8to32_e (result8);
 }
 
 autostring32 date_utc_iso_STR () {

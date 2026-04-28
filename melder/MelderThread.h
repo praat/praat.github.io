@@ -2,7 +2,7 @@
 #define _MelderThread_h_
 /* MelderThread.h
  *
- * Copyright (C) 2014-2018,2020,2025 Paul Boersma
+ * Copyright (C) 2014-2018,2020,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -337,8 +337,6 @@ void MelderThread_debugMultithreading (bool useMultithreading, integer numberOfC
 bool MelderThread_getUseMultithreading ();
 
 integer MelderThread_getMaximumNumberOfConcurrentThreads ();
-
-integer MelderThread_getMaximumNumberOfElementsPerThread ();
 
 integer MelderThread_getMinimumNumberOfElementsPerThread ();
 

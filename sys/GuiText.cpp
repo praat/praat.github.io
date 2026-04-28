@@ -1,6 +1,6 @@
 /* GuiText.cpp
  *
- * Copyright (C) 1993-2025 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2026 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -544,7 +544,7 @@ void _GuiText_exit () {
 		(void) aTextView;
 		(void) affectedCharRange;
 		(void) replacementString;
-		trace (U"changing text to: ", Melder_peek8to32 ([replacementString UTF8String]));
+		trace (U"changing text to: ", Melder_peek8to32_u ([replacementString UTF8String]));
 		GuiText me = self -> d_userData;
 		if (me && my d_changedCallback) {
 			struct structGuiTextEvent event { me };
@@ -665,7 +665,7 @@ GuiText GuiText_create (GuiForm parent, int left, int right, int top, int bottom
 	my d_parent = parent;
 	my flags = flags;
 	#if gtk
-		trace (U"before creating a GTK text widget: locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
+		trace (U"before creating a GTK text widget: locale is ", Melder_peek8to32_u (setlocale (LC_ALL, nullptr)));
 		if (flags & GuiText_SCROLLED) {
 			GuiObject scrolled = gtk_scrolled_window_new (nullptr, nullptr);
 			gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -749,7 +749,7 @@ GuiText GuiText_create (GuiForm parent, int left, int right, int top, int bottom
 			my v_positionInForm (my d_widget, left, right, top, bottom, parent);
 			gtk_entry_set_activates_default (GTK_ENTRY (my d_widget), true);
 		}
-		trace (U"after creating a GTK text widget: locale is ", Melder_peek8to32 (setlocale (LC_ALL, nullptr)));
+		trace (U"after creating a GTK text widget: locale is ", Melder_peek8to32_u (setlocale (LC_ALL, nullptr)));
 		my d_prev = nullptr;
 		my d_next = nullptr;
 		my d_history_change = 0;
@@ -964,7 +964,7 @@ autostring32 GuiText_getSelection (GuiText me) {
 			gtk_editable_get_selection_bounds (GTK_EDITABLE (my d_widget), & start, & end);
 			if (end > start) {   // at least one character selected?
 				gchar *text = gtk_editable_get_chars (GTK_EDITABLE (my d_widget), start, end);
-				autostring32 result = Melder_8to32 (text);
+				autostring32 result = Melder_8to32_e (text);
 				g_free (text);
 				return result;
 			}
@@ -974,7 +974,7 @@ autostring32 GuiText_getSelection (GuiText me) {
 				GtkTextIter start, end;
 				gtk_text_buffer_get_selection_bounds (textBuffer, & start, & end);
 				gchar *text = gtk_text_buffer_get_text (textBuffer, & start, & end, true);
-				autostring32 result = Melder_8to32 (text);
+				autostring32 result = Melder_8to32_e (text);
 				g_free (text);
 				return result;
 			}
@@ -1026,14 +1026,14 @@ autostring32 GuiText_getStringAndSelectionPosition (GuiText me, integer *first, 
 			gtk_editable_get_selection_bounds (GTK_EDITABLE (my d_widget), & first_gint, & last_gint);   // expressed in Unicode code points!
 			*first = first_gint;
 			*last = last_gint;
-			return Melder_8to32 (gtk_entry_get_text (GTK_ENTRY (my d_widget)));
+			return Melder_8to32_e (gtk_entry_get_text (GTK_ENTRY (my d_widget)));
 		} else if (G_OBJECT_TYPE (G_OBJECT (my d_widget)) == GTK_TYPE_TEXT_VIEW) {
 			GtkTextBuffer *textBuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (my d_widget));
 			GtkTextIter start, end;
 			gtk_text_buffer_get_start_iter (textBuffer, & start);
 			gtk_text_buffer_get_end_iter (textBuffer, & end);
 			gchar *text = gtk_text_buffer_get_text (textBuffer, & start, & end, true);   // TODO: Hidden chars ook maar doen he?
-			autostring32 result = Melder_8to32 (text);
+			autostring32 result = Melder_8to32_e (text);
 			g_free (text);
 			gtk_text_buffer_get_selection_bounds (textBuffer, & start, & end);
 			*first = gtk_text_iter_get_offset (& start);
@@ -1073,7 +1073,7 @@ autostring32 GuiText_getStringAndSelectionPosition (GuiText me, integer *first, 
 		NSString *nsString = ( my d_cocoaTextView ?
 				[my d_cocoaTextView   string] :
 				[(NSTextField *) my d_widget   stringValue] );
-		autostring16 buffer16 = Melder_32to16 (Melder_peek8to32 ([nsString UTF8String]));
+		autostring16 buffer16 = Melder_32to16 (Melder_peek8to32_u ([nsString UTF8String]));
 		NSText *nsText = ( my d_cocoaTextView ?
 				my d_cocoaTextView :
 				[[(NSTextField *) my d_widget   window]   fieldEditor: NO   forObject: nil] );

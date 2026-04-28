@@ -54,18 +54,30 @@
 #include <map>
 #include <algorithm>
 
-#include "diarize.h"
 #include "ggml.h"
 #include "ggml-alloc.h"
 #include "ggml-backend.h"
 #include "ggml-cpu.h"
+#include "diarize.h"
+#include "melder.h"
 
 #define GGML_FILE_MAGIC 0x67676d6c
+
+/*
+	Maximum size for GGML computation graphs.
+	sincnet_forward builds a graph with 58 nodes (44 nodes and 14 leafs).
+	conv2d_forward builds a graph with 9 nodes (7 nodes and 2 leafs).
+	These numbers were found out by including the following print after ggml_build_forward_expand():
+		GGML_LOG_INFO("sincnet_forward: graph nodes = %d, leafs = %d\n", ggml_graph_n_nodes(gf), gf->n_leafs);
+	These number of nodes are rounded up to the next power of 2.
+*/
+#define SINCNET_MAX_NODES 64
+#define CONV2D_MAX_NODES 16
 
 // ============================================================================
 // Big-endian support
 // ============================================================================
-#if defined(DIARIZE_BIG_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 template<typename T>
 static T byteswap(T value) {
 	T swapped;
@@ -106,10 +118,6 @@ template<typename T>
 static void read_safe(diarize_model_loader * loader, T & dest) {
 	loader->read(loader->context, &dest, sizeof(T));
 	BYTESWAP_VALUE(dest);
-}
-
-static void trace(...) {
-	// Nothing (for now)
 }
 
 // ============================================================================
@@ -222,13 +230,12 @@ struct segmentation_context {
 // ============================================================================
 // Segmentation: Model loading
 // ============================================================================
-static bool segmentation_load_model(diarize_model_loader * loader, segmentation_model & model) {
+static void segmentation_load_model(diarize_model_loader * loader, segmentation_model & model) {
+    //TRACE
 	uint32_t magic;
 	read_safe(loader, magic);
-	if (magic != GGML_FILE_MAGIC) {
-		trace(__func__, U": bad magic");
-		return false;
-	}
+	if (magic != GGML_FILE_MAGIC)
+		Melder_throw(U"Invalid model data (bad magic).");
 
     auto & hp = model.hparams;
     read_safe(loader, hp.sincnet_filters_0);
@@ -246,10 +253,10 @@ static bool segmentation_load_model(diarize_model_loader * loader, segmentation_
     read_safe(loader, hp.linear_layers);
 	read_safe(loader, hp.n_classes);
 
-    trace(__func__, U": sincnet=", hp.sincnet_filters_0, U"/", hp.sincnet_kernel_0, U"/", hp.sincnet_stride_0,
-    		U" lstm=", hp.lstm_layers, U"x", hp.lstm_hidden_size, U"(bidir=", hp.lstm_bidirectional,
-    		U") linear=", hp.linear_layers, U"x", hp.linear_hidden,
-    		U" classes=", hp.n_classes, U"");
+    trace (U"sincnet=", hp.sincnet_filters_0, U"/", hp.sincnet_kernel_0, U"/", hp.sincnet_stride_0,
+            U" lstm=", hp.lstm_layers, U"x", hp.lstm_hidden_size, U"(bidir=", hp.lstm_bidirectional, U")",
+            U" linear=", hp.linear_layers, U"x", hp.linear_hidden,
+            U" classes=", hp.n_classes, U"");
 
     const int nsp = hp.n_sinc_params();
 	const int hk = hp.half_kernel();
@@ -368,10 +375,8 @@ static bool segmentation_load_model(diarize_model_loader * loader, segmentation_
 		loader->read(loader->context, name.data(), length);
 
 		auto it = model.tensors.find(name);
-		if (it == model.tensors.end()) {
-			trace(__func__, U": unknown tensor '", name.c_str(), U"'");
-			return false;
-		}
+		if (it == model.tensors.end())
+		    Melder_throw(U": unknown tensor '", Melder_peek8to32_u(name.c_str()), U"'");
 
 		auto tensor = it->second;
 		const size_t bpe = ggml_type_size(ggml_type(ttype));
@@ -389,8 +394,9 @@ static bool segmentation_load_model(diarize_model_loader * loader, segmentation_
 		model.n_loaded++;
 	}
 
-    trace(__func__, U": loaded ", model.n_loaded, U"/", model.tensors.size(), U" tensors");
-    return model.n_loaded == static_cast<int>(model.tensors.size());
+    trace (U"Loaded ", model.n_loaded, U"/", model.tensors.size(), U" tensors");
+    if (model.n_loaded != model.tensors.size())
+        Melder_throw (U"Segmentation model incomplete: loaded ", model.n_loaded, U" of ", model.tensors.size(), U" tensors.");
 }
 
 // ============================================================================
@@ -464,8 +470,8 @@ static bool sincnet_forward(segmentation_context & sctx,
     auto & model = sctx.model;
     auto & hp = model.hparams;
 
-    ggml_init_params ctx_params = {
-	    512 * 1024 * 1024,
+	ggml_init_params ctx_params = {
+	    ggml_tensor_overhead() * SINCNET_MAX_NODES + ggml_graph_overhead(),
     	nullptr,
     	true
     };
@@ -515,8 +521,9 @@ static bool sincnet_forward(segmentation_context & sctx,
     ggml_set_output(cur);
 
     // Build and compute
-    ggml_cgraph * gf = ggml_new_graph_custom(ctx0, 8192, false);
+    ggml_cgraph * gf = ggml_new_graph_custom(ctx0, SINCNET_MAX_NODES, false);
     ggml_build_forward_expand(gf, cur);
+	//GGML_LOG_INFO("sincnet_forward: graph nodes = %d, leafs = %d\n", ggml_graph_n_nodes(gf), gf->n_leafs);
 
     ggml_gallocr_t galloc = ggml_gallocr_new(ggml_backend_get_default_buffer_type(sctx.backend));
     ggml_gallocr_alloc_graph(galloc, gf);
@@ -669,6 +676,7 @@ static std::vector<float> log_softmax(const float * x, const int T, const int C)
 //         n_frames is set to the actual frame count (589 for 10s input)
 static bool segmentation_forward(segmentation_context & sctx, const float * samples, int n_samples,
 		std::vector<float> & result, int & n_frames, int & n_classes) {
+    //TRACE
     const auto & model = sctx.model;
     auto & hp = model.hparams;
 
@@ -678,7 +686,7 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
     if (!sincnet_forward(sctx, samples, n_samples, sincnet_out, sn_time, sn_ch)) {
         return false;
     }
-    trace(__func__, U": SincNet output: [", sn_time, U", ", sn_ch, U"]");
+    trace (U"SincNet output: [", sn_time, U", ", sn_ch, U"]");
 
     // SincNet output is [ne0=time, ne1=ch] in GGML memory order.
     // This is the same as [ch, time] in PyTorch.
@@ -695,7 +703,7 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
 
     // 2. LSTM (plain C++)
     const auto lstm_out = lstm_forward(model, lstm_in.data(), T);
-    trace(__func__, U": LSTM output: [", T, U", ", hp.lstm_output_size(), U"]");
+    trace (U"LSTM output: [", T, U", ", hp.lstm_output_size(), U"]");
 
     // 3. Linear layers
     const float * cur = lstm_out.data();
@@ -727,16 +735,18 @@ static bool segmentation_forward(segmentation_context & sctx, const float * samp
 // ============================================================================
 // Segmentation: Init / Free
 // ============================================================================
-static bool segmentation_init(segmentation_context & sctx, diarize_model_loader * loader) {
-    if (!segmentation_load_model(loader, sctx.model))
-    	return false;
+static void segmentation_init(segmentation_context & sctx, diarize_model_loader * loader) {
+    //TRACE
+    try {
+        segmentation_load_model(loader, sctx.model);
+    } catch (MelderError) {
+        Melder_throw (U"Could not load segmentation model.");
+    }
 
 	sctx.sinc_filters = compute_sinc_filters(sctx.model);
     sctx.backend = ggml_backend_cpu_init();
 
-    trace(__func__, U": initialized (", sctx.model.hparams.n_filters(),
-    		U" sinc filters, ", sctx.model.hparams.sincnet_kernel_0, U" kernel)");
-    return true;
+    trace (U"Initialized (", sctx.model.hparams.n_filters(), U" sinc filters, ", sctx.model.hparams.sincnet_kernel_0, U" kernel)");
 }
 
 static void segmentation_free(segmentation_context & sctx) {
@@ -790,13 +800,12 @@ struct embedding_context {
 // ============================================================================
 // Embedding: Model loading
 // ============================================================================
-static bool embedding_load_model(diarize_model_loader * loader, embedding_model & model) {
+static void embedding_load_model(diarize_model_loader * loader, embedding_model & model) {
+    //TRACE
 	uint32_t magic;
 	read_safe(loader, magic);
-	if (magic != GGML_FILE_MAGIC) {
-		trace(__func__, U": bad magic");
-		return false;
-	}
+	if (magic != GGML_FILE_MAGIC)
+	    Melder_throw (U"Invalid model data (bad magic).");
 
     auto & hp = model.hparams;
     read_safe(loader, hp.m_channels);
@@ -806,7 +815,7 @@ static bool embedding_load_model(diarize_model_loader * loader, embedding_model 
     	read_safe(loader, hp.num_blocks[i]);
     read_safe(loader, hp.two_emb_layer);
 
-    trace(__func__, U": m_ch=", hp.m_channels, U" feat=", hp.feat_dim, U" embed=", hp.embed_dim,
+    trace (U"m_ch=", hp.m_channels, U" feat=", hp.feat_dim, U" embed=", hp.embed_dim,
     		U" blocks=[", hp.num_blocks[0], U",", hp.num_blocks[1], U",", hp.num_blocks[2], U",", hp.num_blocks[3],
     		U"] two_emb=", hp.two_emb_layer);
 
@@ -924,10 +933,8 @@ static bool embedding_load_model(diarize_model_loader * loader, embedding_model 
     	loader->read(loader->context, name.data(), length);
 
         auto it = model.tensors.find(name);
-        if (it == model.tensors.end()) {
-	        trace(__func__, U": unknown tensor '", name.c_str(), U"'");
-        	return false;
-        }
+        if (it == model.tensors.end())
+            Melder_throw (U"Unknown tensor '", Melder_peek8to32_u (name.c_str()), U"'");
 
         auto tensor = it->second;
     	const size_t bpe = ggml_type_size(ggml_type(ttype));
@@ -944,8 +951,10 @@ static bool embedding_load_model(diarize_model_loader * loader, embedding_model 
     	}
     	model.n_loaded++;
     }
-    trace(__func__, U": loaded ", model.n_loaded, U"/", model.tensors.size(), U" tensors");
-    return model.n_loaded == (int)model.tensors.size();
+
+    trace (U"Loaded ", model.n_loaded, U"/", model.tensors.size(), U" tensors");
+    if (model.n_loaded != model.tensors.size())
+        Melder_throw (U"Embedding model incomplete: loaded ", model.n_loaded, U" of ", model.tensors.size(), U" tensors.");
 }
 
 // ============================================================================
@@ -1098,7 +1107,8 @@ static bool conv2d_forward(ggml_backend_t backend, ggml_tensor * weight,
     OH = (IH + 2*padding - (int)weight->ne[1]) / stride + 1;
     OW = (IW + 2*padding - (int)weight->ne[0]) / stride + 1;
 
-    ggml_init_params ctx_params = { 256 * 1024 * 1024, nullptr, true };
+    ggml_init_params ctx_params = { ggml_tensor_overhead() * CONV2D_MAX_NODES + ggml_graph_overhead(),
+    		nullptr, true };
     ggml_context * ctx0 = ggml_init(ctx_params);
 
     ggml_tensor * inp = ggml_new_tensor_4d(ctx0, GGML_TYPE_F32, IW, IH, IC, N);
@@ -1106,8 +1116,9 @@ static bool conv2d_forward(ggml_backend_t backend, ggml_tensor * weight,
     ggml_tensor * conv_out = ggml_conv_2d(ctx0, weight, inp, stride, stride, padding, padding, 1, 1);
     ggml_set_name(conv_out, "conv_out"); ggml_set_output(conv_out);
 
-    ggml_cgraph * gf = ggml_new_graph_custom(ctx0, 4096, false);
+    ggml_cgraph * gf = ggml_new_graph_custom(ctx0, CONV2D_MAX_NODES, false);
     ggml_build_forward_expand(gf, conv_out);
+	//GGML_LOG_INFO("conv2d_forward: graph nodes = %d, leafs = %d\n", ggml_graph_n_nodes(gf), gf->n_leafs);
     ggml_gallocr_t galloc = ggml_gallocr_new(ggml_backend_get_default_buffer_type(backend));
     ggml_gallocr_alloc_graph(galloc, gf);
     ggml_backend_tensor_set(inp, input, 0, N * IC * IH * IW * sizeof(float));
@@ -1251,6 +1262,7 @@ static void linear_forward(const float * input, int N, int in_dim,
 static bool embedding_forward(embedding_context & ectx,
                                const float * samples, int n_samples,
                                std::vector<float> & embedding_out) {
+    //TRACE
     auto & model = ectx.model;
     auto & hp = model.hparams;
 
@@ -1259,10 +1271,10 @@ static bool embedding_forward(embedding_context & ectx,
     int num_frames;
     compute_fbank(samples, n_samples, fbank, num_frames);
     if (num_frames == 0) {
-        trace(__func__, U": audio too short for fbank");
+        trace (U"Audio too short for fbank");
         return false;
     }
-    trace(__func__, U": fbank: (", num_frames, U", ", hp.feat_dim, U")");
+    trace (U"fbank: (", num_frames, U", ", hp.feat_dim, U")");
 
     // 2. Prepare input: transpose (T, F) -> (1, 1, F, T)
     int N = 1, C = 1, H = hp.feat_dim, W = num_frames;
@@ -1281,25 +1293,25 @@ static bool embedding_forward(embedding_context & ectx,
         relu_inplace(conv_out.data(), conv_out.size());
         cur = conv_out; C = OC; H = OH; W = OW;
     }
-    trace(__func__, U": stem: (", N, U", ", C, U", ", H, U", ", W, U")");
+    trace (U"stem: (", N, U", ", C, U", ", H, U", ", W, U")");
 
     // 4. ResNet layers 1-4
     for (int layer = 1; layer <= 4; layer++) {
         if (!run_layer(ectx.backend, model, layer, cur, N, C, H, W)) return false;
-        trace(__func__, U": layer", layer, U": (", N, U", ", C, U", ", H, U", ", W, U")");
+        trace (U"layer ", layer, U": (", N, U", ", C, U", ", H, U", ", W, U")");
     }
 
     // 5. TSTP pooling
     std::vector<float> pool;
     tstp_pooling(cur.data(), N, C, H, W, pool);
-    trace(__func__, U": pool: (", N, U", ", (int)pool.size() / N, U")");
+    trace (U"pool: (", N, U", ", (int)pool.size() / N, U")");
 
     // 6. seg_1 linear
     linear_forward(pool.data(), N, (int)pool.size() / N,
                    (float*)model.tensors["resnet.seg_1.weight"]->data,
                    (float*)model.tensors["resnet.seg_1.bias"]->data,
                    hp.embed_dim, embedding_out);
-    trace(__func__, U": embedding: (", N, U", ", hp.embed_dim, U")");
+    trace (U"embedding: (", N, U", ", hp.embed_dim, U")");
 
     return true;
 }
@@ -1307,14 +1319,17 @@ static bool embedding_forward(embedding_context & ectx,
 // ============================================================================
 // Embedding: Init / Free
 // ============================================================================
-static bool embedding_init(embedding_context & ectx, diarize_model_loader * loader) {
-    if (!embedding_load_model(loader, ectx.model))
-    	return false;
+static void embedding_init(embedding_context & ectx, diarize_model_loader * loader) {
+    //TRACE
+    try {
+        embedding_load_model(loader, ectx.model);
+    } catch (MelderError) {
+        Melder_throw (U"Could not load embedding model.");
+    }
 
 	ectx.backend = ggml_backend_cpu_init();
 
-	trace(__func__, U": initialized (", ectx.model.n_loaded, U" tensors)");
-    return true;
+	trace (U"Embedding model initialized (", ectx.model.n_loaded, U" tensors)");
 }
 
 static void embedding_free(embedding_context & ectx) {
@@ -1888,11 +1903,12 @@ static diarization_result run_diarization_pipeline(
     const diarization_params & params,
     int max_speakers = 20                   // upper bound on global speakers
 ) {
+    //TRACE
     int step_frames = params.seg_step_frames();
     int total_frames = (num_chunks - 1) * step_frames + num_frames;
     float frame_step = params.seg_duration / num_frames;
 
-    trace(U"diarize: ", num_chunks, U" chunks, ", num_frames, U" frames/chunk, step=",
+    trace (U"diarize: ", num_chunks, U" chunks, ", num_frames, U" frames/chunk, step=",
     		step_frames, U", total=", total_frames, U" frames");
 
     // --- Convert powerset logits -> soft multilabel for reconstruct ---
@@ -1916,7 +1932,7 @@ static diarization_result run_diarization_pipeline(
     // Check if any speaker is ever active
     int max_count = *std::max_element(spk_count.begin(), spk_count.end());
     if (max_count == 0) {
-        trace(U"diarize: no speakers detected");
+        trace (U"diarize: no speakers detected");
         return {{}, 0};
     }
 
@@ -1924,10 +1940,10 @@ static diarization_result run_diarization_pipeline(
     auto filt = filter_embeddings(embeddings, binarized_segmentations,
                                    num_chunks, num_frames, num_speakers, emb_dim,
                                    params.min_active_ratio);
-    trace(U"diarize: ", filt.num_filtered, U"/", num_chunks * num_speakers, U" embeddings pass filter");
+    trace (U"diarize: ", filt.num_filtered, U"/", num_chunks * num_speakers, U" embeddings pass filter");
 
     if (filt.num_filtered < 2) {
-        trace(U"diarize: too few embeddings, single speaker");
+        trace (U"diarize: too few embeddings, single speaker");
         // Single speaker fallback — all frames assigned to speaker 0
         diarization_result result;
         result.num_speakers = 1;
@@ -1941,7 +1957,7 @@ static diarization_result run_diarization_pipeline(
         params.cluster_threshold, params.cluster_min_size);
 
     int num_clusters = *std::max_element(train_clusters.begin(), train_clusters.end()) + 1;
-    trace(U"diarize: ", num_clusters, U" clusters");
+    trace (U"diarize: ", num_clusters, U" clusters");
 
     // --- Assign all embeddings ---
     auto asgn = assign_embeddings(embeddings, num_chunks, num_speakers, emb_dim,
@@ -1969,7 +1985,7 @@ static diarization_result run_diarization_pipeline(
     // from powerset to soft multilabel by the Powerset module in Inference.infer()).
     auto recon = reconstruct(soft_segmentations.data(), hard.data(),
                               num_chunks, num_frames, num_speakers);
-    trace(U"diarize: ", recon.num_global_speakers, U" global speakers in reconstruction");
+    trace (U"diarize: ", recon.num_global_speakers, U" global speakers in reconstruction");
 
     // --- Aggregate ---
     auto aggregated = aggregate_overlapping(recon.clustered.data(), recon.nan_mask.data(),
@@ -1988,7 +2004,7 @@ static diarization_result run_diarization_pipeline(
     result.segments = segs;
     result.num_speakers = recon.num_global_speakers;
 
-    trace(U"diarize: ", segs.size(), U" segments, ", result.num_speakers, U" speakers");
+    trace (U"diarize: ", segs.size(), U" segments, ", result.num_speakers, U" speakers");
 
     return result;
 }
@@ -2035,24 +2051,27 @@ struct diarize_params diarize_default_params(void) {
 }
 
 struct diarize_context * diarize_init(struct diarize_model_loader * seg_loader, struct diarize_model_loader * emb_loader) {
+    //TRACE
 	auto * ctx = new diarize_context();
 	ctx->models_loaded = false;
 
-	if (!segmentation_init(ctx->seg_ctx, seg_loader)) {
-		trace(U"diarize_init: failed to load segmentation model");
-		delete ctx;
-		return nullptr;
-	}
+    try {
+        segmentation_init(ctx->seg_ctx, seg_loader);
+    } catch (MelderError) {
+        delete ctx;
+        Melder_throw (U"Failed to initialize diarization: segmentation model could not be loaded.");
+    }
 
-	if (!embedding_init(ctx->emb_ctx, emb_loader)) {
-		trace(U"diarize_init: failed to load embedding model");
+    try {
+        embedding_init(ctx->emb_ctx, emb_loader);
+    } catch (MelderError) {
 		segmentation_free(ctx->seg_ctx);
-		delete ctx;
-		return nullptr;
-	}
+        delete ctx;
+        Melder_throw (U"Failed to initialize diarization: embedding model could not be loaded.");
+    }
 
 	ctx->models_loaded = true;
-	trace(U"diarize_init: models loaded");
+	trace (U"diarize_init: models loaded");
 	return ctx;
 }
 
@@ -2080,30 +2099,33 @@ static diarize_model_loader create_file_loader(std::ifstream * fin) {
 }
 
 struct diarize_context * diarize_init_from_file(const char * seg_model_path, const char * emb_model_path) {
+    //TRACE
 	auto * seg_fin = new std::ifstream(seg_model_path, std::ios::binary);
 	if (!seg_fin->is_open()) {
-		trace(__func__, U": failed to open '", seg_model_path, U"'");
 		delete seg_fin;
-		return nullptr;
+	    Melder_throw (U"Failed to open '", Melder_peek8to32_u (seg_model_path), U"'.");
 	}
 
 	auto * emb_fin = new std::ifstream(emb_model_path, std::ios::binary);
 	if (!emb_fin->is_open()) {
-		trace(__func__, U": failed to open '", emb_model_path, U"'");
-		delete seg_fin;
-		delete emb_fin;
-		return nullptr;
+	    delete seg_fin;
+	    delete emb_fin;
+	    Melder_throw (U"Failed to open '", Melder_peek8to32_u (emb_model_path), U"'.");
 	}
 
-	auto seg_loader = create_file_loader(seg_fin);
-	auto emb_loader = create_file_loader(emb_fin);
+    auto seg_loader = create_file_loader(seg_fin);
+    auto emb_loader = create_file_loader(emb_fin);
 
-	auto * ctx = diarize_init(&seg_loader, &emb_loader);
-
-	seg_loader.close(seg_loader.context);
-	emb_loader.close(emb_loader.context);
-
-	return ctx;
+    try {
+        auto * ctx = diarize_init(&seg_loader, &emb_loader);
+        seg_loader.close(seg_loader.context);
+        emb_loader.close(emb_loader.context);
+        return ctx;
+    } catch (MelderError) {
+        seg_loader.close(seg_loader.context);
+        emb_loader.close(emb_loader.context);
+        Melder_throw (U"Failed to initialize diarization from file.");
+    }
 }
 
 static diarize_model_loader make_memory_loader(const void * data, size_t size) {
@@ -2135,12 +2157,16 @@ struct diarize_context * diarize_init_from_memory(const void * seg_data, size_t 
 	auto seg_loader = make_memory_loader(seg_data, seg_size);
 	auto emb_loader = make_memory_loader(emb_data, emb_size);
 
-	auto * ctx = diarize_init(&seg_loader, &emb_loader);
-
-	seg_loader.close(seg_loader.context);
-	emb_loader.close(emb_loader.context);
-
-	return ctx;
+    try {
+        auto * ctx = diarize_init(&seg_loader, &emb_loader);
+        seg_loader.close(seg_loader.context);
+        emb_loader.close(emb_loader.context);
+        return ctx;
+    } catch (MelderError) {
+        seg_loader.close(seg_loader.context);
+        emb_loader.close(emb_loader.context);
+        Melder_throw (U"Failed to initialize diarization from memory.");
+    }
 }
 
 void diarize_free(struct diarize_context * ctx) {
@@ -2152,13 +2178,15 @@ void diarize_free(struct diarize_context * ctx) {
     delete ctx;
 }
 
-int diarize_full(
+void diarize_full(
     struct diarize_context * ctx,
     struct diarize_params    params,
     const float            * samples,
     int                      n_samples)
 {
-    if (!ctx || !ctx->models_loaded || !samples || n_samples <= 0) return -1;
+    //TRACE
+    if (!ctx || !ctx->models_loaded || !samples || n_samples <= 0)
+        Melder_throw (U"Invalid arguments in diarize_full.");
 
     // Clear previous result
     ctx->result = {};
@@ -2176,7 +2204,7 @@ int diarize_full(
     const int step_samples  = (int)(dp.seg_duration * dp.seg_step_ratio * sample_rate);
 
     float duration = (float)n_samples / sample_rate;
-    trace(U"diarize_full: ", duration, U"s audio (", n_samples, U" samples)");
+    trace (U"diarize_full: ", duration, U"s audio (", n_samples, U" samples)");
 
     // --- Step 1: Sliding window segmentation ---
     int num_chunks = 0;
@@ -2198,10 +2226,8 @@ int diarize_full(
 
         std::vector<float> seg_out;
         int nf, nc;
-        if (!segmentation_forward(ctx->seg_ctx, chunk.data(), chunk_samples, seg_out, nf, nc)) {
-            trace(U"diarize_full: segmentation failed on chunk ",c);
-            return -1;
-        }
+        if (!segmentation_forward(ctx->seg_ctx, chunk.data(), chunk_samples, seg_out, nf, nc))
+            Melder_throw (U"Segmentation failed on chunk ", c, U".");
 
         if (c == 0) {
             num_frames = nf;
@@ -2216,7 +2242,7 @@ int diarize_full(
 
     int num_speakers = dp.seg_num_speakers;  // 3
 
-    trace(U"diarize_full: ", num_chunks, U" chunks, ", num_frames, U" frames, ", num_classes, U" powerset classes");
+    trace (U"diarize_full: ", num_chunks, U" chunks, ", num_frames, U" frames, ", num_classes, U" powerset classes");
 
     // --- Step 2: Powerset -> multilabel (hard binarization) ---
     std::vector<float> all_binarized(num_chunks * num_frames * num_speakers);
@@ -2278,7 +2304,7 @@ int diarize_full(
         }
 
         if ((c + 1) % 10 == 0 || c == num_chunks - 1) {
-            trace(U"diarize_full: embeddings ", c + 1, U"/", num_chunks);
+            trace (U"diarize_full: embeddings ", c + 1, U"/", num_chunks);
         }
     }
 
@@ -2290,14 +2316,12 @@ int diarize_full(
         num_chunks, num_frames, num_classes, num_speakers, emb_dim,
         dp, params.max_speakers);
 
-    trace(U"diarize_full: ", ctx->result.num_speakers, U" speakers, ", ctx->result.segments.size(), U" segments");
-
-    return 0;
+    trace (U"diarize_full: ", ctx->result.num_speakers, U" speakers, ", ctx->result.segments.size(), U" segments");
 }
 
-int diarize_full_n_segments(struct diarize_context * ctx) {
+unsigned int diarize_full_n_segments(struct diarize_context * ctx) {
     if (!ctx) return 0;
-    return (int)ctx->result.segments.size();
+    return ctx->result.segments.size();
 }
 
 int diarize_full_n_speakers(struct diarize_context * ctx) {

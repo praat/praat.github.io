@@ -140,7 +140,7 @@ static void FLAC__MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
 	buf[3] += d;
 }
 
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 //@@@@@@ OPT: use bswap/intrinsics
 static void byteSwap(FLAC__uint32 *buf, uint32_t words)
 {

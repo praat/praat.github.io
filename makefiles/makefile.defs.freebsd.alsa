@@ -1,5 +1,5 @@
 # $FreeBSD: head/audio/praat/files/makefile.defs.freebsd.alsa 532890 2020-04-24 19:22:03Z jwb $
-# File: makefile.defs.freebsd.alsa.LE
+# File: makefile.defs.freebsd.alsa
 
 # System: FreeBSD
 # Paul Boersma, 23 March 2020
@@ -7,6 +7,7 @@
 # Adriaan de Groot, 30 September 2020
 # Paul Boersma, 14 November 2021
 # Paul Boersma, 29 December 2025: little-endian
+# Paul Boersma, 5 April 2026: no endianness
 
 # Where external / third-party software is installed; needs to be
 # added to include and linker paths. (In the FreeBSD ports system,
@@ -25,7 +26,6 @@ AUDIO = -DALSA -DJACK
 # explicitly because GNU make / gcc uses those preprocessor flags,
 # but clang does not.
 COMMONFLAGS = -DUNIX -Dlinux $(AUDIO) -D_FILE_OFFSET_BITS=64 `pkg-config --cflags gtk+-3.0` \
-	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
 	-Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O1 -g1 -pthread $(CPPFLAGS)
 
 CFLAGS = -std=gnu99 $(COMMONFLAGS) \

@@ -426,7 +426,7 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 		    (str32nequ (command, U"Save ", 5) ||
 			 str32nequ (command, U"Write ", 6) ||
 			 str32nequ (command, U"Append to ", 10) ||
-			 str32equ (command, U"Quit")))
+			 str32nequ (command, U"Quit", 4)))
 		{
 			Melder_throw (U"Commands that write files (including Quit) are not available inside manuals.");
 		} else {
@@ -515,11 +515,11 @@ void praat_executeCommandFromStandardInput (conststring32 programName) {
 		char *newLine = strchr (command8, '\n');
 		if (newLine)
 			*newLine = '\0';
-		autostring32 command32 = Melder_8to32 (command8);
+		autostring32 command32 = Melder_8to32_e (command8);
 		try {
 			(void) praat_executeCommand (nullptr, command32.get());
 		} catch (MelderError) {
-			Melder_flushError (programName, U": Command “", Melder_peek8to32 (command8), U"” not executed.");
+			Melder_flushError (programName, U": Command “", Melder_peek8to32_u (command8), U"” not executed.");
 		}
 	}
 }
@@ -814,7 +814,7 @@ extern "C" void praatlib_executeScript (const char *text8) {
 			Editor (nullptr),
 			MelderFile (nullptr)   // TODO: look for a file...
 		);
-		autostring32 string = Melder_8to32 (text8);
+		autostring32 string = Melder_8to32_e (text8);
 		interpreterStack -> runDown (interpreter.move(), string.move(), false);
 	} catch (MelderError) {
 		Melder_throw (U"Script not completed.");

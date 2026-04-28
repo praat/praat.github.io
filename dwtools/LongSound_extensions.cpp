@@ -1,10 +1,10 @@
 /* LongSound_extensions.c
  *
- * Copyright (C) 1993-2017 David Weenink
+ * Copyright (C) 1993-2021,2024,2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -141,7 +141,7 @@ static void MelderFile_truncate (MelderFile me, integer size) {
 	MelderFile_close (me);
 	const int success = truncate (Melder_peek32to8_fileSystem (my path), size);
 	Melder_require (success == 0,
-		U"Truncating failed for file ", me, U" (", Melder_peek8to32 (strerror (errno)), U").");
+		U"Truncating failed for file ", me, U" (", Melder_peek8to32_u (strerror (errno)), U").");
 #else
 	Melder_throw (U"Don't know what to do.");
 #endif
@@ -241,7 +241,7 @@ void LongSounds_appendToExistingSoundFile (OrderedOf<structSampled>* me, MelderF
 			// Restore file at original size
 			int error = errno;
 			MelderFile_truncate (file, pre_append_endpos);
-			Melder_throw (U"File ", MelderFile_messageName (file), U" restored to original size (", Melder_peek8to32 (strerror (error)), U").");
+			Melder_throw (U"File ", MelderFile_messageName (file), U" restored to original size (", Melder_peek8to32_u (strerror (error)), U").");
 		} throw;
 	}
 }

@@ -2,11 +2,11 @@
 #define _f2cP_h_
 /* f2cP.h
  *
- * Copyright (C) 2020 David Weenink
+ * Copyright (C) 2020 David Weenink, 2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -318,7 +318,7 @@ static inline integer s_cmp (const char *a0, const char *b0, integer la, integer
 }
 
 static inline void xerbla_ (const char *src, integer *info) {
-	Melder_throw (Melder_peek8to32 (src), U": parameter ", *info, U" not correct!");
+	Melder_throw (Melder_peek8to32_u (src), U": parameter ", *info, U" not correct!");
 }
 
 #endif /* _f2cP_h_  */

@@ -1,6 +1,6 @@
 /* melder_sysenv.cpp
  *
- * Copyright (C) 1992-2007,2011,2012,2015-2019,2023-2025 Paul Boersma
+ * Copyright (C) 1992-2007,2011,2012,2015-2019,2023-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 conststring32 Melder_getenv (conststring32 variableName) {
 	#if defined (macintosh) || defined (UNIX) || defined (__MINGW32__) || defined (__CYGWIN__)
-		return Melder_peek8to32 (getenv (Melder_peek32to8 (variableName)));
+		return Melder_peek8to32_u (getenv (Melder_peek32to8 (variableName)));
 	#elif defined (_WIN32)
 		static char32 buffer [11] [255];
 		static int ibuffer = 0;
@@ -262,7 +262,7 @@ static autostring32 runAny_STR (
 						Melder_throw (procedureMessageName, U": error while handling child process output.");
 				#endif
 				buffer8 [count] = '\0';
-				MelderString_append (& stdout_string, Melder_peek8to32 (buffer8));
+				MelderString_append (& stdout_string, Melder_peek8to32_u (buffer8));
 			}
 		for (;;) {
 			#if defined (macintosh) || defined (UNIX)
@@ -284,7 +284,7 @@ static autostring32 runAny_STR (
 					Melder_throw (procedureMessageName, U": error while handling child process error output.");
 			#endif
 			buffer8 [count] = '\0';
-			MelderString_append (& stderr_string, Melder_peek8to32 (buffer8));
+			MelderString_append (& stderr_string, Melder_peek8to32_u (buffer8));
 		}
 		trace (U"read");
 	}

@@ -137,6 +137,7 @@ Thing_define (UiField, Thing) {
 	autoMAT numericMatrixValue, numericMatrixDefaultValue;   // for REALMATRIX_
 	kUi_stringArrayFormat stringArrayFormat;   // for STRINGARRAY_
 	autoSTRVEC stringArrayValue, stringArrayDefaultValue;   // for STRINGARRAY_
+	autostring32 previouslySelectedListString;   // for LIST_
 	MelderColour colourValue;
 	OrderedOf<structUiOption> options;
 	constSTRVEC strings;

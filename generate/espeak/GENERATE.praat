@@ -300,7 +300,7 @@ After this, the folder `./src` will be empty again.
 	#if DATA_FROM_SOURCECODE_FILES   /* ppgb: whole function adapted to Praat */
 		FileInMemorySet me = theEspeakPraatFileInMemorySet();
 		static MelderString criterion;
-		MelderString_copy (& criterion, Melder_peek8to32 (path));
+		MelderString_copy (& criterion, Melder_peek8to32_u (path));
 		MelderString_appendCharacter (& criterion, PATHSEP);
 		Melder_assert (criterion.length == len_path_voices);   // sanity check
 		for (long ifile = 1; ifile <= my size; ifile ++) {

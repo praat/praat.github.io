@@ -1,6 +1,6 @@
 /* STRVEC.cpp
  *
- * Copyright (C) 2006,2007,2009,2011,2012,2015-2025 Paul Boersma
+ * Copyright (C) 2006,2007,2009,2011,2012,2015-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ static autoSTRVEC fileOrFolderNames_STRVEC (conststring32 path /* cattable */, b
 		(path [1] == U'/' || path [1] == Melder_DIRECTORY_SEPARATOR || path [1] == U'\0') )
 	) {
 		char32 absolutePath [kMelder_MAXPATH+1];
-		Melder_sprint (absolutePath,kMelder_MAXPATH+1, Melder_peek8to32 (getenv ("HOME")), & path [1]);
+		Melder_sprint (absolutePath,kMelder_MAXPATH+1, Melder_peek8to32_u (getenv ("HOME")), & path [1]);
 		return fileOrFolderNames_STRVEC (absolutePath, wantDirectories, caseSensitive);
 	}
 	#if defined (_WIN32)

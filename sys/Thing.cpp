@@ -26,7 +26,7 @@ void structThing :: v1_info () {
 	MelderInfo_writeLine (U"Object type: ", Thing_className (this));
 	MelderInfo_writeLine (U"Object name: ", this -> name ? this -> name.get() : U"<no name>");
 	time_t today = time (nullptr);
-	MelderInfo_writeLine (U"Date: ", Melder_peek8to32 (ctime (& today)));   // includes a newline
+	MelderInfo_writeLine (U"Date: ", Melder_peek8to32_u (ctime (& today)));   // includes a newline
 }
 
 /*

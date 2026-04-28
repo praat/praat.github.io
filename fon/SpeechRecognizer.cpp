@@ -1,6 +1,6 @@
 /* SpeechRecognizer.cpp
  *
- * Copyright (C) 2025 Anastasia Shchupak
+ * Copyright (C) 2025,2026 Anastasia Shchupak
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "whisper.h"
 #include "diarize.h"
 #include "melder.h"
+#include "ggml-memory-pool.h"
 #include "ggml-silero-vad-model-data.h"
 
 #include "oo_DESTROY.h"
@@ -47,7 +48,14 @@ extern unsigned int model_ggml_segmentation_length;
 extern unsigned char model_ggml_embedding_data[];
 extern unsigned int model_ggml_embedding_length;
 
-autoWhisperContext :: ~autoWhisperContext () { whisper_free (ptr); }
+autoWhisperContext :: ~autoWhisperContext () {
+	TRACE
+	trace (U"Destroying whisper context at ", Melder_pointer (ptr));
+	if (ptr)
+		whisper_free (ptr);
+	trace (U"Number of allocations in the memory pool is  ", theGgmlMemoryPool.n_allocations());
+	trace (U"Total memory in bytes is  ", theGgmlMemoryPool.sizeInBytes());
+}
 autoWhisperContext& autoWhisperContext :: operator= (autoWhisperContext&& other) noexcept {
 	if (this != & other) {
 		whisper_free (ptr);
@@ -57,7 +65,13 @@ autoWhisperContext& autoWhisperContext :: operator= (autoWhisperContext&& other)
 	return * this;
 }
 
-autoWhisperVadContext :: ~autoWhisperVadContext () { whisper_vad_free (ptr); }
+autoWhisperVadContext :: ~autoWhisperVadContext () {
+	TRACE
+	trace (U"Destroying Silero-VAD context at ", Melder_pointer (ptr));
+	whisper_vad_free (ptr);
+	trace (U"Number of allocations in the memory pool is  ", theGgmlMemoryPool.n_allocations());
+	trace (U"Total memory in bytes is  ", theGgmlMemoryPool.sizeInBytes());
+}
 autoWhisperVadContext & autoWhisperVadContext :: operator= (autoWhisperVadContext && other) noexcept {
 	if (this != & other) {
 		whisper_vad_free (ptr);
@@ -67,10 +81,30 @@ autoWhisperVadContext & autoWhisperVadContext :: operator= (autoWhisperVadContex
 	return * this;
 }
 
-autoWhisperVadSegments :: ~autoWhisperVadSegments () { whisper_vad_free_segments (ptr); }
+autoWhisperVadSegments :: ~autoWhisperVadSegments () {
+	TRACE
+	trace (U"Destroying Silero-VAD segments at ", Melder_pointer (ptr));
+	whisper_vad_free_segments (ptr);
+}
 autoWhisperVadSegments & autoWhisperVadSegments :: operator= (autoWhisperVadSegments && other) noexcept {
 	if (this != & other) {
 		whisper_vad_free_segments (ptr);
+		ptr = other.ptr;
+		other.ptr = nullptr;
+	}
+	return * this;
+}
+
+autoDiarizeContext :: ~autoDiarizeContext () {
+	TRACE
+	trace (U"Destroying diarize context at ", Melder_pointer (ptr));
+	diarize_free (ptr);
+	trace (U"Number of allocations in the memory pool is  ", theGgmlMemoryPool.n_allocations());
+	trace (U"Total memory in bytes is  ", theGgmlMemoryPool.sizeInBytes());
+}
+autoDiarizeContext& autoDiarizeContext :: operator= (autoDiarizeContext&& other) noexcept {
+	if (this != & other) {
+		diarize_free (ptr);
 		ptr = other.ptr;
 		other.ptr = nullptr;
 	}
@@ -168,9 +202,10 @@ autoSpeechRecognizer SpeechRecognizer_create (conststring32 modelName, conststri
 			Melder_throw (U"Cannot create Whisper context from: ", modelPath, U". Model file not found?");
 
 		my whisperContext = autoWhisperContext (ctx);
-
+		theLivingSpeechRecognizers.insert (me.get());
 		return me;
 	} catch (MelderError) {
+		theGgmlMemoryPool.clear();
 		Melder_throw (U"SpeechRecognizer not created.");
 	}
 }
@@ -195,6 +230,7 @@ static std::vector <float> resampleForWhisper (constSound sound) {
 
 static void SpeechRecognizer_runWhisper (SpeechRecognizer me, constSound sound,
 		bool useVad, const SileroVadParams &sileroVadParams) {
+	//TRACE
 	/*
 		Prepare sound for Whispercpp.
 	*/
@@ -203,7 +239,10 @@ static void SpeechRecognizer_runWhisper (SpeechRecognizer me, constSound sound,
 	/*
 		Set Whisper parameters.
 	*/
-	whisper_full_params params = whisper_full_default_params (WHISPER_SAMPLING_GREEDY);
+	whisper_sampling_strategy sampling_strategy =
+			Melder_debug == 2002 ? WHISPER_SAMPLING_GREEDY : WHISPER_SAMPLING_BEAM_SEARCH;
+	trace (U"Sampling strategy = ", sampling_strategy == WHISPER_SAMPLING_GREEDY ? U"greedy" : U"beam search");
+	whisper_full_params params = whisper_full_default_params (sampling_strategy);
 	params.token_timestamps = true;   // must be true to use t0 and t1 (non-DTW) token timestamps
 	if (useVad) {
 		params.vad = true;   // enable Silero VAD (Voice Activity Detection used to chop away the silences)
@@ -229,9 +268,14 @@ static void SpeechRecognizer_runWhisper (SpeechRecognizer me, constSound sound,
 		Run Whisper.
 	*/
 	supressWhisperLogging ();
-	if (whisper_full (my whisperContext.get(), params, samples32.data(), static_cast <int> (samples32.size())) != 0)
-		Melder_throw (U"Whisper failed to process audio");
-	whisper_print_timings(my whisperContext.get());
+	try {
+		if (whisper_full (my whisperContext.get(), params, samples32.data(), static_cast <int> (samples32.size())) != 0)
+			Melder_throw (U"Whisper failed to process audio");
+		whisper_print_timings(my whisperContext.get());
+	} catch (MelderError) {
+		theGgmlMemoryPool.clear();
+		Melder_throw (U"Whisper run out of memory. SpeechRecognizer objects are no longer usable and must be recreated.");
+	}
 }
 
 static bool endsWithTerminalPunctuation(conststring32 token) {
@@ -255,18 +299,18 @@ static bool endsWithPunctuation(conststring32 token) {
 
 autovector <WhisperSegment> doSileroVad (constSound sound, const SileroVadParams &sileroVadParams,
 		conststring32 nonSpeechLabel, conststring32 speechLabel) {
+	//TRACE
+	trace (U"Sound xmin = ", sound -> xmin, U", sound xmax = ", sound -> xmax);
+	supressWhisperLogging ();
+
+	/*
+		Remember original sound -> xmin and sound -> xmax before resampling; and resample.
+	*/
+	double soundStart = sound -> xmin;
+	double soundEnd = sound -> xmax;
+	std::vector <float> samples32 = resampleForWhisper (sound);
+
 	try {
-		//TRACE
-		trace (U"Sound xmin = ", sound -> xmin, U", sound xmax = ", sound -> xmax);
-		supressWhisperLogging ();
-
-		/*
-			Remember original sound -> xmin and sound -> xmax before resampling; and resample.
-		*/
-		double soundStart = sound -> xmin;
-		double soundEnd = sound -> xmax;
-		std::vector <float> samples32 = resampleForWhisper (sound);
-
 		/*
 			Initialize VAD context.
 		*/
@@ -344,6 +388,7 @@ autovector <WhisperSegment> doSileroVad (constSound sound, const SileroVadParams
 
 		return allIntervals;
 	} catch (MelderError) {
+		theGgmlMemoryPool.clear();   // this runs after destructors of local objects, therefore it must be safe!
 		Melder_throw (U"Voice Activity not detected for sound.");
 	}
 }
@@ -351,69 +396,73 @@ autovector <WhisperSegment> doSileroVad (constSound sound, const SileroVadParams
 autovector <autovector <WhisperSegment>> doDiarization (constSound sound) {
 	//TRACE
 	std::vector <float> samples32 = resampleForWhisper (sound);
-	diarize_context * diarizeContext = diarize_init_from_memory (
-		model_ggml_segmentation_data, model_ggml_segmentation_length,
-		model_ggml_embedding_data, model_ggml_embedding_length
-		);
+	try {
+		autoDiarizeContext diarizeContext = diarize_init_from_memory (
+			model_ggml_segmentation_data, model_ggml_segmentation_length,
+			model_ggml_embedding_data, model_ggml_embedding_length
+			);
+		diarize_params diarizeParams = diarize_default_params();
+		diarize_full(diarizeContext.get(), diarizeParams, samples32.data(), static_cast <int> (samples32.size()));
+		const unsigned int n_diarization_segments = diarize_full_n_segments(diarizeContext.get());
+		const int n_speakers = diarize_full_n_speakers(diarizeContext.get());
 
-	diarize_params diarizeParams = diarize_default_params();
-	if (diarize_full(diarizeContext, diarizeParams, samples32.data(), static_cast <int> (samples32.size())) != 0) {
-		diarize_free(diarizeContext);
-		Melder_throw (U"Diarization failed");
-	}
-	const int n_diarization_segments = diarize_full_n_segments(diarizeContext);
-	const int n_speakers = diarize_full_n_speakers(diarizeContext);
+		trace(U"Speakers:", n_speakers, U", Segments: ", n_diarization_segments);
 
-	trace(U"Speakers:", n_speakers, U", Segments: ", n_diarization_segments);
+		autovector <autovector <WhisperSegment>> speakers = newvectorzero <autovector <WhisperSegment>> (n_speakers);
+		/*
+			Collect segments for each speaker.
+		*/
+		for (int i = 1; i <= n_speakers; ++i) {
+			double currentIntervalStart = sound -> xmin;
 
-	autovector <autovector <WhisperSegment>> speakers = newvectorzero <autovector <WhisperSegment>> (n_speakers);
-	/*
-		Collect segments for each speaker.
-	*/
-	for (int i = 1; i <= n_speakers; ++i) {
-		double currentIntervalStart = sound -> xmin;
+			for (int segment = 0; segment < n_diarization_segments; ++ segment) {
+				if (diarize_full_get_segment_speaker(diarizeContext.get(), segment) + 1 != i)   // this segment is from a different speaker
+					continue;
 
-		for (int segment = 0; segment < n_diarization_segments; ++ segment) {
-			if (diarize_full_get_segment_speaker(diarizeContext, segment) + 1 != i)   // this segment is from a different speaker
-				continue;
+				const double tmin = diarize_full_get_segment_t0(diarizeContext.get(), segment);
+				const double tmax = diarize_full_get_segment_t1(diarizeContext.get(), segment);
 
-			const double tmin = diarize_full_get_segment_t0(diarizeContext, segment);
-			const double tmax = diarize_full_get_segment_t1(diarizeContext, segment);
+				if (tmin > currentIntervalStart) {
+					WhisperSegment *gap = speakers [i].append();
+					gap -> text = Melder_dup (U"");
+					gap -> tmin = currentIntervalStart;
+					gap -> tmax = tmin;
+				}
 
-			if (tmin > currentIntervalStart) {
+				WhisperSegment *speakerSegment = speakers [i].append();
+				speakerSegment -> text = Melder_dup (Melder_cat (U"SPEAKER_", Melder_integer (i)));
+				speakerSegment -> tmin = tmin;
+				speakerSegment -> tmax = tmax;
+
+				trace (U"Diarization: [ ", speakerSegment -> tmin, U" - ", speakerSegment -> tmax, U" ] \"",
+						speakerSegment -> text.get(), U"\"");
+
+				currentIntervalStart = tmax;
+			}
+
+			if (currentIntervalStart < sound -> xmax) {
 				WhisperSegment *gap = speakers [i].append();
 				gap -> text = Melder_dup (U"");
 				gap -> tmin = currentIntervalStart;
-				gap -> tmax = tmin;
+				gap -> tmax = sound -> xmax;
 			}
-
-			WhisperSegment *speakerSegment = speakers [i].append();
-			speakerSegment -> text = Melder_dup (Melder_cat (U"SPEAKER_", Melder_integer (i)));
-			speakerSegment -> tmin = tmin;
-			speakerSegment -> tmax = tmax;
-
-			trace (U"Diarization: [ ", speakerSegment -> tmin, U" - ", speakerSegment -> tmax, U" ] \"",
-					speakerSegment -> text.get(), U"\"");
-
-			currentIntervalStart = tmax;
 		}
 
-		if (currentIntervalStart < sound -> xmax) {
-			WhisperSegment *gap = speakers [i].append();
-			gap -> text = Melder_dup (U"");
-			gap -> tmin = currentIntervalStart;
-			gap -> tmax = sound -> xmax;
-		}
+		return speakers;
+
+	} catch (MelderError) {
+		theGgmlMemoryPool.clear();
+		Melder_throw (U"Diarization failed.");
 	}
-
-	diarize_free(diarizeContext);
-	return speakers;
 }
 
 WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound sound,
 		bool useVad, const SileroVadParams &sileroVadParams, bool diarize) {
 	try {
 		//TRACE
+		Melder_require (my whisperContext.get(),
+				U"This SpeechRecognizer object is not usable anymore as it ran out of memory. ",
+				U"Please remove it and create a new one.");
 		trace (U"Sound xmin = ", sound -> xmin, U", sound xmax = ", sound -> xmax);
 		/*
 			Run Whisper and control for blank audio.
@@ -486,6 +535,8 @@ WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound
 		/*
 			Then, collect tokens from each segment, inserting silences between VAD segments.
 		*/
+		std::string partialTokenText;
+		double partialTokenTmax;
 		int current_vad_segment = 1;
 		for (int i = 0; i < n_segments; ++ i) {
 			for (int j = 0; j < whisper_full_n_tokens (my whisperContext.get(), i); ++ j) {
@@ -495,10 +546,19 @@ WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound
 					continue;   // skip special tokens
 				}
 
-				autostring32 raw_token_text = Melder_8to32 (whisper_full_get_token_text (my whisperContext.get(), i, j));
+				partialTokenText += whisper_full_get_token_text (my whisperContext.get(), i, j);
+				partialTokenTmax = token_data.t_dtw / 100.0;
+
+				if (! Melder_str8IsValidUtf8 (partialTokenText.c_str()))
+					continue;   // continue accumulating token texts until partialTokenText is a proper UTF8 string
+
+				/*
+					Now partialTokenText is valid UTF8.
+				*/
+				autostring32 raw_token_text = Melder_8to32_e (partialTokenText.c_str());
 				conststring32 token_text = raw_token_text.get();
 				integer length_token_text = Melder_length (token_text);
-				double tmax = token_data.t_dtw / 100.0;
+				double tmax = partialTokenTmax;
 				bool isPunctuation = length_token_text == 1 && endsWithPunctuation (token_text);
 
 				/*
@@ -538,6 +598,8 @@ WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound
 				trace (U"Segment ", i, U"; VAD segment ", current_vad_segment,
 						U"; token ", allTokens.size, U": text = ", token -> text.get(),
 						U", tmax = ", token -> tmax);
+
+				partialTokenText.clear();
 			}
 		}
 
@@ -562,8 +624,8 @@ WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound
 		autovector <WhisperSegment> words = newvectorzero <WhisperSegment> (0);
 		autovector <WhisperSegment> sentences = newvectorzero <WhisperSegment> (0);
 
-		double token_tmin = 0.0;   // default for first token
-		double sentence_tmin = 0.0;   // default for first sentence
+		double token_tmin = sound -> xmin;   // default for first token
+		double sentence_tmin = sound -> xmin;   // default for first sentence
 		bool isFirstTokenInSentence = true;
 		bool isFirstSentence = true;
 
@@ -605,19 +667,18 @@ WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound
 			bool isLastTokenInSentence = false;
 			if (endsWithTerminalPunctuation (token_text))
 				isLastTokenInSentence = true;
-			else if (isPunctuationToken) {   // if punctuation is not terminal, divide it's interval between the right and left neighbours
+			if (isPunctuationToken) {   // for any punctuation (terminal or not), divide it's interval between the right and left neighbours
 				token_tmax = (token_tmax + token_tmin) / 2;
 				allTokens [i]. tmax = token_tmax;
 			}
-			if (endsWithPunctuation (token_text)) {   // if ends with any punctuation, strip it
-				integer length_token_text = Melder_length (token_text);
-				Melder_assert (length_token_text > 0);
+			integer length_token_text = Melder_length (token_text);
+			while (length_token_text > 0 && endsWithPunctuation (token_text)) {   // strip ALL trailing punctuation (e.g., all dots in ...)
 				token_text [length_token_text - 1] = U'\0';
 				-- length_token_text;
 			}
 
 			/*
-				Create word-level segment (making sure there are no zero-length word segments).
+				Create word-level segment.
 			*/
 			Melder_assert (token_tmax >= token_tmin);
 			if ((isNewWord || words.size == 0) && token_tmax > token_tmin) {   // new word
@@ -625,12 +686,17 @@ WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound
 				word -> text = Melder_dup (token_text);
 				word -> tmin = token_tmin;
 				word -> tmax = token_tmax;
-				trace (U"Word ", words.size, U": [ ", word -> tmin, U" - ", word -> tmax, U" ]", word -> text.get());
-			} else if (words.size > 0) {   // continuation token: merge into last word
+				trace (U"Word ", words.size, U": \"", word -> text.get(), U"\" [ ", word -> tmin, U" - ", word -> tmax, U" ]");
+			} else if (isNewWord && token_tmax == token_tmin && words.size > 0) {   // zero-length new word: append to previous with a space
+				WhisperSegment & word = words [words.size];
+				word.text = Melder_dup (Melder_cat (word.text.get(), U" ", token_text));
+				word.tmax = token_tmax;
+				trace (U"Word ", words.size, U": \"", word . text.get(), U"\" [ ", word . tmin, U" - ", word . tmax, U" ] (appended zero-length)");
+			} else if (words.size > 0) {   // continuation token: append to the last word
 				WhisperSegment & word = words [words.size];
 				word.text = Melder_dup (Melder_cat (word.text.get(), token_text));
 				word.tmax = token_tmax;
-				trace (U"Word ", words.size, U": [ ", word. tmin, U" - ", word. tmax, U" ]", word. text.get());
+				trace (U"Word ", words.size, U": \"", word . text.get(), U"\" [ ", word . tmin, U" - ", word . tmax, U" ]");
 			}
 
 			/*
@@ -642,7 +708,7 @@ WhisperTranscription SpeechRecognizer_recognize (SpeechRecognizer me, constSound
 				sentence -> text = Melder_dup (sentence_text.string);
 				sentence -> tmin = sentence_tmin;
 				sentence -> tmax = token_tmax;
-				trace (U"Sentence: [ ", sentence -> tmin, U" - ", sentence -> tmax, U" ] \"",	sentence -> text.get(), U"\"");
+				trace (U"Sentence: ", sentences.size, U": \"", sentence -> text.get(), U"\" [ ", sentence -> tmin, U" - ", sentence -> tmax, U" ]");
 				MelderString_empty (& sentence_text);
 				isFirstTokenInSentence = true;   // current sentence is finalized, start with the new one on the next iteration
 				if (isFirstSentence && ! isSilentToken)
@@ -714,7 +780,7 @@ constSTRVEC theSpeechRecognizerLanguageNames () {
 		try {
 			const uint8 nLanguages = whisper_lang_max_id();
 			for (uint8 i = 0; i < nLanguages; i ++) {
-				autostring32 languageName = Melder_8to32 (whisper_lang_str_full (i));
+				autostring32 languageName = Melder_8to32_e (whisper_lang_str_full (i));
 
 				/*
 					Capitalize the first letter, e.g. "dutch" -> "Dutch".

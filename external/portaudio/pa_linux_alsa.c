@@ -1539,10 +1539,10 @@ static PaSampleFormat GetAvailableFormats( snd_pcm_t *pcm )
     if( alsa_snd_pcm_hw_params_test_format( pcm, hwParams, SND_PCM_FORMAT_S32 ) >= 0)
         available |= paInt32;
 
-#ifdef PA_LITTLE_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     if( alsa_snd_pcm_hw_params_test_format( pcm, hwParams, SND_PCM_FORMAT_S24_3LE ) >= 0)
         available |= paInt24;
-#elif defined PA_BIG_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
     if( alsa_snd_pcm_hw_params_test_format( pcm, hwParams, SND_PCM_FORMAT_S24_3BE ) >= 0)
         available |= paInt24;
 #endif
@@ -1692,9 +1692,9 @@ static snd_pcm_format_t Pa2AlsaFormat( PaSampleFormat paFormat )
             return SND_PCM_FORMAT_S16;
 
         case paInt24:
-#ifdef PA_LITTLE_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
             return SND_PCM_FORMAT_S24_3LE;
-#elif defined PA_BIG_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
             return SND_PCM_FORMAT_S24_3BE;
 #endif
 

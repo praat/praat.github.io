@@ -1,10 +1,10 @@
 /* Collection.cpp
  *
- * Copyright (C) 1992-2012,2014-2022,2024 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2022,2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -121,7 +121,7 @@ void _CollectionOfDaata_v1_readText (_CollectionOfDaata* me, MelderReadText text
 			Melder_require (stringsRead < 3 || strequ (nameTag, "name"),
 				U"Collection::readText: wrong header at object ", i, U".");
 
-			my at [i] = (Daata) Thing_newFromClassName (Melder_peek8to32 (klas), nullptr).releaseToAmbiguousOwner();
+			my at [i] = (Daata) Thing_newFromClassName (Melder_peek8to32_u (klas), nullptr).releaseToAmbiguousOwner();
 			my size ++;
 			Melder_require (Thing_isa (my at [i], classDaata) && Data_canReadText (my at [i]),
 				U"Cannot read item of class ", Thing_className (my at [i]), U" in collection.");
@@ -133,7 +133,7 @@ void _CollectionOfDaata_v1_readText (_CollectionOfDaata* me, MelderReadText text
 				const integer length = Melder8_length (location);
 				if (length > 0 && location [length - 1] == '\n')
 					location [length - 1] = '\0';
-				Thing_setName (my at [i], Melder_peek8to32 (line.get()+n));
+				Thing_setName (my at [i], Melder_peek8to32_u (line.get()+n));
 			}
 		}
 	} else {
@@ -177,7 +177,7 @@ void _CollectionOfDaata_v1_readBinary (_CollectionOfDaata* me, FILE *f, int form
 			char klas [200], name [2000];
 			Melder_require (fscanf (f, "%199s%1999s", klas, name) == 2,
 				U"Cannot read class and name.");
-			my at [i] = (Daata) Thing_newFromClassName (Melder_peek8to32 (klas), nullptr).releaseToAmbiguousOwner();
+			my at [i] = (Daata) Thing_newFromClassName (Melder_peek8to32_u (klas), nullptr).releaseToAmbiguousOwner();
 			my size ++;
 			Melder_require (Thing_isa (my at [i], classDaata),
 				U"Cannot read item of class ", Thing_className (my at [i]), U".");
@@ -185,7 +185,7 @@ void _CollectionOfDaata_v1_readBinary (_CollectionOfDaata* me, FILE *f, int form
 				U"Cannot read space.");
 			Data_readBinary (my at [i], f, -1);
 			if (strcmp (name, "?"))
-				Thing_setName (my at [i], Melder_peek8to32 (name));
+				Thing_setName (my at [i], Melder_peek8to32_u (name));
 		}
 	} else {
 		int32 l_size = bingeti32 (f);
@@ -195,9 +195,9 @@ void _CollectionOfDaata_v1_readBinary (_CollectionOfDaata* me, FILE *f, int form
 		for (int32 i = 1; i <= l_size; i ++) {
 			autostring8 klas = bingets8 (f);
 			if (Melder_debug == 44)
-				Melder_casual (U"structCollection :: v1_readBinary: Reading object of type ", Melder_peek8to32 (klas.get()));
+				Melder_casual (U"structCollection :: v1_readBinary: Reading object of type ", Melder_peek8to32_u (klas.get()));
 			int elementFormatVersion;
-			my at [i] = (Daata) Thing_newFromClassName (Melder_peek8to32 (klas.get()), & elementFormatVersion).releaseToAmbiguousOwner();
+			my at [i] = (Daata) Thing_newFromClassName (Melder_peek8to32_u (klas.get()), & elementFormatVersion).releaseToAmbiguousOwner();
 			my size ++;
 			Melder_require (Thing_isa (my at [i], classDaata) && Data_canReadBinary (my at [i]),
 				U"Objects of class ", Thing_className (my at [i]), U" cannot be read.");

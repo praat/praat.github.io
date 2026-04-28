@@ -1,10 +1,10 @@
 /* GuiFileSelect.cpp
  *
- * Copyright (C) 2010-2024 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 2010-2026 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -39,14 +39,14 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow optionalParent, conststrin
 		if (gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
 			char *infolderName_utf8 = gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (dialog));
 			if (infolderName_utf8) {
-				conststring32 infolderName = Melder_peek8to32 (infolderName_utf8);   // dangle
+				conststring32 infolderName = Melder_peek8to32_u (infolderName_utf8);   // dangle
 				Melder_pathToFolder (infolderName, & folder);
 				g_free (infolderName_utf8);
 			}
 			GSList *infileNames_list = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER (dialog));
 			for (GSList *element = infileNames_list; element != nullptr; element = g_slist_next (element)) {
 				char *infileName_utf8 = (char *) element -> data;
-				my addString_copy (Melder_peek8to32 (infileName_utf8));
+				my addString_copy (Melder_peek8to32_u (infileName_utf8));
 				g_free (infileName_utf8);
 			}
 			g_slist_free (infileNames_list);
@@ -138,7 +138,7 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow optionalParent, conststring
 		gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), Melder_peek32to8 (defaultName));
 		if (gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
 			char *outfileName_utf8 = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-			outfileName = Melder_8to32 (outfileName_utf8);
+			outfileName = Melder_8to32_e (outfileName_utf8);
 			g_free (outfileName_utf8);
 			Melder_pathToFile (outfileName.get(), & file);
 		}
@@ -200,7 +200,7 @@ autostring32 GuiFileSelect_getFolderName (GuiWindow optionalParent, conststring3
 			gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (dialog), MelderFile_peekPath8 (& file));
 		if (gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
 			char *folderName_utf8 = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-			folderName = Melder_8to32 (folderName_utf8);
+			folderName = Melder_8to32_e (folderName_utf8);
 			g_free (folderName_utf8);
 			Melder_pathToFile (folderName.get(), & file);
 		}

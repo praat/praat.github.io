@@ -1,14 +1,13 @@
 # File: makefile.defs.msys-mingw32-clang
 
 # System: MinGW on Windows under MSYS2
-# Paul Boersma 2025-12-29
+# Paul Boersma, 5 April 2026
 
 CC = clang
 CXX = $(CC)
 LINK = $(CXX)
 
 COMMONFLAGS = -municode -D_FILE_OFFSET_BITS=64 \
-	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
 	-O3
 # Probably implicit: -m32 -mwin32 -march=i686 -mtune=generic
 

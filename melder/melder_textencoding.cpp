@@ -1,6 +1,6 @@
 /* melder_textencoding.cpp
  *
- * Copyright (C) 2007-2025 Paul Boersma
+ * Copyright (C) 2007-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -262,7 +262,7 @@ void MelderString_8to32 (MelderString *me, conststring8 textA) {
 	}
 }
 
-conststring32 Melder_peek8to32 (conststring8 textA) {
+conststring32 Melder_peek8to32_u (conststring8 textA) {
 	static MelderString buffers [19];
 	static int ibuffer = 0;
 	if (++ ibuffer == 19)
@@ -363,7 +363,7 @@ char32 Melder_decodeWindowsLatin1 [256] = {
 	220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
 	240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255 };
 
-void Melder_8to32_inplace (conststring8 string8, mutablestring32 string32, kMelder_textInputEncoding inputEncoding) {
+void Melder_8to32_inplace_e (conststring8 string8, mutablestring32 string32, kMelder_textInputEncoding inputEncoding) {
 	const char8 *p = (const char8 *) & string8 [0];
 	char32 *q = & string32 [0];
 	if (inputEncoding == kMelder_textInputEncoding::UNDEFINED) {
@@ -432,19 +432,19 @@ void Melder_8to32_inplace (conststring8 string8, mutablestring32 string32, kMeld
 	(void) Melder_killReturns_inplaceCHAR <char32> (string32);
 }
 
-autostring32 Melder_8to32 (const char *string, kMelder_textInputEncoding inputEncoding) {
+autostring32 Melder_8to32_e (const char *string, kMelder_textInputEncoding inputEncoding) {
 	if (! string)
 		return autostring32();
 	autostring32 result (Melder8_length (string));
-	Melder_8to32_inplace (string, result.get(), inputEncoding);
+	Melder_8to32_inplace_e (string, result.get(), inputEncoding);
 	return result;
 }
 
-autostring32 Melder_8to32 (const char *string) {
+autostring32 Melder_8to32_e (const char *string) {
 	if (! string)
 		return autostring32();
 	autostring32 result (Melder8_length (string));
-	Melder_8to32_inplace (string, result.get(), kMelder_textInputEncoding::UTF8);
+	Melder_8to32_inplace_e (string, result.get(), kMelder_textInputEncoding::UTF8);
 	return result;
 }
 

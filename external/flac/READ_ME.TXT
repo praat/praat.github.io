@@ -145,6 +145,11 @@ Before #including any FLAC header files, do
 
 Put #ifdef _WIN32 around flac_share_win_utf8_io.c.
 
+Replace all occurrences of
+	#if WORDS_BIGENDIAN
+with
+	#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
 To minimize warnings, do something to
 	#ifdef HAVE_STDINT_H
 such as replacing it with

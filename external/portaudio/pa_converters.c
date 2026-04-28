@@ -465,11 +465,11 @@ static void Float32_To_Int24(
         double scaled = (double)(*src) * 2147483647.0;
         temp = (PaInt32) scaled;
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = (unsigned char)(temp >> 8);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (unsigned char)(temp >> 24);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 8);
@@ -501,11 +501,11 @@ static void Float32_To_Int24_Dither(
 
         temp = (PaInt32) dithered;
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = (unsigned char)(temp >> 8);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (unsigned char)(temp >> 24);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 8);
@@ -536,11 +536,11 @@ static void Float32_To_Int24_Clip(
         PA_CLIP_( scaled, -2147483648., 2147483647.  );
         temp = (PaInt32) scaled;
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = (unsigned char)(temp >> 8);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (unsigned char)(temp >> 24);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 8);
@@ -573,11 +573,11 @@ static void Float32_To_Int24_DitherClip(
 
         temp = (PaInt32) dithered;
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = (unsigned char)(temp >> 8);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (unsigned char)(temp >> 24);
         dest[1] = (unsigned char)(temp >> 16);
         dest[2] = (unsigned char)(temp >> 8);
@@ -914,11 +914,11 @@ static void Int32_To_Int24(
     while( count-- )
     {
         /* REVIEW */
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = (unsigned char)(*src >> 8);
         dest[1] = (unsigned char)(*src >> 16);
         dest[2] = (unsigned char)(*src >> 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (unsigned char)(*src >> 24);
         dest[1] = (unsigned char)(*src >> 16);
         dest[2] = (unsigned char)(*src >> 8);
@@ -1084,11 +1084,11 @@ static void Int24_To_Float32(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         temp = (((PaInt32)src[0]) << 8);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         temp = (((PaInt32)src[0]) << 24);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 8);
@@ -1117,11 +1117,11 @@ static void Int24_To_Int32(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         temp = (((PaInt32)src[0]) << 8);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         temp = (((PaInt32)src[0]) << 24);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 8);
@@ -1151,11 +1151,11 @@ static void Int24_To_Int16(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         /* src[0] is discarded */
         temp = (((PaInt16)src[1]));
         temp = temp | (PaInt16)(((PaInt16)src[2]) << 8);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         /* src[2] is discarded */
         temp = (PaInt16)(((PaInt16)src[0]) << 8);
         temp = temp | (((PaInt16)src[1]));
@@ -1183,11 +1183,11 @@ static void Int24_To_Int16_Dither(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         temp = (((PaInt32)src[0]) << 8);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         temp = (((PaInt32)src[0]) << 24);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 8);
@@ -1217,11 +1217,11 @@ static void Int24_To_Int8(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         /* src[0] is discarded */
         /* src[1] is discarded */
         *dest = src[2];
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         /* src[2] is discarded */
         /* src[1] is discarded */
         *dest = src[0];
@@ -1247,11 +1247,11 @@ static void Int24_To_Int8_Dither(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         temp = (((PaInt32)src[0]) << 8);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 24);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         temp = (((PaInt32)src[0]) << 24);
         temp = temp | (((PaInt32)src[1]) << 16);
         temp = temp | (((PaInt32)src[2]) << 8);
@@ -1281,11 +1281,11 @@ static void Int24_To_UInt8(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         /* src[0] is discarded */
         /* src[1] is discarded */
         *dest = (unsigned char)(src[2] + 128);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         *dest = (unsigned char)(src[0] + 128);
         /* src[1] is discarded */
         /* src[2] is discarded */
@@ -1374,11 +1374,11 @@ static void Int16_To_Int24(
     {
         temp = *src;
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = 0;
         dest[1] = (unsigned char)(temp);
         dest[2] = (unsigned char)(temp >> 8);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (unsigned char)(temp >> 8);
         dest[1] = (unsigned char)(temp);
         dest[2] = 0;
@@ -1524,11 +1524,11 @@ static void Int8_To_Int24(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = 0;
         dest[1] = 0;
         dest[2] = (*src);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (*src);
         dest[1] = 0;
         dest[2] = 0;
@@ -1634,11 +1634,11 @@ static void UInt8_To_Int24(
     while( count-- )
     {
 
-#if defined(PA_LITTLE_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         dest[0] = 0;
         dest[1] = 0;
         dest[2] = (unsigned char)(*src - 128);
-#elif defined(PA_BIG_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         dest[0] = (unsigned char)(*src - 128);
         dest[1] = 0;
         dest[2] = 0;

@@ -13,7 +13,7 @@
 #include "opus__config.h"
 //#endif
 
-#include "internal.h"
+#include "opusfile_internal.h"
 #include <limits.h>
 #include <string.h>
 

@@ -57,7 +57,7 @@ typedef FLAC__uint32 brword;
 #define FLAC__BITS_PER_WORD 32
 #define FLAC__WORD_ALL_ONES ((FLAC__uint32)0xffffffff)
 /* SWAP_BE_WORD_TO_HOST swaps bytes in a brword (which is always big-endian) if necessary to match host byte order */
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
 #define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_32(x)
@@ -73,7 +73,7 @@ typedef FLAC__uint64 brword;
 #define FLAC__BITS_PER_WORD 64
 #define FLAC__WORD_ALL_ONES ((FLAC__uint64)FLAC__U64L(0xffffffffffffffff))
 /* SWAP_BE_WORD_TO_HOST swaps bytes in a brword (which is always big-endian) if necessary to match host byte order */
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
 #define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_64(x)
@@ -159,7 +159,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	uint32_t start, end;
 	size_t bytes;
 	FLAC__byte *target;
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #else
 	brword preswap_backup;
 #endif
@@ -195,7 +195,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	 * on LE machines, have to byteswap the odd tail word so nothing is
 	 * overwritten:
 	 */
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #else
 	preswap_backup = br->buffer[br->words];
 	if(br->bytes)
@@ -214,7 +214,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 		/* Despite the read callback failing, the data in the target
 		 * might be used later, when the buffer is rewound. Therefore
 		 * we revert the swap that was just done */
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #else
 		br->buffer[br->words] = preswap_backup;
 #endif
@@ -227,7 +227,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	 *   buffer[LE]:  44 33 22 11 55 66 77 88 99 AA BB CC DD EE FF ??
 	 * now have to byteswap on LE machines:
 	 */
-#if WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #else
 	end = (br->words*FLAC__BYTES_PER_WORD + br->bytes + (uint32_t)bytes + (FLAC__BYTES_PER_WORD-1)) / FLAC__BYTES_PER_WORD;
 	for(start = br->words; start < end; start++)

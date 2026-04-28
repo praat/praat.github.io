@@ -2,7 +2,7 @@
 #define _melder_textencoding_h_
 /* melder_textencoding.h
  *
- * Copyright (C) 1992-2020,2022,2024,2025 Paul Boersma
+ * Copyright (C) 1992-2020,2022,2024-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,12 +55,12 @@ int64 Melder_length_utf8  (conststring32 string, bool nativizeNewlines);
 int64 Melder_length_utf16 (conststring32 string, bool nativizeNewlines);
 
 void MelderString_8to32 (MelderString *me, conststring8 textA);
-extern "C" conststring32 Melder_peek8to32 (conststring8 string);
-void Melder_8to32_inplace (conststring8 source, mutablestring32 target, kMelder_textInputEncoding inputEncoding);
+extern "C" conststring32 Melder_peek8to32_u (conststring8 string);
+void Melder_8to32_inplace_e (conststring8 source, mutablestring32 target, kMelder_textInputEncoding inputEncoding);
 	// errors: Text is not valid UTF-8.
-autostring32 Melder_8to32 (conststring8 string, kMelder_textInputEncoding inputEncoding);
+autostring32 Melder_8to32_e (conststring8 string, kMelder_textInputEncoding inputEncoding);
 	// errors: Out of memory; Text is not valid UTF-8.
-autostring32 Melder_8to32 (conststring8 string);
+autostring32 Melder_8to32_e (conststring8 string);
 	// errors: Out of memory; Text is not valid UTF-8.
 
 conststring32 Melder_peek16to32 (conststring16 text);

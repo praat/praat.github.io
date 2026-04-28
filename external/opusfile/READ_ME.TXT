@@ -1,5 +1,6 @@
 praat/external/opusfile/READ_ME.TXT
 David Weenink and Paul Boersma, 20 August 2021
+
 This file describes the adaptations made to libopusfile-0.12 sources, the part of Opus that directly interacts with Praat,
 to make them compilable with the C++ compiler and compatible with Praat.
 
@@ -20,3 +21,5 @@ so we adapted that to use fseeko() instead, which is available with x86_64-w64-m
 the same file uses _get_osfhandle(), for which we included <io.h>.
 
 The files opus/opus_compare.c en opus/celt/custom_demo.c contain "main" functions and are not needed.
+
+Rename internal.h to opusfile_internal.h, and adapt the #include statements accordingly.

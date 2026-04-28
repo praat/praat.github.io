@@ -584,7 +584,7 @@ static void gui_button_cb_record (SoundRecorder me, GuiButtonEvent /* event */) 
 				if (Melder_debug == 20)
 					Melder_casual (U"Pa_OpenStream returns ", (int) err);
 				if (err) {
-					conststring32 errorText = Melder_peek8to32 (Pa_GetErrorText (err));
+					conststring32 errorText = Melder_peek8to32_u (Pa_GetErrorText (err));
 					if (Melder_equ (errorText, U"Invalid number of channels"))
 						if (my numberOfChannels == 1)
 							Melder_throw (U"You are trying to record in mono, but your microphone does not seem to support that.\nPerhaps you could try to record in stereo instead.");
@@ -597,7 +597,7 @@ static void gui_button_cb_record (SoundRecorder me, GuiButtonEvent /* event */) 
 				if (Melder_debug == 20)
 					Melder_casual (U"Pa_StartStream returns ", (int) err);
 				if (err)
-					Melder_throw (U"Error starting audio input stream: ", Melder_peek8to32 (Pa_GetErrorText (err)), U".");
+					Melder_throw (U"Error starting audio input stream: ", Melder_peek8to32_u (Pa_GetErrorText (err)), U".");
 			} else {
 				#if defined (_WIN32)
 					win_fillFormat (me);
@@ -1111,7 +1111,7 @@ autoSoundRecorder SoundRecorder_create (int numberOfChannels) {
 			if (! MelderAudio_hasBeenInitialized) {
 				PaError err = Pa_Initialize ();
 				if (Melder_debug == 20)
-					Melder_casual (U"init ", Melder_peek8to32 (Pa_GetErrorText (err)));
+					Melder_casual (U"init ", Melder_peek8to32_u (Pa_GetErrorText (err)));
 				MelderAudio_hasBeenInitialized = true;
 				if (Melder_debug == 20) {
 					PaHostApiIndex hostApiCount = Pa_GetHostApiCount ();
@@ -1119,7 +1119,7 @@ autoSoundRecorder SoundRecorder_create (int numberOfChannels) {
 					for (PaHostApiIndex iHostApi = 0; iHostApi < hostApiCount; iHostApi ++) {
 						const PaHostApiInfo *hostApiInfo = Pa_GetHostApiInfo (iHostApi);
 						PaHostApiTypeId type = hostApiInfo -> type;
-						Melder_casual (U"host API ", iHostApi, U": ", type, U", \"", Melder_peek8to32 (hostApiInfo -> name), U"\" ", hostApiInfo -> deviceCount);
+						Melder_casual (U"host API ", iHostApi, U": ", type, U", \"", Melder_peek8to32_u (hostApiInfo -> name), U"\" ", hostApiInfo -> deviceCount);
 					}
 					PaHostApiIndex defaultHostApi = Pa_GetDefaultHostApi ();
 					Melder_casual (U"default host API ", defaultHostApi);
@@ -1132,7 +1132,7 @@ autoSoundRecorder SoundRecorder_create (int numberOfChannels) {
 				const PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo (idevice);
 				if (Melder_debug == 20)
 					Melder_casual (
-						U"Device \"", Melder_peek8to32 (deviceInfo -> name),
+						U"Device \"", Melder_peek8to32_u (deviceInfo -> name),
 						U"\", input ", deviceInfo -> maxInputChannels,
 						U", output ", deviceInfo -> maxOutputChannels,
 						U", sample rate ", deviceInfo -> defaultSampleRate
@@ -1140,14 +1140,14 @@ autoSoundRecorder SoundRecorder_create (int numberOfChannels) {
 				if (deviceInfo -> maxInputChannels > 0 && my numberOfInputDevices < SoundRecorder_IDEVICE_MAX) {
 					my devices [++ my numberOfInputDevices]. canDo = true;
 					#if defined (macintosh) || defined (_WIN32)   // only one host API
-						str32ncpy (my devices [my numberOfInputDevices]. fullName, Melder_peek8to32 (deviceInfo -> name), SoundRecorder_Device :: maximumLengthOfFullName);
+						str32ncpy (my devices [my numberOfInputDevices]. fullName, Melder_peek8to32_u (deviceInfo -> name), SoundRecorder_Device :: maximumLengthOfFullName);
 					#else
 						const PaHostApiIndex hostApiIndex = deviceInfo -> hostApi;
 						const PaHostApiInfo * const hostApiInfo = Pa_GetHostApiInfo (hostApiIndex);
 						Melder_assert (hostApiInfo);
 						const conststring8 shortHostApiName8 = ( strstr (hostApiInfo -> name, "JACK") == hostApiInfo -> name ? "JACK" : hostApiInfo -> name );
 						str32ncpy (my devices [my numberOfInputDevices]. fullName,
-							Melder_cat (U"(", Melder_peek8to32 (shortHostApiName8), U":) ", Melder_peek8to32 (deviceInfo -> name)),
+							Melder_cat (U"(", Melder_peek8to32_u (shortHostApiName8), U":) ", Melder_peek8to32_u (deviceInfo -> name)),
 							SoundRecorder_Device :: maximumLengthOfFullName
 						);
 					#endif

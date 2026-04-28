@@ -1,6 +1,6 @@
 /* FunctionEditor.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma
+ * Copyright (C) 1992-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -302,22 +302,22 @@ static void drawBackgroundAndData (FunctionEditor me) {
 			}
 			char text8 [100];
 			snprintf (text8, 100, format, value, inverseValue);
-			autostring32 text = Melder_8to32 (text8);
+			autostring32 text = Melder_8to32_e (text8);
 			if (Graphics_textWidth (my graphics.get(), text.get()) < right - left) {
 				Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 			} else if (format == my v_format_long()) {
 				snprintf (text8, 100, my v_format_short(), value);
-				text = Melder_8to32 (text8);
+				text = Melder_8to32_e (text8);
 				if (Graphics_textWidth (my graphics.get(), text.get()) < right - left)
 					Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 			} else {
 				snprintf (text8, 100, my v_format_long(), value);
-				text = Melder_8to32 (text8);
+				text = Melder_8to32_e (text8);
 				if (Graphics_textWidth (my graphics.get(), text.get()) < right - left) {
 					Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 				} else {
 					snprintf (text8, 100, my v_format_short(), my endSelection - my startSelection);
-					text = Melder_8to32 (text8);
+					text = Melder_8to32_e (text8);
 					if (Graphics_textWidth (my graphics.get(), text.get()) < right - left)
 						Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 				}

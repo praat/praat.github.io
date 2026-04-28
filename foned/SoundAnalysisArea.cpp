@@ -2216,7 +2216,7 @@ static void INFO_DATA__voiceReport (SoundAnalysisArea me, EDITOR_ARGS) {
 		if (! sound)
 			return;
 		MelderInfo_open ();
-		MelderInfo_writeLine (U"-- Voice report for ", my name.get(), U" --\nDate: ", Melder_peek8to32 (ctime (& today)));
+		MelderInfo_writeLine (U"-- Voice report for ", my name.get(), U" --\nDate: ", Melder_peek8to32_u (ctime (& today)));
 		if (my instancePref_pitch_method() != kSoundAnalysisArea_pitch_analysisMethod::RAW_CROSS_CORRELATION) {
 			if (my instancePref_pitch_method() == kSoundAnalysisArea_pitch_analysisMethod::RAW_AUTOCORRELATION)
 				MelderInfo_writeLine (U"WARNING: some of the following measurements may be imprecise.\n"

@@ -153,20 +153,20 @@ void _private_Melder_crash (const MelderArg& arg1,
 static void _assert (const char *pathName, int lineNumber, const char *condition, conststring32 intro) {
 	/*
 		This function tries to make sure that it allocates no heap memory.
-		Hence, character conversion is done in place rather than with Melder_peek8to32(),
+		Hence, character conversion is done in place rather than with Melder_peek8to32_u(),
 		and Melder_integer() is also avoided.
 	*/
 	std::lock_guard <std::mutex> lock (theMelder_crash_mutex);   // to guard against simultaneous crashes in multiple threads
 	static char32 pathNameBuffer [1000], conditionBuffer [1000], lineNumberBuffer [40];
-	Melder_8to32_inplace (pathName, pathNameBuffer, kMelder_textInputEncoding::UTF8);
+	Melder_8to32_inplace_e (pathName, pathNameBuffer, kMelder_textInputEncoding::UTF8);
 	const char32 *p_lastFolderSeparator = str32rchr (pathNameBuffer, U'/');
 	if (! p_lastFolderSeparator)
 		p_lastFolderSeparator = str32rchr (pathNameBuffer, U'\\');
 	const conststring32 fileName = ( p_lastFolderSeparator ? p_lastFolderSeparator + 1 : pathNameBuffer );
-	Melder_8to32_inplace (condition, conditionBuffer, kMelder_textInputEncoding::UTF8);
+	Melder_8to32_inplace_e (condition, conditionBuffer, kMelder_textInputEncoding::UTF8);
 	static char lineNumberBuffer8 [40];
 	snprintf (lineNumberBuffer8,40, "%d", lineNumber);
-	Melder_8to32_inplace (lineNumberBuffer8, lineNumberBuffer, kMelder_textInputEncoding::UTF8);
+	Melder_8to32_inplace_e (lineNumberBuffer8, lineNumberBuffer, kMelder_textInputEncoding::UTF8);
 	MelderError__appendOneString (crashMessage ());
 	MelderError__appendOneString (intro);
 	MelderError__appendOneString (Melder_appVersionSTR());

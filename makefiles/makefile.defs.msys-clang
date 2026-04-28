@@ -1,7 +1,7 @@
 # File: makefile.defs.msys-clang
 
 # System: clang on Windows under MSYS2
-# Paul Boersma, 29 December 2025
+# Paul Boersma, 5 April 2026
 
 # This is the makefile for building a Windows edition of Praat within
 # one of the three MSYS2-CLANG shells: CLANGARM64, CLANG64 and CLANG32.
@@ -11,7 +11,6 @@ CXX = $(CC)
 LINK = $(CXX)
 
 COMMONFLAGS = -municode -D_FILE_OFFSET_BITS=64 \
-	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
 	-O3
 # Probably implicit: -m64 -mwin32 -march=... -mtune=generic
 

@@ -1,10 +1,10 @@
 /* MelderReadText.cpp
  *
- * Copyright (C) 2008,2010-2012,2014-2020,2022,2023,2025 Paul Boersma
+ * Copyright (C) 2008,2010-2012,2014-2020,2022,2023,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -133,7 +133,7 @@ mutablestring32 MelderReadText_readLine (MelderReadText me) {
 			my lineBuffer = autostring32 (lineBufferSizeWanted);
 			my lineBufferSize = lineBufferSizeWanted;
 		}
-		Melder_8to32_inplace (result8, my lineBuffer.get(), my input8Encoding);
+		Melder_8to32_inplace_e (result8, my lineBuffer.get(), my input8Encoding);
 		if (newline8)
 			*newline8 = '\n';   // restore original newline symbol, so that getNumberOfLines() and getLineNumber() continue to work
 	}

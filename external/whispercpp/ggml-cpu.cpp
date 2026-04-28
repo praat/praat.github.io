@@ -147,7 +147,12 @@ static void atomic_thread_fence(memory_order mo) {
     MemoryBarrier();
 }
 #else // clang
-#include <stdatomic.h>
+#include <atomic>
+using std::atomic_int;
+using std::atomic_bool;
+using std::atomic_thread_fence;
+using std::memory_order_relaxed;
+using std::memory_order_seq_cst;
 #endif
 
 typedef HANDLE pthread_t;
@@ -179,7 +184,12 @@ static int sched_yield (void) {
 #else
 
 #include <pthread.h>
-#include <stdatomic.h>
+#include <atomic>
+using std::atomic_int;
+using std::atomic_bool;
+using std::atomic_thread_fence;
+using std::memory_order_relaxed;
+using std::memory_order_seq_cst;
 #include <sched.h>
 #if defined(__FreeBSD__)
 #include <pthread_np.h>
@@ -204,190 +214,7 @@ typedef pthread_t ggml_thread_t;
 #include <TargetConditionals.h>
 #endif
 
-static const struct ggml_type_traits_cpu type_traits_cpu[GGML_TYPE_COUNT] = {
-    [GGML_TYPE_F32] = {
-        .from_float               = (ggml_from_float_t) ggml_cpu_fp32_to_fp32,
-        .vec_dot                  = (ggml_vec_dot_t) ggml_vec_dot_f32,
-        .vec_dot_type             = GGML_TYPE_F32,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_F16] = {
-        .from_float               = (ggml_from_float_t) ggml_cpu_fp32_to_fp16,
-        .vec_dot                  = (ggml_vec_dot_t) ggml_vec_dot_f16,
-        .vec_dot_type             = GGML_TYPE_F16,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q4_0] = {
-        .from_float               = quantize_row_q4_0,
-        .vec_dot                  = ggml_vec_dot_q4_0_q8_0,
-        .vec_dot_type             = GGML_TYPE_Q8_0,
-#if defined (__ARM_FEATURE_MATMUL_INT8)
-        .nrows                    = 2,
-#else
-        .nrows                    = 1,
-#endif
-    },
-    [GGML_TYPE_Q4_1] = {
-        .from_float               = quantize_row_q4_1,
-        .vec_dot                  = ggml_vec_dot_q4_1_q8_1,
-        .vec_dot_type             = GGML_TYPE_Q8_1,
-#if defined (__ARM_FEATURE_MATMUL_INT8)
-        .nrows                    = 2,
-#else
-        .nrows                    = 1,
-#endif
-    },
-    [GGML_TYPE_Q5_0] = {
-        .from_float               = quantize_row_q5_0,
-        .vec_dot                  = ggml_vec_dot_q5_0_q8_0,
-        .vec_dot_type             = GGML_TYPE_Q8_0,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q5_1] = {
-        .from_float               = quantize_row_q5_1,
-        .vec_dot                  = ggml_vec_dot_q5_1_q8_1,
-        .vec_dot_type             = GGML_TYPE_Q8_1,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q8_0] = {
-        .from_float               = quantize_row_q8_0,
-        .vec_dot                  = ggml_vec_dot_q8_0_q8_0,
-        .vec_dot_type             = GGML_TYPE_Q8_0,
-#if defined (__ARM_FEATURE_MATMUL_INT8)
-        .nrows                    = 2,
-#else
-        .nrows                    = 1,
-#endif
-    },
-    [GGML_TYPE_Q8_1] = {
-        .from_float               = quantize_row_q8_1,
-        .vec_dot_type             = GGML_TYPE_Q8_1,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_MXFP4] = {
-        .from_float               = quantize_row_mxfp4,
-        .vec_dot                  = ggml_vec_dot_mxfp4_q8_0,
-        .vec_dot_type             = GGML_TYPE_Q8_0,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q2_K] = {
-        .from_float               = quantize_row_q2_K,
-        .vec_dot                  = ggml_vec_dot_q2_K_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q3_K] = {
-        .from_float               = quantize_row_q3_K,
-        .vec_dot                  = ggml_vec_dot_q3_K_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q4_K] = {
-        .from_float               = quantize_row_q4_K,
-        .vec_dot                  = ggml_vec_dot_q4_K_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-#if defined (__ARM_FEATURE_MATMUL_INT8)
-        .nrows                    = 2,
-#else
-        .nrows                    = 1,
-#endif
-    },
-    [GGML_TYPE_Q5_K] = {
-        .from_float               = quantize_row_q5_K,
-        .vec_dot                  = ggml_vec_dot_q5_K_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q6_K] = {
-        .from_float               = quantize_row_q6_K,
-        .vec_dot                  = ggml_vec_dot_q6_K_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-#if defined (__ARM_FEATURE_MATMUL_INT8)
-        .nrows                    = 2,
-#else
-        .nrows                    = 1,
-#endif
-    },
-    [GGML_TYPE_IQ2_XXS] = {
-        .from_float               = NULL,
-        .vec_dot                  = ggml_vec_dot_iq2_xxs_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ2_XS] = {
-        .from_float               = NULL,
-        .vec_dot                  = ggml_vec_dot_iq2_xs_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ3_XXS] = {
-        // NOTE: from_float for iq3 and iq2_s was removed because these quants require initialization in ggml_quantize_init
-        //.from_float               = quantize_row_iq3_xxs,
-        .vec_dot                  = ggml_vec_dot_iq3_xxs_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ3_S] = {
-        //.from_float               = quantize_row_iq3_s,
-        .vec_dot                  = ggml_vec_dot_iq3_s_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ2_S] = {
-        //.from_float               = quantize_row_iq2_s,
-        .vec_dot                  = ggml_vec_dot_iq2_s_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ1_S] = {
-        .from_float               = NULL,
-        .vec_dot                  = ggml_vec_dot_iq1_s_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ1_M] = {
-        .from_float               = NULL,
-        .vec_dot                  = ggml_vec_dot_iq1_m_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ4_NL] = {
-        .from_float               = quantize_row_iq4_nl,
-        .vec_dot                  = ggml_vec_dot_iq4_nl_q8_0,
-        .vec_dot_type             = GGML_TYPE_Q8_0,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_IQ4_XS] = {
-        .from_float               = quantize_row_iq4_xs,
-        .vec_dot                  = ggml_vec_dot_iq4_xs_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_Q8_K] = {
-        .from_float               = quantize_row_q8_K,
-    },
-    [GGML_TYPE_BF16] = {
-        .from_float               = (ggml_from_float_t) ggml_cpu_fp32_to_bf16,
-        .vec_dot                  = (ggml_vec_dot_t) ggml_vec_dot_bf16,
-        .vec_dot_type             = GGML_TYPE_BF16,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_TQ1_0] = {
-        .from_float               = quantize_row_tq1_0,
-        .vec_dot                  = ggml_vec_dot_tq1_0_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_TQ2_0] = {
-        .from_float               = quantize_row_tq2_0,
-        .vec_dot                  = ggml_vec_dot_tq2_0_q8_K,
-        .vec_dot_type             = GGML_TYPE_Q8_K,
-        .nrows                    = 1,
-    },
-    [GGML_TYPE_I32] = {
-        .from_float               = (ggml_from_float_t) ggml_cpu_fp32_to_i32,
-    },
-};
+extern const struct ggml_type_traits_cpu type_traits_cpu[GGML_TYPE_COUNT];
 
 const struct ggml_type_traits_cpu * ggml_get_type_traits_cpu(enum ggml_type type) {
     return &type_traits_cpu[type];
@@ -545,7 +372,7 @@ struct ggml_state {
     struct ggml_numa_nodes numa;
 };
 
-static struct ggml_state g_state = {0};
+static struct ggml_state g_state {};
 
 void ggml_barrier(struct ggml_threadpool * tp) {
     int n_threads = atomic_load_explicit(&tp->n_graph, memory_order_relaxed) & GGML_THREADPOOL_N_THREADS_MASK;
@@ -745,7 +572,7 @@ struct ggml_tensor * ggml_set_i32 (struct ggml_tensor * tensor, int32_t value) {
     const int nc    = tensor->ne[0];
     const size_t n1 = tensor->nb[1];
 
-    char * const data = tensor->data;
+    char * const data = (char *) tensor->data;
 
     switch (tensor->type) {
         case GGML_TYPE_I8:
@@ -804,7 +631,7 @@ struct ggml_tensor * ggml_set_f32(struct ggml_tensor * tensor, float value) {
     const int nc    = tensor->ne[0];
     const size_t n1 = tensor->nb[1];
 
-    char * const data = tensor->data;
+    char * const data = (char *) tensor->data;
 
     switch (tensor->type) {
         case GGML_TYPE_I8:
@@ -1289,7 +1116,7 @@ UseGgmlGemm1:;
 #endif
 
     if (src1->type != vec_dot_type) {
-        char * wdata = params->wdata;
+        char * wdata = (char *) params->wdata;
 
         const size_t nbw0 = ggml_type_size(vec_dot_type);
         const size_t nbw1 = ggml_row_size(vec_dot_type, ne10);
@@ -1541,18 +1368,18 @@ static void ggml_compute_forward_mul_mat_id(
     }
 
     int64_t * matrix_row_counts = // [n_as]
-        incr_ptr_aligned(&wdata_cur, n_as*sizeof(int64_t), sizeof(int64_t));
+        (int64_t *) incr_ptr_aligned(&wdata_cur, n_as*sizeof(int64_t), sizeof(int64_t));
 
     struct mmid_row_mapping * matrix_rows = // [n_as][ids->ne[0]*ids->ne[1]]
-        incr_ptr_aligned(&wdata_cur, n_as*ids->ne[0]*ids->ne[1]*sizeof(struct mmid_row_mapping), sizeof(int64_t));
+        (struct mmid_row_mapping *) incr_ptr_aligned(&wdata_cur, n_as*ids->ne[0]*ids->ne[1]*sizeof(struct mmid_row_mapping), sizeof(int64_t));
 
     char (*atomic_current_chunk)[CACHE_LINE_SIZE] = // [n_as]
-        incr_ptr_aligned(&wdata_cur, CACHE_LINE_SIZE * n_as, CACHE_LINE_SIZE);
+        (char (*)[CACHE_LINE_SIZE]) incr_ptr_aligned(&wdata_cur, CACHE_LINE_SIZE * n_as, CACHE_LINE_SIZE);
 
     GGML_ASSERT(params->wsize >= (size_t)((char *) wdata_cur - (char *) params->wdata));
 
     if (src1->type != vec_dot_type) {
-        char * wdata = params->wdata;
+        char * wdata = (char *) params->wdata;
 
         const size_t nbw0 = ggml_type_size(vec_dot_type);
         const size_t nbw1 = ggml_row_size(vec_dot_type, ne10);
@@ -1599,7 +1426,7 @@ static void ggml_compute_forward_mul_mat_id(
 
                 assert(i02 >= 0 && i02 < n_as);
 
-                MMID_MATRIX_ROW(i02, matrix_row_counts[i02]) = (struct mmid_row_mapping) {id, iid1};
+                MMID_MATRIX_ROW(i02, matrix_row_counts[i02]) = (struct mmid_row_mapping) {id, (int32_t) iid1};
                 matrix_row_counts[i02] += 1;
             }
         }
@@ -2940,7 +2767,7 @@ static thread_ret_t ggml_graph_compute_thread(void * data) {
 
     struct ggml_compute_params params = {
         /*.ith        =*/ state->ith,
-        /*.nth        =*/ atomic_load_explicit(&tp->n_graph, memory_order_relaxed) & GGML_THREADPOOL_N_THREADS_MASK,
+        /*.nth        =*/ (int) (atomic_load_explicit(&tp->n_graph, memory_order_relaxed) & GGML_THREADPOOL_N_THREADS_MASK),
         /*.wsize      =*/ cplan->work_size,
         /*.wdata      =*/ cplan->work_data,
         /*.threadpool =*/ tp,
@@ -3133,7 +2960,7 @@ static struct ggml_threadpool * ggml_threadpool_new_impl(
                 struct ggml_cplan * cplan) {
 
     struct ggml_threadpool * threadpool =
-        ggml_aligned_malloc(sizeof(struct ggml_threadpool));
+        (struct ggml_threadpool *) ggml_aligned_malloc(sizeof(struct ggml_threadpool));
     {
         threadpool->cgraph           = cgraph;
         threadpool->cplan            = cplan;
@@ -3153,7 +2980,7 @@ static struct ggml_threadpool * ggml_threadpool_new_impl(
 
     // Allocate and init workers state
     const size_t workers_size = sizeof(struct ggml_compute_state) * tpp->n_threads;
-    struct ggml_compute_state * workers = ggml_aligned_malloc(workers_size);
+    struct ggml_compute_state * workers = (struct ggml_compute_state *) ggml_aligned_malloc(workers_size);
 
     memset(workers, 0, workers_size);
     for (int j = 0; j < tpp->n_threads; j++) {
@@ -3685,7 +3512,7 @@ void ggml_cpu_init(void) {
                 union {
                     uint16_t u16;
                     ggml_fp16_t fp16;
-                } u = {i};
+                } u = { (uint16_t) i };
                 float f = GGML_COMPUTE_FP16_TO_FP32(u.fp16);
                 ggml_table_f32_f16[i] = f;
                 ggml_table_gelu_f16[i] = GGML_CPU_FP32_TO_FP16(ggml_gelu_f32(f));

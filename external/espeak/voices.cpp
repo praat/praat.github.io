@@ -450,7 +450,7 @@ voice_t *LoadVoice(const char *vname, int control)
 		return NULL;
 	}
 
-	trace (U"strncpy0... ", control, U" ", Melder_peek8to32 (vname), U".");
+	trace (U"strncpy0... ", control, U" ", Melder_peek8to32_u (vname), U".");
 	strncpy0(voicename, vname, sizeof(voicename));
 	if (control & 0x10) {
 		strcpy(buf, vname);
@@ -469,7 +469,7 @@ voice_t *LoadVoice(const char *vname, int control)
 			sprintf(buf, "%s%s", path_voices, voicename); // look in the main languages directory
 		}
 	}
-	trace (U"opening... ", Melder_peek8to32 (buf), U".");
+	trace (U"opening... ", Melder_peek8to32_u (buf), U".");
 
 	f_voice = FileInMemorySet_fopen(theEspeakPraatFileInMemorySet(), buf, "r");
 	trace (U"opened");
@@ -483,7 +483,7 @@ voice_t *LoadVoice(const char *vname, int control)
 		if (control & 3)
 			return NULL; // can't open file
 
-		trace (U"selecting phoneme table... ", Melder_peek8to32 (voicename), U".");
+		trace (U"selecting phoneme table... ", Melder_peek8to32_u (voicename), U".");
 		if (SelectPhonemeTableName(voicename) >= 0)
 			language_type = voicename;
 	}
@@ -499,7 +499,7 @@ voice_t *LoadVoice(const char *vname, int control)
 
 	if (!tone_only) {
 		voice = &voicedata;
-		trace (U"strncpy0... ", Melder_peek8to32 (vname), U".");
+		trace (U"strncpy0... ", Melder_peek8to32_u (vname), U".");
 		strncpy0(voice_identifier, vname, sizeof(voice_identifier));
 		voice_name[0] = 0;
 		voice_languages[0] = 0;
@@ -1206,7 +1206,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 #if DATA_FROM_SOURCECODE_FILES   /* ppgb: whole function adapted to Praat */
 	FileInMemorySet me = theEspeakPraatFileInMemorySet();
 	static MelderString criterion;
-	MelderString_copy (& criterion, Melder_peek8to32 (path));
+	MelderString_copy (& criterion, Melder_peek8to32_u (path));
 	MelderString_appendCharacter (& criterion, PATHSEP);
 	Melder_assert (criterion.length == len_path_voices);   // sanity check
 	for (long ifile = 1; ifile <= my size; ifile ++) {

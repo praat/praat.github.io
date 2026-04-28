@@ -414,22 +414,80 @@ void TextGrid_Sound_transcribeInterval (
 	const TextGrid me, const Sound sound,
 	const integer tierNumber, const integer intervalNumber,
 	const conststring32 modelName, const conststring32 languageName,
-	const bool includeWords, const bool diarize, const bool useVad, const double speechProbabilityThreshold,
+	const bool includeWords, bool diarize, const bool useVad, const double speechProbabilityThreshold,
 	const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad
 ) {
+	/*
+		Lambda function to create and return a new tier after a specified tier.
+		If overwrite == true and the tier with the given name already exists, return this tier.
+	*/
+	auto getIntervalTier = [me] (const autoMelderString & tierName, const integer prevTierNumber, const bool overwrite) {
+		integer newTierNumber = 0;
+		if (overwrite) {
+			for (integer i = 1; i <= my tiers->size; i ++) {
+				Function tier = my tiers->at [i];
+				if (Melder_equ (tierName.string, tier -> name.get())) {
+					if (tier -> classInfo != classIntervalTier)
+						Melder_throw (U"A tier with the prospective tier name (", tier -> name.get(),
+								U") already exists, but it is not an interval tier."
+								U"\nPlease change its name or remove it.");
+					newTierNumber = i;
+					break;
+				}
+			}
+		}
+		if (! newTierNumber) {
+			autoIntervalTier newTier = IntervalTier_create (my xmin, my xmax);
+			Thing_setName (newTier.get(), tierName.string);
+			newTierNumber = prevTierNumber + 1;
+			my tiers -> addItemAtPosition_move (newTier.move(), newTierNumber);
+			Melder_assert (newTierNumber >= 1 && newTierNumber <= my tiers -> size);
+		}
+		return newTierNumber;
+	};
+
+	/*
+		Lambda function to compute an overlap of a given word with the given speaker activity (encoded in a speakerTier).
+	*/
+	auto computeSpeakerOverlap = [] (const WhisperSegment & wordSegment, IntervalTier speakerTier) {
+		double overlap = 0.0;
+
+		integer intervalStart = IntervalTier_timeToLowIndex (speakerTier, wordSegment.tmin);
+		TextInterval speakerInterval = speakerTier -> intervals.at[intervalStart];
+		conststring32 speakerIntervalText = speakerInterval -> text.get();
+
+		/*
+			Note: the assumption here is that one word spans maximum two speaker intervals (silence->speech or speech->silence)
+		*/
+		if (! speakerIntervalText || speakerIntervalText [0] == U'\0') {   // this word starts during this speaker's silence
+			if (speakerInterval -> xmax > wordSegment.tmax)   // the whole word is during this speaker's silence
+				overlap = 0.0;
+			else
+				overlap = wordSegment.tmax - speakerInterval -> xmax;   // second part of the word is during this speaker's speech
+		} else {   // this word starts during this speaker's speech
+			if (speakerInterval -> xmax > wordSegment.tmax)   // the whole word is during this speaker's speech
+				overlap = wordSegment.tmax - wordSegment.tmin;
+			else
+				overlap = speakerInterval -> xmax - wordSegment.tmin;   // second part of the word is during this speaker's speech
+		}
+		return overlap;
+	};
+
 	try {
 		//TRACE
-		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, tierNumber);
+		integer headTierNumber = tierNumber;
+		IntervalTier headTier = TextGrid_checkSpecifiedTierIsIntervalTier (me, headTierNumber);
+		autostring32 headTierName = Melder_dup (headTier -> name.get());
+		TextInterval originalInterval = headTier -> intervals.at [intervalNumber];
+		double original_tmin = originalInterval -> xmin;
+		double original_tmax = originalInterval -> xmax;
+
 		if (intervalNumber < 1 || intervalNumber > headTier -> intervals.size)
 			Melder_throw (U"Interval ", intervalNumber, U" does not exist.");
 		if (str32str (headTier -> name.get(), U"/"))
 			Melder_throw (U"The current tier already has a slash (\"/\") in its name. Cannot create a word tier from it.");
 
-		TextInterval originalInterval = headTier -> intervals.at [intervalNumber];
-		double original_tmin = originalInterval -> xmin;
-		double original_tmax = originalInterval -> xmax;
-
-		trace (U"tier ", tierNumber, U" interval ", intervalNumber,	U" (", original_tmin, U" .. ", original_tmax, U")");
+		trace (U"tier ", headTierNumber, U" interval ", intervalNumber,	U" (", original_tmin, U" .. ", original_tmax, U")");
 		autoSound soundPart = Sound_extractPart (sound, original_tmin, original_tmax,
 			kSound_windowShape::RECTANGULAR, 1.0, false);
 		autoSpeechRecognizer speechRecognizer = SpeechRecognizer_create (modelName, languageName);
@@ -442,77 +500,239 @@ void TextGrid_Sound_transcribeInterval (
 		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (
 				speechRecognizer.get(), soundPart.get(), useVad, sileroVadParams, diarize);
 
-		/*
-			Create one interval per utterance in the head tier.
-		*/
-		autovector<WhisperSegment> sentenceSegments = whisperTranscription.sentences.move();
-		splitIntervalIntoWhisperSegments (headTier, tierNumber, original_tmin, original_tmax, sentenceSegments);
+		autovector <WhisperSegment> wordSegments = whisperTranscription.words.move();
+		autovector <WhisperSegment> sentenceSegments = whisperTranscription.sentences.move();
+		autovector <autovector <WhisperSegment>> speakerSegments = whisperTranscription.speakers.move();
 
-		if (includeWords) {
+		integer n_speakers = speakerSegments.size;
+		if (diarize && n_speakers < 1) {
+			Melder_warning (U"Diarization detected 0 speakers. Diarization tiers are not created.");
+			diarize = false;   // falling back to just transcription without diarization
+		}
+
+		/*
+			----- Sentence transcription. -----
+		*/
+		if (! includeWords && ! diarize)
+			splitIntervalIntoWhisperSegments (headTier, headTierNumber, original_tmin, original_tmax, sentenceSegments);
+
+		/*
+			----- Sentence transcription + word transcription. -----
+		*/
+		else if (includeWords && ! diarize) {
+			splitIntervalIntoWhisperSegments (headTier, headTierNumber, original_tmin, original_tmax, sentenceSegments);
+
 			/*
 				Make sure that the word tier exists.
 			*/
-			integer wordTierNumber = 0;
-			IntervalTier wordTier = nullptr;
-			autoMelderString newWordTierName;
-			MelderString_copy (& newWordTierName, headTier -> name.get(), U"/word");
-			for (integer i = 1; i <= my tiers->size; i ++) {
-				Function tier = my tiers->at [i];
-				if (Melder_equ (newWordTierName.string, tier -> name.get())) {
-					if (tier -> classInfo != classIntervalTier)
-						Melder_throw (U"A tier with the prospective word tier name (", tier -> name.get(),
-								U") already exists, but it is not an interval tier."
-								U"\nPlease change its name or remove it.");
-					wordTierNumber = i;
-					break;
-				}
-			}
-			if (! wordTierNumber) {
-				autoIntervalTier newWordTier = IntervalTier_create (my xmin, my xmax);
-				Thing_setName (newWordTier.get(), newWordTierName.string);
-				my tiers -> addItemAtPosition_move (newWordTier.move(), wordTierNumber = tierNumber + 1);
-			}
-			Melder_assert (wordTierNumber >= 1 && wordTierNumber <= my tiers -> size);
-			wordTier = dynamic_cast <IntervalTier> (my tiers -> at [wordTierNumber]);
+			autoMelderString wordTierName;
+			MelderString_copy (& wordTierName, headTier -> name.get(), U"/word");
+			const integer wordTierNumber = getIntervalTier(wordTierName, headTierNumber, true);
+			const auto wordTier = static_cast <IntervalTier> (my tiers -> at [wordTierNumber]);
 
 			/*
-				Make sure that the word tier has boundaries at the edges of the original interval.
+				Insert the interval, and split this big interval into the set of intervals, one interval per word.
 			*/
 			IntervalTier_insertIntervalDestructively (wordTier, original_tmin, original_tmax);
-
-			/*
-				Split this big interval into the set of intervals, one interval per word.
-			*/
-			autovector<WhisperSegment> wordSegments = whisperTranscription.words.move();
 			splitIntervalIntoWhisperSegments (wordTier, wordTierNumber, original_tmin, original_tmax, wordSegments);
 		}
 
-		if (diarize) {
-			int n_speakers = whisperTranscription.speakers.size;
+		/*
+			----- Diarization: transcription assigned to speakers. -----
+		*/
+		else if (diarize) {
+			autovector <IntervalTier> speakerSentenceTiers = newvectorzero<IntervalTier> (n_speakers);
+			autovector <IntervalTier> speakerWordTiers = newvectorzero<IntervalTier> (n_speakers);
+			autovector <autoIntervalTier> virtualSpeakerTiers = newvectorzero<autoIntervalTier> (n_speakers);
 
+			struct WordWithContext {
+				WhisperSegment * whisperSegment;
+				autovector <double> overlaps;
+				integer resolvedSpeaker;
+			};
+			autovector<WordWithContext> wordsWithContext = newvectorzero<WordWithContext> (0);
+
+			/*
+				Create new sentence tiers for all speakers. Reuse the head tier for speaker 1.
+			*/
+			autoMelderString speakerSentenceTierName;
+			MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp1");
+			Thing_setName (headTier, speakerSentenceTierName.string);   // rename the head tier to make it "diarized tier" to prevent running diarization on it in the future
+			speakerSentenceTiers [1] = static_cast <IntervalTier> (my tiers -> at [headTierNumber]);
+			for (integer i = 2; i <= n_speakers; i ++) {
+				MelderString_copy (& speakerSentenceTierName, headTierName.get(), U"/sp", i);
+				const integer speakerSentenceTierNumber = getIntervalTier(
+						speakerSentenceTierName, headTierNumber + i - 2, false);
+				speakerSentenceTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerSentenceTierNumber]);
+			}
+
+			/*
+				Create virtual diarization tiers , one per speaker, with speevch and non-speech intervals.
+			*/
 			for (integer i = 1; i <= n_speakers; i ++) {
-				/*
-					Create a new tier for speaker i.
-				*/
-				integer speakerTierNumber = 0;
-				autoIntervalTier newSpeakerTier = IntervalTier_create (my xmin, my xmax);
-				autoMelderString newSpeakerTierName;
-				MelderString_copy (& newSpeakerTierName, headTier -> name.get(), U"/sp", i);
-				Thing_setName (newSpeakerTier.get(), newSpeakerTierName.string);
-				my tiers -> addItemAtPosition_move (newSpeakerTier.move(), speakerTierNumber = tierNumber + i);
-				Melder_assert (speakerTierNumber >= 1 && speakerTierNumber <= my tiers -> size);
-				IntervalTier speakerTier = dynamic_cast <IntervalTier> (my tiers -> at [speakerTierNumber]);
+				autoIntervalTier virtualSpeakerTier = IntervalTier_create (my xmin, my xmax);
+				splitIntervalIntoWhisperSegments (virtualSpeakerTier.get(), 0, original_tmin, original_tmax, speakerSegments [i]);
+				virtualSpeakerTiers [i] = virtualSpeakerTier.move();
+			}
+
+			/*
+				Fill in the wordsWithContext vector: words (in a chronological order) and overlaps for each word
+			*/
+			for (integer s = 1; s <= wordSegments.size; s ++) {
+				conststring32 wordSegmentText = wordSegments [s] .text.get();
+				if (! wordSegmentText || wordSegmentText [0] == U'\0')
+					continue;
+
+				WordWithContext * wordWithContext = wordsWithContext.append();
+				wordWithContext -> whisperSegment = & wordSegments [s];
+				wordWithContext -> overlaps = newvectorzero<double> (n_speakers);
+				wordWithContext -> resolvedSpeaker = 0;
+
+				for (integer i = 1; i <= n_speakers; i ++)
+					wordWithContext -> overlaps [i] = computeSpeakerOverlap (wordSegments [s], virtualSpeakerTiers [i].get());
+			}
+
+			/*
+				Find a dominant speaker for each word.
+			*/
+			for (integer s = 1; s <= wordsWithContext.size; s ++) {
+				constvector <double> overlaps = wordsWithContext [s] . overlaps.get();
+				conststring32 text = wordsWithContext [s].whisperSegment -> text.get();
+				double tmin = wordsWithContext [s].whisperSegment -> tmin;
+				double tmax = wordsWithContext [s].whisperSegment -> tmax;
+				double prev_tmax = s > 1 ? wordsWithContext [s - 1].whisperSegment -> tmax : wordsWithContext [1].whisperSegment -> tmin;
+				integer prev_resolvedSpeaker = s > 1 ? wordsWithContext [s - 1] .resolvedSpeaker : 0;
+
+				integer resolvedSpeaker = 1;
+				double longestOverlap = overlaps [1];
+				for (integer i = 2; i <= n_speakers; i ++) {
+					if (overlaps [i] > longestOverlap) {
+						resolvedSpeaker = i;
+						longestOverlap = overlaps [i];
+					} else if (overlaps [i] == longestOverlap && prev_resolvedSpeaker == i) {   // fallback to the last speaker
+						resolvedSpeaker = i;
+					}
+				}
+
+				if (s > 1 &&  longestOverlap < (tmax - tmin) / 2 && prev_tmax == tmin)   // if overlap is less than half, fallback to the last speaker
+					resolvedSpeaker = prev_resolvedSpeaker;
+				wordsWithContext [s] . resolvedSpeaker = resolvedSpeaker;
+			}
+
+			/*
+				Lambda function to insert a subsentence to a speaker tier.
+			*/
+			auto insertSubsentenceToSpeakerTier = [&] (const integer subsentenceSpeaker, const autoMelderString & subsentenceText,
+				const integer i_firstWordInSubsentence, const integer i_lastWordInSubsentence,
+				const integer i_firstWordInSentence, const integer i_lastWordInSentence)
+			{
+				const double subsentence_tmin = original_tmin + wordsWithContext [i_firstWordInSubsentence] .whisperSegment -> tmin;
+				const double subsentence_tmax = original_tmin + wordsWithContext [i_lastWordInSubsentence] .whisperSegment -> tmax;
+				IntervalTier speakerSubsentenceTier = speakerSentenceTiers [subsentenceSpeaker];
+				Melder_assert (subsentence_tmin < subsentence_tmax);
+				IntervalTier_insertIntervalDestructively (speakerSubsentenceTier, subsentence_tmin, subsentence_tmax);
+				integer subsentenceIntervalNumber = IntervalTier_hasTime (speakerSubsentenceTier, subsentence_tmin);
+
+				autoMelderString fullText;
+				if (i_firstWordInSubsentence != i_firstWordInSentence)   // before
+					MelderString_append (& fullText, U"...");
+				MelderString_append (& fullText, subsentenceText.string);   // text
+				if (i_lastWordInSubsentence == i_lastWordInSentence)   // after
+					MelderString_append (& fullText, U".");
+				else
+					MelderString_append (& fullText, U"...");
+
+				TextInterval_setText (speakerSubsentenceTier -> intervals .at [subsentenceIntervalNumber], fullText.string);
+			};
+
+			/*
+				Create sub-sentences, with first-word-speaker correction.
+			*/
+			integer i_currentWord = 1;
+			for (integer sentence = 1; sentence <= sentenceSegments.size; sentence ++) {
+				double sentence_tmax = sentenceSegments [sentence].tmax;
+				conststring32 sentence_text = sentenceSegments [sentence].text.get();
+				if (! sentence_text || sentence_text [0] == U'\0')
+					continue;
 
 				/*
-					Make sure that the speaker tier has boundaries at the edges of the original interval.
+					Find the first and the last words in the current sentence.
 				*/
-				IntervalTier_insertIntervalDestructively (speakerTier, original_tmin, original_tmax);
+				integer i_firstWordInSentence = i_currentWord;
+				while (i_currentWord <= wordsWithContext.size && wordsWithContext [i_currentWord] .whisperSegment -> tmin < sentence_tmax)
+					i_currentWord ++;
+				integer i_lastWordInSentence = i_currentWord - 1;
 
 				/*
-					Split this big interval into the set of intervals, one interval per word.
+					If the first word speaker is different from the second word speaker, reassign the first word to the second's word speaker.
 				*/
-				autovector<WhisperSegment> speakerSegments = whisperTranscription.speakers [i].move();
-				splitIntervalIntoWhisperSegments (speakerTier, speakerTierNumber, original_tmin, original_tmax, speakerSegments);
+				if (i_firstWordInSentence < i_lastWordInSentence) {
+					integer firstSpeaker = wordsWithContext [i_firstWordInSentence].resolvedSpeaker;
+					integer secondSpeaker = wordsWithContext [i_firstWordInSentence + 1].resolvedSpeaker;
+					if (firstSpeaker != secondSpeaker)
+						wordsWithContext [i_firstWordInSentence].resolvedSpeaker = secondSpeaker;
+				}
+
+				/*
+					Initialise the first subsentence.
+				*/
+				integer subsentenceSpeaker = wordsWithContext [i_firstWordInSentence] .resolvedSpeaker;
+				integer i_firstWordInSubsentence = i_firstWordInSentence;
+				autoMelderString subsentence_text;
+				MelderString_copy (& subsentence_text, wordsWithContext [i_firstWordInSubsentence] .whisperSegment -> text.get());
+
+				/*
+					Iterate over all the words in the current sentence, inserting all the subsentence intervals except the last one.
+				*/
+				for (integer i = i_firstWordInSentence + 1; i <= i_lastWordInSentence; i ++) {
+					integer currentSpeaker = wordsWithContext [i] .resolvedSpeaker;
+					if (currentSpeaker != subsentenceSpeaker) {
+						insertSubsentenceToSpeakerTier(subsentenceSpeaker, subsentence_text,
+								i_firstWordInSubsentence, i - 1, i_firstWordInSentence, i_lastWordInSentence);
+						subsentenceSpeaker = currentSpeaker;
+						i_firstWordInSubsentence = i;
+						MelderString_copy (& subsentence_text, wordsWithContext [i] .whisperSegment -> text.get());
+					} else {
+						MelderString_append (& subsentence_text, U" ", wordsWithContext [i] .whisperSegment -> text.get());
+					}
+				}
+
+				/*
+					Insert the last interval subsentence.
+				*/
+				insertSubsentenceToSpeakerTier(subsentenceSpeaker, subsentence_text,
+						i_firstWordInSubsentence, i_lastWordInSentence, i_firstWordInSentence, i_lastWordInSentence);
+			}
+
+			/*
+				----- Word transcription assigned to speakers. -----
+			*/
+			if (includeWords)  {
+				/*
+					Create new word tiers for all speakers.
+				*/
+				for (integer i = 1; i <= n_speakers; i ++) {
+					autoMelderString speakerWordTierName;
+					MelderString_copy (& speakerWordTierName, headTierName.get(), U"/sp", i, U"/w");
+					const integer speakerWordTierNumber = getIntervalTier(   // headTierNumber headTierNumber+(1+1) headTierNumber+(1+1)+(1+1)
+							speakerWordTierName, headTierNumber + 2 * (i - 1), false);
+					speakerWordTiers [i] = static_cast <IntervalTier> (my tiers -> at [speakerWordTierNumber]);
+				}
+
+				/*
+					Insert words into speaker word tiers.
+				*/
+				for (integer s = 1; s <= wordsWithContext.size; s ++) {
+					integer resolvedSpeaker = wordsWithContext [s] .resolvedSpeaker;
+					double tmin = original_tmin + wordsWithContext [s] .whisperSegment -> tmin;
+					double tmax = original_tmin + wordsWithContext [s] .whisperSegment -> tmax;
+					conststring32 text = wordsWithContext [s] .whisperSegment -> text.get();
+
+					Melder_assert (tmin < tmax);
+					IntervalTier_insertIntervalDestructively (speakerWordTiers [resolvedSpeaker], tmin, tmax);
+					integer wordIntervalNumber = IntervalTier_hasTime (speakerWordTiers [resolvedSpeaker], tmin);
+					TextInterval_setText (speakerWordTiers [resolvedSpeaker] -> intervals .at [wordIntervalNumber], text);
+				}
 			}
 		}
 	} catch (MelderError) {

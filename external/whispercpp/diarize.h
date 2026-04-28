@@ -78,8 +78,8 @@ void diarize_free(struct diarize_context * ctx);
 // Run the full diarization pipeline on audio samples
 // samples: float array, 16kHz mono, normalized to [-1, 1]
 // n_samples: number of samples
-// Returns 0 on success, non-zero on failure
-int diarize_full(
+// Throws MelderError on failure
+void diarize_full(
     struct diarize_context * ctx,
     struct diarize_params    params,
     const float            * samples,
@@ -88,7 +88,7 @@ int diarize_full(
 // --- Result accessors ---
 
 // Number of segments in the last result
-int diarize_full_n_segments(struct diarize_context * ctx);
+unsigned int diarize_full_n_segments(struct diarize_context * ctx);
 
 // Number of speakers detected in the last result
 int diarize_full_n_speakers(struct diarize_context * ctx);

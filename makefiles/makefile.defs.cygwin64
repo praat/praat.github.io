@@ -1,14 +1,13 @@
 # File: makefile.defs.cygwin64
 
 # System: Cygwin on Windows
-# Paul Boersma, 29 December 2025
+# Paul Boersma, 5 April 2026
 
 CC ?= gcc
 CXX ?= g++
 LINK ?= $(CXX)
 
 COMMONFLAGS = -mwin32 -DUNICODE -D_FILE_OFFSET_BITS=64 \
-	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
 	-O1
 # Probably implicit: -m64 -mwin32 -march=x86_64 -mtune=generic
 

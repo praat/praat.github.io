@@ -1,6 +1,6 @@
 /* SpeechSynthesizer.cpp
  *
- * Copyright (C) 2011-2023 David Weenink, 2012,2013,2015-2025 Paul Boersma
+ * Copyright (C) 2011-2023 David Weenink, 2012,2013,2015-2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -200,11 +200,11 @@ static int synthCallback (short *wav, int numsamples, espeak_EVENT *events)
 			Table_setNumericValue (my d_events.get(), irow, 6, events -> audio_position);
 			Table_setNumericValue (my d_events.get(), irow, 7, events -> sample);
 			if (events -> type == espeakEVENT_MARK || events -> type == espeakEVENT_PLAY) {
-				Table_setStringValue (my d_events.get(), irow, 8, Melder_peek8to32 (events -> id.name));
+				Table_setStringValue (my d_events.get(), irow, 8, Melder_peek8to32_u (events -> id.name));
 			} else if (events -> type == espeakEVENT_PHONEME) {
 				memcpy (phoneme_name, events -> id.string, 8);
 				phoneme_name [8] = 0;   // because id.string is not 0-terminated if 8 chars long
-				Table_setStringValue (my d_events.get(), irow, 8, Melder_peek8to32 (phoneme_name));
+				Table_setStringValue (my d_events.get(), irow, 8, Melder_peek8to32_u (phoneme_name));
 			} else if (events -> type == espeakEVENT_SAMPLERATE ||1) {
 				Table_setNumericValue (my d_events.get(), irow, 8, events -> id.number);
 			}
@@ -768,7 +768,7 @@ static conststring32 get_wordAfterPrecursor_u8 (constvector<unsigned char> const
 		2. Get the words after 'precursor' (skip leading and trailing whitespace).
 	*/
 	autoMelderString regex;
-	const conststring32 text = Melder_peek8to32 (reinterpret_cast <const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
+	const conststring32 text = Melder_peek8to32_u (reinterpret_cast <const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
 	MelderString_append (& regex, U"^\\s*", precursor, U"\\s+");
 	char32 *p = nullptr;
 	const char32 *pmatch = strstr_regexp (text, regex.string);
@@ -793,8 +793,8 @@ static conststring32 get_stringAfterPrecursor_u8 (constvector<unsigned char> con
 		2. Get the words after 'precursor' (skip leading and trailing whitespace).
 	*/
 	autoMelderString regex;
-	const conststring32 text = Melder_peek8to32 (reinterpret_cast <const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
-	//const conststring32 text = Melder_peek8to32 ((const char *) & (text8.cells[1]));
+	const conststring32 text = Melder_peek8to32_u (reinterpret_cast <const char *> (text8.asArgumentToFunctionThatExpectsZeroBasedArray()));
+	//const conststring32 text = Melder_peek8to32_u ((const char *) & (text8.cells[1]));
 	MelderString_append (& regex, U"^\\s*", precursor, U"\\s+");
 	char32 *p = nullptr;
 	const char32 *pmatch = strstr_regexp (text, regex.string);

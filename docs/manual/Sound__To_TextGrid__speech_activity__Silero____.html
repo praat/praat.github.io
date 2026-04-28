@@ -11,7 +11,27 @@
 <table border=0 cellpadding=0 cellspacing=0><tr><td bgcolor="#CCCC00"><table border=4 cellpadding=9><tr><td align=middle bgcolor="#000000"><font face="Palatino,Times" size=6 color="#999900"><b>
 Sound: To TextGrid (speech activity, Silero)...
 </b></font></table></table>
-<p>This page will be available in Praat 6.4.63.</p>
+<p>A command that creates a <a href="TextGrid.html">TextGrid</a> for the selected <a href="Sound.html">Sound</a> with one tier, in which the non-speech and speech intervals are marked. The discrimination between the two is based on the <a href="Silero_VAD.html">Silero VAD</a> neural network model.</p>
+<p>Speech activity detection, sometimes referred to as voice activity detection (VAD), is a method to discriminate speech from non-speech segments in audio. Unlike the spectral-flatness-based method in <a href="Sound__To_TextGrid__speech_activity__LTSF____.html">Sound: To TextGrid (speech activity, LTSF)...</a>, this command uses a deep neural network (<a href="Silero_VAD.html">Silero VAD</a>) that was trained on a large dataset of speech and non-speech audio.</p>
+<p>The Silero VAD model is loaded from data compiled into Praat, so no external model files are required. The sound is internally resampled to 16 kHz before being processed by the model.</p>
+<h2>Settings</h2>
+<dl>
+<dt><b>Speech probability threshold (0 - 1)</b>
+<dd>determines the sensitivity of the speech detector. Higher values make the detector less sensitive, meaning that it requires stronger evidence of speech to mark a segment as speech. This reduces false positives (non-speech incorrectly labelled as speech), but may cause some speech to be missed. Lower values make the detector more sensitive. A default of 0.5 works well for most use cases.</dd>
+<dt><b>Min. non-speech interval (s)</b>
+<dd>determines the minimum duration for a gap between speech intervals to be considered non-speech. Shorter gaps will be merged with the surrounding speech. If you find that brief pauses (such as plosive closures) are splitting speech intervals and you don't want this to happen, increase this value.</dd>
+<dt><b>Min. speech interval (s)</b>
+<dd>determines the minimum duration for an interval to be marked as speech. Shorter intervals are discarded. This helps filter out very short bursts of noise that might otherwise be detected as speech.</dd>
+<dt><b>Padding added around each speech segment (s)</b>
+<dd>determines how much silence (or noise) is included before and after each detected speech segment. Adding a small amount of padding ensures that speech onsets and offsets are not clipped.</dd>
+<dt><b>Non-speech interval label</b>
+<dd>the label assigned to intervals classified as non-speech in the resulting TextGrid.</dd>
+<dt><b>Speech interval label</b>
+<dd>the label assigned to intervals classified as speech in the resulting TextGrid.</dd>
+</dl>
+<h2>Algorithm</h2>
+<p>The Silero VAD model processes the audio in small frames and outputs a probability that each frame contains speech. Consecutive frames with speech probability above the threshold are grouped into speech segments, subject to the minimum duration and padding constraints. All other parts of the audio are marked as non-speech.</p>
+<p>If no speech is detected anywhere in the sound, the entire duration is marked with a single non-speech interval.</p>
 <h3>Links to this page</h3>
 <ul>
 <li><a href="Sound__To_TextGrid__speech_activity____.html">Sound: To TextGrid (speech activity)...</a>
@@ -19,7 +39,7 @@ Sound: To TextGrid (speech activity, Silero)...
 </ul>
 <hr>
 <address>
-	<p>© djmw 20260313</p>
+	<p>© Anastasia Shchupak 2026-03-15</p>
 </address>
 </body>
 </html>

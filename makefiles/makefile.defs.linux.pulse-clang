@@ -1,6 +1,6 @@
-# File: makefile.defs.linux.pulse-clang.LE
+# File: makefile.defs.linux.pulse-clang
 # System: Linux
-# David Weenink and Paul Boersma, 29 December 2025
+# David Weenink and Paul Boersma, 5 April 2026
 
 CC = clang
 CXX = clang
@@ -9,7 +9,6 @@ LINK = $(CXX)
 PKG_CONFIG ?= pkg-config
 
 COMMONFLAGS = -DUNIX -Dlinux -DALSA -DJACK -DHAVE_PULSEAUDIO \
-	-DWORDS_BIGENDIAN=0 -DPA_LITTLE_ENDIAN \
 	-D_FILE_OFFSET_BITS=64 `$(PKG_CONFIG) --cflags gtk+-3.0` \
 	-Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O3 -g1 -pthread
 

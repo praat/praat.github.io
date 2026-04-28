@@ -1,6 +1,6 @@
 /* Graphics_text.cpp
  *
- * Copyright (C) 1992-2025 Paul Boersma, 2013 Tom Naughton, 2017 David Weenink
+ * Copyright (C) 1992-2026 Paul Boersma, 2013 Tom Naughton, 2017 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2251,32 +2251,32 @@ double Graphics_textWidth_ps (Graphics me, conststring32 txt, bool useSilipaPS) 
 
 		trueName = testFont ("Times");
 		if (Melder_debug == 58)
-			Melder_casual (U"True name of Times font: ", Melder_peek8to32 (trueName));
+			Melder_casual (U"True name of Times font: ", Melder_peek8to32_u (trueName));
 		hasTimes = !! strstr (trueName, "Times") || !! strstr (trueName, "Roman") || !! strstr (trueName, "Serif");
 
 		trueName = testFont ("Helvetica");
 		if (Melder_debug == 58)
-			Melder_casual (U"True name of Helvetica font: ", Melder_peek8to32 (trueName));
+			Melder_casual (U"True name of Helvetica font: ", Melder_peek8to32_u (trueName));
 		hasHelvetica = !! strstr (trueName, "Helvetica") || !! strstr (trueName, "Arial") || !! strstr (trueName, "Sans");
 
 		trueName = testFont ("Courier");
 		if (Melder_debug == 58)
-			Melder_casual (U"True name of Courier font: ", Melder_peek8to32 (trueName));
+			Melder_casual (U"True name of Courier font: ", Melder_peek8to32_u (trueName));
 		hasCourier = !! strstr (trueName, "Courier") || !! strstr (trueName, "Mono");
 
 		trueName = testFont ("Palatino");
 		if (Melder_debug == 58)
-			Melder_casual (U"True name of Palatino font: ", Melder_peek8to32 (trueName));
+			Melder_casual (U"True name of Palatino font: ", Melder_peek8to32_u (trueName));
 		hasPalatino = !! strstr (trueName, "Palatino") || !! strstr (trueName, "Palladio") || !! strstr (trueName, "P052");
 
 		trueName = testFont ("Doulos SIL");
 		if (Melder_debug == 58)
-			Melder_casual (U"True name of Doulos SIL font: ", Melder_peek8to32 (trueName));
+			Melder_casual (U"True name of Doulos SIL font: ", Melder_peek8to32_u (trueName));
 		hasDoulos = !! strstr (trueName, "Doulos");
 
 		trueName = testFont ("Charis");
 		if (Melder_debug == 58)
-			Melder_casual (U"True name of Charis font: ", Melder_peek8to32 (trueName));
+			Melder_casual (U"True name of Charis font: ", Melder_peek8to32_u (trueName));
 		hasCharis = !! strstr (trueName, "Charis");
 
 		if (hasCharis) {
@@ -2284,7 +2284,7 @@ double Graphics_textWidth_ps (Graphics me, conststring32 txt, bool useSilipaPS) 
 		} else {
 			trueName = testFont ("Charis SIL");
 			if (Melder_debug == 58)
-				Melder_casual (U"True name of Charis SIL font: ", Melder_peek8to32 (trueName));
+				Melder_casual (U"True name of Charis SIL font: ", Melder_peek8to32_u (trueName));
 			hasCharis = !! strstr (trueName, "Charis");
 		}
 

@@ -2,7 +2,7 @@
 #define _SpeechRecognizer_h_
 /* SpeechRecognizer.h
  *
- * Copyright (C) 2025 Anastasia Shchupak
+ * Copyright (C) 2025,2026 Anastasia Shchupak
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,13 @@
  */
 
 #include "Sound.h"
+#include <set>
 
+struct structSpeechRecognizer;
 struct whisper_context;
 struct whisper_vad_context;
 struct whisper_vad_segments;
+struct diarize_context;
 
 /*
 	Default Whisper model parameters.
@@ -98,6 +101,25 @@ struct autoWhisperVadSegments {
 	whisper_vad_segments * get () const { return ptr; }
 };
 
+struct autoDiarizeContext {
+	diarize_context *ptr;
+
+	autoDiarizeContext (diarize_context * p = nullptr) : ptr(p) {}
+	~autoDiarizeContext ();
+
+	autoDiarizeContext (const autoDiarizeContext&) = delete;
+	autoDiarizeContext& operator= (const autoDiarizeContext&) = delete;
+
+	autoDiarizeContext (autoDiarizeContext&& other) noexcept : ptr(other.ptr) {
+		other.ptr = nullptr;
+	}
+	autoDiarizeContext& operator= (autoDiarizeContext&& other) noexcept;
+
+	[[nodiscard]]
+	diarize_context * get () const { return ptr; }
+};
+
+
 struct SileroVadParams {
 	double speechProbabilityThreshold = theVadDefaultThreshold;   // probability threshold to decide that sound is speech
 	double minSpeechDuration = theVadDefaultMinSpeechDuration;   // min duration of a speech segment
@@ -125,6 +147,7 @@ struct WhisperTranscription {
 	autovector <autovector <WhisperSegment>> speakers;
 };
 
+inline std::set<structSpeechRecognizer *> theLivingSpeechRecognizers;
 #include "SpeechRecognizer_def.h"
 
 /*

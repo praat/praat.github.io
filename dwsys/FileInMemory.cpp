@@ -151,7 +151,7 @@ FileInMemory FileInMemory_fopen (FileInMemory me, const char *mode) {
 }
 
 FileInMemory FileInMemorySet_fopen (FileInMemorySet me, const char *fileName, const char *mode) {
-	const integer index = my lookUp (Melder_peek8to32 (fileName));
+	const integer index = my lookUp (Melder_peek8to32_u (fileName));
 	if (index == 0) {
 		errno = ENOENT;   // "no such file or directory"
 		return nullptr;
@@ -603,7 +603,7 @@ int FileInMemory_ungetc (int character, FileInMemory me) {
 }
 
 int FileInMemorySet_stat (FileInMemorySet me, const char *path, struct stat *buf) {
-	conststring32 path32 = Melder_peek8to32 (path);
+	conststring32 path32 = Melder_peek8to32_u (path);
 	integer position = my lookUp (path32);
 	if (position > 0) {
 		buf -> st_mode = S_IFREG;
@@ -939,9 +939,9 @@ static void testOneFile (
 			Melder_require (fimline [lineLength] == '\0',
 				U"Fm-line ", iline, U" should have a null byte after it, not ", (integer) fimline [lineLength], U".");
 			Melder_require (memcmp (fline, lineContent, (size_t) lineLength) == 0,   // not strcmp, because of potential null bytes
-				U"File-line ", iline, U" (\"", Melder_peek8to32 (fline), U"\") should have been \"", Melder_peek8to32 (lineContent), U"\".");
+				U"File-line ", iline, U" (\"", Melder_peek8to32_u (fline), U"\") should have been \"", Melder_peek8to32_u (lineContent), U"\".");
 			Melder_require (memcmp (fimline, lineContent, (size_t) lineLength) == 0,   // not strcmp, because of potential null bytes
-				U"Fim-line ", iline, U" (\"", Melder_peek8to32 (fimline), U"\") should have been \"", Melder_peek8to32 (lineContent), U"\".");
+				U"Fim-line ", iline, U" (\"", Melder_peek8to32_u (fimline), U"\") should have been \"", Melder_peek8to32_u (lineContent), U"\".");
 			intendedPosition += lineLength;
 			integer fpos = ftell (theTestFilePointer);
 			integer fimpos = FileInMemory_ftell (theTestFim);

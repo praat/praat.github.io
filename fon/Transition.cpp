@@ -1,6 +1,6 @@
 /* Transition.cpp
  *
- * Copyright (C) 1997-2012,2015-2020,2022 Paul Boersma
+ * Copyright (C) 1997-2012,2015-2020,2022,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ void Transition_drawAsNumbers (Transition me, Graphics g, int iformat, int preci
 		for (integer col = 1; col <= my numberOfStates; col ++) {
 			char text [40];
 			print4 (text, my data [row] [col], iformat, 0, precision);
-			Graphics_text (g, col, y, Melder_peek8to32 (text));
+			Graphics_text (g, col, y, Melder_peek8to32_u (text));
 		}
 	}
 	if (maxTextWidth != 0.0)

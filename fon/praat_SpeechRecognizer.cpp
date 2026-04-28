@@ -62,7 +62,7 @@ DIRECT (QUERY_ONE_FOR_STRING__SpeechRecognizer_getLanguageName) {
 DIRECT (QUERY_ONE_AND_ONE_FOR_STRING__SpeechRecognizer_Sound_recognize) {
 	QUERY_ONE_AND_ONE_FOR_STRING (SpeechRecognizer, Sound)
 		bool useVad = true;
-		bool diarize = true;
+		bool diarize = false;
 		SileroVadParams sileroVadParams;   // use default VAD parameters
 		WhisperTranscription whisperTranscription = SpeechRecognizer_recognize (me, you, useVad, sileroVadParams, diarize);
 		conststring32 result = whisperTranscription.fullTranscription.text.get();

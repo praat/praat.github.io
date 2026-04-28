@@ -397,7 +397,7 @@ static void _GraphicsScreen_cellArrayOrImage (GraphicsScreen me,
 			cairo_pattern_t *bitmap_pattern = cairo_pattern_create_for_surface (sfc);
 			trace (U"bitmap pattern ", Melder_pointer (bitmap_pattern));
 			if (cairo_status_t status = cairo_pattern_status (bitmap_pattern)) {
-				Melder_casual (U"bitmap pattern status: ", Melder_peek8to32 (cairo_status_to_string (status)));
+				Melder_casual (U"bitmap pattern status: ", Melder_peek8to32_u (cairo_status_to_string (status)));
 			} else {
 				cairo_pattern_set_matrix (bitmap_pattern, & clip_trans);
 				cairo_save (my d_cairoGraphicsContext);

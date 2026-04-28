@@ -1,6 +1,6 @@
 /* Data.cpp
  *
- * Copyright (C) 1992-2018,2021,2022,2024 Paul Boersma
+ * Copyright (C) 1992-2018,2021,2022,2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -233,14 +233,14 @@ autoDaata Data_readFromBinaryFile (MelderFile file) {
 		if (end) {
 			fseek (f, strlen ("ooBinaryFile"), 0);
 			autostring8 klas = bingets8 (f);
-			me = Thing_newFromClassName (Melder_peek8to32 (klas.get()), & formatVersion).static_cast_move <structDaata>();
+			me = Thing_newFromClassName (Melder_peek8to32_u (klas.get()), & formatVersion).static_cast_move <structDaata>();
 		} else {
 			end = strstr (line, "BinaryFile");
 			if (! end) {
 				Melder_throw (U"File ", file, U" is not a Data binary file.");
 			}
 			*end = '\0';
-			me = Thing_newFromClassName (Melder_peek8to32 (line), nullptr).static_cast_move <structDaata>();
+			me = Thing_newFromClassName (Melder_peek8to32_u (line), nullptr).static_cast_move <structDaata>();
 			formatVersion = -1;   // old version: override version number, which was set to 0 by newFromClassName
 			rewind (f);
 			fread (line, 1, (size_t) (end - line) + strlen ("BinaryFile"), f);

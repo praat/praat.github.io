@@ -1,0 +1,33 @@
+<html><head><meta name="robots" content="index,follow"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>SpeechRecognizer</title>
+<style>
+   td { padding-left: 5pt; padding-right: 5pt; }
+   th { padding-left: 5pt; padding-right: 5pt; }
+   code { white-space: pre-wrap; }
+   dd { white-space: pre-wrap; }
+</style>
+</head><body bgcolor="#FFFFFF">
+
+<table border=0 cellpadding=0 cellspacing=0><tr><td bgcolor="#CCCC00"><table border=4 cellpadding=9><tr><td align=middle bgcolor="#000000"><font face="Palatino,Times" size=6 color="#999900"><b>
+SpeechRecognizer
+</b></font></table></table>
+<p>The SpeechRecognizer is one of the <a href="Types_of_objects.html">types of objects</a> in Praat. It performs automatic speech recognition (speech-to-text) on a <a href="Sound.html">Sound</a> object. The actual recognition is performed by the <a href="whisper_cpp.html">whisper.cpp</a> engine, and therefore our SpeechRecognizer is an interface to whisper.cpp.</p>
+<h2>Commands</h2>
+<p>Creation:</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;<a href="Create_SpeechRecognizer___.html">Create SpeechRecognizer...</a></dd>
+</dl>
+<p>Recognition:</p>
+<dl>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">&nbsp;<a href="SpeechRecognizer___Sound__Transcribe.html">Transcribe</a></dd>
+</dl>
+<h2>Installing Whisper models</h2>
+<p>Before you can use the SpeechRecognizer, you need to install one or more Whisper model files (in GGML format, with extension <b>.bin</b>) into the subfolder <b>whispercpp</b> of the folder <b>models</b> in the Praat preferences folder.</p>
+<p>Whisper models come in several sizes, each offering a different trade-off between speed and accuracy. Model names that contain <b>.en</b> are English-only models. All other models are multilingual. Available model sizes are: <i>tiny</i>, <i>base</i>, <i>small</i>, <i>medium</i>, <i>large-v1</i>, <i>large-v2</i>, <i>large-v3</i>, and <i>large-v3-turbo</i> (also known as <i>turbo</i>). Larger models are more accurate but require more memory and processing time.</p>
+<p>Model files can be obtained from the Hugging Face repository at <b>https://huggingface.co/ggerganov/whisper.cpp/tree/main</b>.</p>
+<hr>
+<address>
+	<p>© Anastasia Shchupak 2026-03-15</p>
+</address>
+</body>
+</html>
