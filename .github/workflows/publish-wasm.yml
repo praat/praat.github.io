@@ -1,17 +1,84 @@
 name: Publish praat-wasm
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       dry-run:
         description: 'Run without actually publishing'
         type: boolean
         default: true
+      force:
+        description: 'Run even if PRAAT_VERSION_STR did not change'
+        type: boolean
+        default: false
+
+concurrency:
+  group: publish-wasm-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
+  detect-version-change:
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.detect.outputs.should_publish }}
+      current_version: ${{ steps.detect.outputs.current_version }}
+      previous_version: ${{ steps.detect.outputs.previous_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: detect
+        name: Check whether PRAAT_VERSION_STR changed
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          current_version="$({ sed -nE 's/^#define[[:space:]]+PRAAT_VERSION_STR[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' main/main_Praat.h | head -n1; })"
+          if [[ -z "$current_version" ]]; then
+            echo "ERROR: Could not parse PRAAT_VERSION_STR from main/main_Praat.h" >&2
+            exit 1
+          fi
+
+          previous_version=""
+          should_publish="false"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            before_sha="${{ github.event.before }}"
+            if [[ "$before_sha" =~ ^0+$ ]]; then
+              should_publish="true"
+            elif git cat-file -e "${before_sha}:main/main_Praat.h" 2>/dev/null; then
+              previous_version="$({ git show "${before_sha}:main/main_Praat.h" | sed -nE 's/^#define[[:space:]]+PRAAT_VERSION_STR[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -n1; })"
+              if [[ "$previous_version" != "$current_version" ]]; then
+                should_publish="true"
+              fi
+            else
+              should_publish="true"
+            fi
+          fi
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${{ inputs.force }}" == "true" ]]; then
+            should_publish="true"
+          fi
+
+          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "previous_version=${previous_version:-unknown}" >> "$GITHUB_OUTPUT"
+          echo "should_publish=$should_publish" >> "$GITHUB_OUTPUT"
+
+          echo "Current version: $current_version"
+          echo "Previous version: ${previous_version:-unknown}"
+          echo "Should publish: $should_publish"
+
+      - name: Skip notice
+        if: steps.detect.outputs.should_publish != 'true'
+        run: echo "PRAAT_VERSION_STR did not change; skipping wasm publish flow."
+
   build:
+    needs: detect-version-change
+    if: needs.detect-version-change.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,8 +87,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Sync and verify version
-        run: node wasm/sync-version.mjs --check
+      - name: Sync wasm version from app version
+        run: |
+          node wasm/sync-version.mjs
+          node wasm/sync-version.mjs --check
 
       - uses: mymindstorm/setup-emsdk@v14
         with:
@@ -41,6 +110,8 @@ jobs:
         with:
           name: wasm-dist
           path: |
+            wasm/package.json
+            wasm/README.md
             wasm/dist/praat.mjs
             wasm/dist/praat.wasm
             wasm/js/
@@ -48,6 +119,7 @@ jobs:
 
   test:
     needs: build
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,6 +147,7 @@ jobs:
 
   publish-npm:
     needs: test
+    if: needs.test.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -100,11 +173,10 @@ jobs:
           else
             npm publish --provenance --access public
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-gpr:
     needs: test
+    if: needs.test.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
