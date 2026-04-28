@@ -61,7 +61,7 @@ std::string wasm_executeScript (const std::string &scriptText) {
 		/*
 			Convert UTF-8 to Praat's internal char32 string.
 		*/
-		autostring32 script32 = Melder_8to32 (scriptText.c_str ());
+		autostring32 script32 = Melder_8to32_e (scriptText.c_str ());
 		/*
 			Execute the script.
 		*/
@@ -125,7 +125,7 @@ void wasm_selectObject (int id) {
 	if (! g_initialized)
 		wasm_praatlib_init ();
 	std::string script = "selectObject: " + std::to_string (id) + "\n";
-	autostring32 script32 = Melder_8to32 (script.c_str ());
+	autostring32 script32 = Melder_8to32_e (script.c_str ());
 	praat_executeScriptFromText (script32.get ());
 }
 
@@ -135,7 +135,7 @@ void wasm_selectObject (int id) {
 void wasm_removeAllObjects () {
 	if (! g_initialized)
 		wasm_praatlib_init ();
-	praat_executeScriptFromText (Melder_8to32 (
+	praat_executeScriptFromText (Melder_8to32_e (
 		"select all\n"
 		"if numberOfSelected() > 0\n"
 		"  Remove\n"
@@ -149,7 +149,7 @@ void wasm_removeAllObjects () {
 void wasm_removeSelectedObjects () {
 	if (! g_initialized)
 		wasm_praatlib_init ();
-	praat_executeScriptFromText (Melder_8to32 ("Remove\n").get ());
+	praat_executeScriptFromText (Melder_8to32_e ("Remove\n").get ());
 }
 
 /*
@@ -162,7 +162,7 @@ std::string wasm_readFile (const std::string &path) {
 	try {
 		Melder_clearInfo ();
 		std::string script = "Read from file: \"" + path + "\"\n";
-		autostring32 script32 = Melder_8to32 (script.c_str ());
+		autostring32 script32 = Melder_8to32_e (script.c_str ());
 		praat_executeScriptFromText (script32.get ());
 		conststring32 info = Melder_getInfo ();
 		if (info) {
@@ -194,7 +194,7 @@ std::string wasm_call (const std::string &commandWithArgs) {
 		wasm_praatlib_init ();
 	try {
 		Melder_clearInfo ();
-		autostring32 cmd32 = Melder_8to32 (commandWithArgs.c_str ());
+		autostring32 cmd32 = Melder_8to32_e (commandWithArgs.c_str ());
 		praat_executeScriptFromText (cmd32.get ());
 		conststring32 info = Melder_getInfo ();
 		if (info) {
@@ -225,7 +225,7 @@ void wasm_saveAsText (const std::string &path) {
 		wasm_praatlib_init ();
 	try {
 		std::string script = "Save as text file: \"" + path + "\"\n";
-		autostring32 script32 = Melder_8to32 (script.c_str ());
+		autostring32 script32 = Melder_8to32_e (script.c_str ());
 		praat_executeScriptFromText (script32.get ());
 	} catch (MelderError) {
 		conststring32 errorMessage = Melder_getError ();
@@ -246,7 +246,7 @@ void wasm_saveAsBinary (const std::string &path) {
 		wasm_praatlib_init ();
 	try {
 		std::string script = "Save as binary file: \"" + path + "\"\n";
-		autostring32 script32 = Melder_8to32 (script.c_str ());
+		autostring32 script32 = Melder_8to32_e (script.c_str ());
 		praat_executeScriptFromText (script32.get ());
 	} catch (MelderError) {
 		conststring32 errorMessage = Melder_getError ();
