@@ -34,6 +34,16 @@ const logEl = document.getElementById('log')
 const loadingEl = document.getElementById('loading')
 const summaryEl = document.getElementById('summary')
 
+const PRAAT_WASM_VERSION = '6.4.6200'
+const PRAAT_WASM_BASE = `https://cdn.jsdelivr.net/npm/praat-wasm@${PRAAT_WASM_VERSION}/js`
+
+function createWorkerBootstrapUrl (workerModuleUrl) {
+  /* Worker() requires a same-origin script URL; bootstrap from a same-origin blob. */
+  const source = `import ${JSON.stringify(workerModuleUrl)}\n`
+  const blob = new Blob([source], { type: 'text/javascript' })
+  return URL.createObjectURL(blob)
+}
+
 let passed = 0, failed = 0
 
 function log (msg, cls) {
@@ -102,7 +112,7 @@ async function generateTone (freq, dur, sr) {
 async function testDirectAPI () {
   section('Direct API — Loading Module')
 
-  const { createPraatWasm, Sound, Pitch, TextGrid, PraatObject } = await import('../../wasm/js/praat-wasm.mjs')
+  const { createPraatWasm, Sound, Pitch, TextGrid, PraatObject } = await import(`${PRAAT_WASM_BASE}/praat-wasm.mjs`)
   const praat = await createPraatWasm()
 
   log('  Module loaded', 'info')
@@ -220,19 +230,23 @@ async function testDirectAPI () {
 async function testWorkerAPI () {
   section('Web Worker — Loading')
 
-  const { createPraatWorker } = await import('../../wasm/js/worker-client.mjs')
+  const { createPraatWorker } = await import(`${PRAAT_WASM_BASE}/worker-client.mjs`)
+  const workerBootstrapUrl = createWorkerBootstrapUrl(`${PRAAT_WASM_BASE}/worker.mjs`)
 
   let worker
   try {
     worker = await createPraatWorker(
-      new URL('../../wasm/js/worker.mjs', import.meta.url)
+      workerBootstrapUrl
     )
     assert(true, 'Worker created and initialized')
   } catch (e) {
     log('  Worker init failed: ' + e.message, 'fail')
     failed++
+    URL.revokeObjectURL(workerBootstrapUrl)
     return
   }
+
+  URL.revokeObjectURL(workerBootstrapUrl)
 
   section('Web Worker — Script Execution')
 

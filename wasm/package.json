@@ -24,6 +24,7 @@
     }
   },
   "files": [
+    "README.md",
     "js/praat-wasm.mjs",
     "js/praat-wasm.d.ts",
     "js/classes.mjs",
