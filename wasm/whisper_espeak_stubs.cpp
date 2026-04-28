@@ -209,14 +209,13 @@ void diarize_free (struct diarize_context *ctx) {
 	(void) ctx;
 }
 
-int diarize_full (struct diarize_context *ctx, struct diarize_params params,
+void diarize_full (struct diarize_context *ctx, struct diarize_params params,
 	const float *samples, int n_samples)
 {
 	(void) ctx; (void) params; (void) samples; (void) n_samples;
-	return -1;
 }
 
-int diarize_full_n_segments (struct diarize_context *ctx) {
+unsigned int diarize_full_n_segments (struct diarize_context *ctx) {
 	(void) ctx;
 	return 0;
 }
