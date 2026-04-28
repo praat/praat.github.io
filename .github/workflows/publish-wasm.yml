@@ -26,57 +26,71 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_publish: ${{ steps.detect.outputs.should_publish }}
-      current_version: ${{ steps.detect.outputs.current_version }}
-      previous_version: ${{ steps.detect.outputs.previous_version }}
+      local_version: ${{ steps.detect.outputs.local_version }}
+      published_version: ${{ steps.detect.outputs.published_version }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
+          node-version: '20'
 
       - id: detect
-        name: Check whether PRAAT_VERSION_STR changed
+        name: Check local wasm version against npm published version
         shell: bash
         run: |
           set -euo pipefail
 
-          current_version="$({ sed -nE 's/^#define[[:space:]]+PRAAT_VERSION_STR[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' main/main_Praat.h | head -n1; })"
-          if [[ -z "$current_version" ]]; then
+          app_version="$({ sed -nE 's/^#define[[:space:]]+PRAAT_VERSION_STR[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' main/main_Praat.h | head -n1; })"
+          if [[ -z "$app_version" ]]; then
             echo "ERROR: Could not parse PRAAT_VERSION_STR from main/main_Praat.h" >&2
             exit 1
           fi
 
-          previous_version=""
+          js_revision="$({ tr -d '[:space:]' < wasm/JS_REVISION; })"
+          if [[ ! "$js_revision" =~ ^[0-9]+$ ]] || (( js_revision < 0 || js_revision > 99 )); then
+            echo "ERROR: JS_REVISION must be an integer between 0 and 99, got: $js_revision" >&2
+            exit 1
+          fi
+
+          IFS='.' read -r major minor patch <<< "$app_version"
+          if [[ -z "${major:-}" || -z "${minor:-}" || -z "${patch:-}" ]]; then
+            echo "ERROR: Invalid app version format: $app_version" >&2
+            exit 1
+          fi
+
+          npm_patch=$(( patch * 100 + js_revision ))
+          local_version="${major}.${minor}.${npm_patch}"
+
+            published_version="$(npm view praat-wasm version --silent | tr -d '[:space:]')"
+            if [[ -z "$published_version" ]]; then
+            echo "ERROR: Could not determine published npm version for praat-wasm." >&2
+            exit 1
+            fi
+
           should_publish="false"
 
-          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            before_sha="${{ github.event.before }}"
-            if [[ "$before_sha" =~ ^0+$ ]]; then
-              should_publish="true"
-            elif git cat-file -e "${before_sha}:main/main_Praat.h" 2>/dev/null; then
-              previous_version="$({ git show "${before_sha}:main/main_Praat.h" | sed -nE 's/^#define[[:space:]]+PRAAT_VERSION_STR[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -n1; })"
-              if [[ "$previous_version" != "$current_version" ]]; then
-                should_publish="true"
-              fi
-            else
-              should_publish="true"
-            fi
+          if [[ "$local_version" != "$published_version" ]]; then
+            should_publish="true"
           fi
 
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${{ inputs.force }}" == "true" ]]; then
             should_publish="true"
           fi
 
-          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
-          echo "previous_version=${previous_version:-unknown}" >> "$GITHUB_OUTPUT"
+          echo "local_version=$local_version" >> "$GITHUB_OUTPUT"
+          echo "published_version=$published_version" >> "$GITHUB_OUTPUT"
           echo "should_publish=$should_publish" >> "$GITHUB_OUTPUT"
 
-          echo "Current version: $current_version"
-          echo "Previous version: ${previous_version:-unknown}"
+          echo "App version: $app_version"
+          echo "JS revision: $js_revision"
+          echo "Local target npm version: $local_version"
+          echo "Published npm version: $published_version"
           echo "Should publish: $should_publish"
 
       - name: Skip notice
         if: steps.detect.outputs.should_publish != 'true'
-        run: echo "PRAAT_VERSION_STR did not change; skipping wasm publish flow."
+        run: echo "Local wasm npm version already matches the published npm version; skipping publish flow."
 
   build:
     needs: detect-version-change
