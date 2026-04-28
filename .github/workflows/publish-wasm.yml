@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      # TODO: remove the `wasm` branch trigger once merged with the original repository.
+      - wasm
   workflow_dispatch:
     inputs:
       dry-run:
