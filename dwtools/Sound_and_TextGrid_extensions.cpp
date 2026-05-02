@@ -119,16 +119,16 @@ autoSound Sound_IntervalTier_cutPartsMatchingLabel (Sound me, IntervalTier thee,
 	}
 }
 
-autoTextGrid Sound_to_TextGrid_speechActivity_silero (Sound me, const double speechProbabilityThreshold,
+autoTextGrid Sound_to_TextGrid_speechActivity_silero (constSound me, const double speechProbabilityThreshold,
 	const double minNonSpeechDuration, const double minSpeechDuration, const double speechPad,
-	conststring32 nonSpeechLabel, conststring32 speechLabel
+	const conststring32 nonSpeechLabel, const conststring32 speechLabel
 ) {
 	try {
 		SileroVadParams sileroVadParams;
-		sileroVadParams.speechProbabilityThreshold = speechProbabilityThreshold;
-		sileroVadParams.minNonSpeechDuration = minNonSpeechDuration;
-		sileroVadParams.minSpeechDuration = minSpeechDuration;
-		sileroVadParams.speechPad = speechPad;
+		sileroVadParams. speechProbabilityThreshold = speechProbabilityThreshold;
+		sileroVadParams. minNonSpeechDuration = minNonSpeechDuration;
+		sileroVadParams. minSpeechDuration = minSpeechDuration;
+		sileroVadParams. speechPad = speechPad;
 		autovector <WhisperSegment> vadIntervals = doSileroVad (me, sileroVadParams, nonSpeechLabel, speechLabel);
 
 		autoTextGrid thee = TextGrid_create (my xmin, my xmax, U"VAD", U"");

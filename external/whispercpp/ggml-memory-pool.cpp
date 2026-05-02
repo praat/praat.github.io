@@ -45,7 +45,7 @@ bool GgmlMemoryPool :: remove(void *ptr) {
 	auto it = allocations.find (ptr);
 	if (it == allocations.end ())
 		return false;
-	allocations .erase (it);
+	allocations. erase (it);
 	return true;
 }
 
@@ -60,7 +60,7 @@ bool GgmlMemoryPool :: remove(void *ptr, size_t size) {
 	if (it == allocations.end ())
 		return false;
 	Melder_assert (size == it->second.size);   // otherwise something weird: size does not match
-	allocations .erase (it);
+	allocations. erase (it);
 	return true;
 }
 
