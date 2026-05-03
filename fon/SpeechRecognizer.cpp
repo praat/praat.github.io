@@ -334,7 +334,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			autostring32 textWithPunctuation;
 			autostring32 textWithoutPunctuation;
 			double tmax;   // DTW timestamp (end of token), in seconds
-			bool isPunctuation;
 			bool isSilence;
 			bool isNewWord;
 			bool isLastTokenInSentence;
@@ -365,26 +364,42 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				partialTokenText. clear();
 				const integer fullTokenTextLength = Melder_length (fullTokenText.get());
 
-				Token *token = whisperTokens. append();
-				token -> tmax = currentTokenTmax;
-				token -> isPunctuation = fullTokenTextLength == 1 && endsWithPunctuation (fullTokenText.get());
-				token -> isSilence = ! fullTokenTextLength;   // if there is no text in a token, mark it as a silence as well
-				token -> isNewWord = ! fullTokenTextLength || fullTokenText.get() [0] == U' ';
-				token -> isLastTokenInSentence = endsWithTerminalPunctuation (fullTokenText.get());
-
 				/* mutable clean */ mutablestring32 cleanTokenText = fullTokenText.get();
 				/* mutable adjust */ integer cleanTokenTextLength = Melder_length (cleanTokenText);
-				if (token -> isNewWord && ! token -> isSilence) {   // first, remove the leading silence in case of the new word
+				/* mutable flag */ bool isNewWord = false;
+
+				if (fullTokenTextLength && fullTokenText.get() [0] == U' ') {   // first, remove the leading silence in case of the new word
 					cleanTokenText ++;
 					cleanTokenTextLength --;
+					isNewWord = true;
 				}
-				token -> textWithPunctuation = Melder_dup (cleanTokenText);   // store it without leading silence but with trailing punctuation
+				autostring32 textWithPunctuation = Melder_dup (cleanTokenText);   // store it without leading silence but with trailing punctuation
+				const integer textWithPunctuationLength = Melder_length (textWithPunctuation.get());
 
 				while (cleanTokenTextLength > 0 && endsWithPunctuation (cleanTokenText)) {   // strip ALL trailing punctuation (e.g., all dots in ...)
 					cleanTokenText [cleanTokenTextLength - 1] = U'\0';
 					cleanTokenTextLength --;
 				}
-				token -> textWithoutPunctuation = Melder_dup (cleanTokenText);   // store it without leading silence and without trailing punctuation
+				autostring32 textWithoutPunctuation = Melder_dup (cleanTokenText);   // store it without leading silence and without trailing punctuation
+				const integer textWithoutPunctuationLength = Melder_length (textWithoutPunctuation.get());
+
+				/*
+					Check if token is pure punctuation (and not the first one), then add its text and the left half of the interval to the previous one.
+				*/
+				if (textWithPunctuationLength && ! textWithoutPunctuationLength && whisperTokens.size >= 1) {
+					Token& lastToken = whisperTokens [whisperTokens.size];
+					lastToken. tmax = (lastToken. tmax + currentTokenTmax) / 2;
+					lastToken. textWithPunctuation = Melder_dup (Melder_cat (lastToken. textWithPunctuation.get(), textWithPunctuation.get()));
+					lastToken. isLastTokenInSentence = endsWithTerminalPunctuation (lastToken. textWithPunctuation.get());
+				} else {
+					Token *token = whisperTokens. append();
+					token -> tmax = currentTokenTmax;
+					token -> isSilence = ! textWithPunctuationLength;   // if there is no text in a token, mark it as a silence as well
+					token -> isNewWord = isNewWord;
+					token -> isLastTokenInSentence = endsWithTerminalPunctuation (textWithPunctuation.get());
+					token -> textWithPunctuation = textWithPunctuation.move();
+					token -> textWithoutPunctuation = textWithoutPunctuation.move();
+				}
 			}
 		}
 
@@ -412,10 +427,14 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			};
 			autovector <VadSegment> vadSegments = newvectorzero <VadSegment> (numberOfVadSegments);
 			for (integer i = 1; i <= numberOfVadSegments; i ++) {
-				vadSegments [i]. origStart =
-						static_cast <double> (whisper_full_get_vad_segment_orig_start (my whisperContext.get(), i - 1)) / 100.0;
-				vadSegments [i]. origEnd =
-						static_cast <double> (whisper_full_get_vad_segment_orig_end (my whisperContext.get(), i - 1)) / 100.0;
+				vadSegments [i]. origStart = std::min (
+						static_cast <double> (whisper_full_get_vad_segment_orig_start (my whisperContext.get(), i - 1)) / 100.0,
+						sound ->xmax
+					);
+				vadSegments [i]. origEnd = std::min (
+						static_cast <double> (whisper_full_get_vad_segment_orig_end (my whisperContext.get(), i - 1)) / 100.0,
+						sound ->xmax
+					);
 				vadSegments [i]. vadStart  =
 						static_cast <double> (whisper_full_get_vad_segment_vad_start (my whisperContext.get(), i - 1)) / 100.0;
 				vadSegments [i]. vadEnd  =
@@ -431,7 +450,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 			auto appendSilence = [& allTokens] (double tmax) {
 				Token *silence = allTokens. append();
 				silence -> tmax = tmax;
-				silence -> isPunctuation = false;
 				silence -> isSilence = true;
 				silence -> isNewWord = true;
 				silence -> isLastTokenInSentence = false;
@@ -448,7 +466,6 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				token -> textWithPunctuation = whisperToken. textWithPunctuation.move();
 				token -> textWithoutPunctuation = whisperToken. textWithoutPunctuation.move();
 				token -> tmax = tmax;
-				token -> isPunctuation = whisperToken. isPunctuation;
 				token -> isSilence = whisperToken. isSilence;
 				token -> isNewWord = whisperToken. isNewWord;
 				token -> isLastTokenInSentence = whisperToken. isLastTokenInSentence;
@@ -472,11 +489,10 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				/*
 					Append a silence token if we progressed into the next VAD segment and current token is more than just one punctuation symbol.
 				*/
-				if (currentVadSegment < numberOfVadSegments
-					&& whisperTokens [i]. tmax > vadSegments [currentVadSegment + 1]. vadStart
-					&& ! whisperTokens [i]. isPunctuation
-				) {
-					Token *silence = appendSilence (vadSegments [currentVadSegment + 1]. origStart);
+				if (currentVadSegment < numberOfVadSegments && whisperTokens [i]. tmax > vadSegments [currentVadSegment + 1]. vadStart) {
+					if (Melder_debug == 2003 && allTokens.size >= 1)
+						allTokens [allTokens.size]. tmax = vadSegments [currentVadSegment]. origEnd;   // extend the last token to the end of current VAD segment
+					Token *silence = appendSilence (vadSegments [currentVadSegment + 1]. origStart);   // insert silence between current and next VAD segments
 					trace (U"Segment ", i, U"; between VAD segments ", currentVadSegment, U" and ", currentVadSegment + 1,
 							U"; silent token ", allTokens.size, U": text = \"", silence -> textWithPunctuation.get(),
 							U"\", tmax = ", silence -> tmax);
@@ -484,12 +500,14 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				}
 
 				/*
-					Append (move) the current token with adjusted tmax: translated back to original time and clamped to the size of VAD interval.
+					Append (move) the current token with tmax translated back to original time.
 				*/
-				const double tokenTmax =  std::min (
-					whisperTokens [i]. tmax + vadSegments [currentVadSegment]. origStart - vadSegments [currentVadSegment]. vadStart,
-					vadSegments [currentVadSegment]. origEnd
+				/* mutable adjust */ double tokenTmax = std::min (
+					whisperTokens [i]. tmax + vadSegments [currentVadSegment]. origStart - vadSegments [currentVadSegment]. vadStart,   // original tmmax
+					vadSegments [currentVadSegment]. origEnd   // clamp to the size of VAD interval
 				);
+				if (Melder_debug == 2003 && currentVadSegment == numberOfVadSegments && i == whisperTokens.size)
+				    tokenTmax = vadSegments [currentVadSegment]. origEnd;   // extend to the size of VAD interval, if this is the last token
 				Token *token = appendWhisperToken (whisperTokens [i], tokenTmax);   // this moves the autostring32 fields of whisperTokens [i]
 				trace (U"Segment ", i, U"; VAD segment ", currentVadSegment,
 						U"; token ", allTokens.size, U": text = ", token -> textWithPunctuation.get(),
@@ -521,9 +539,7 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 
 		for (integer i = 1; i <= allTokens.size; i ++) {
 			const double tokenTmin = previousTokenTmax;
-			const double tokenTmax = allTokens [i]. isPunctuation
-				? (allTokens [i]. tmax + tokenTmin) / 2   // for any punctuation (terminal or not), divide its interval between the right and left neighbours
-				: allTokens [i]. tmax;
+			const double tokenTmax = allTokens [i]. tmax;
 			previousTokenTmax = tokenTmax;
 
 			if (isFirstTokenInSentence)
