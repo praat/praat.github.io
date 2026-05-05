@@ -369,8 +369,8 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 				/* mutable flag */ bool isNewWord = false;
 
 				if (fullTokenTextLength && fullTokenText.get() [0] == U' ') {   // first, remove the leading silence in case of the new word
-					cleanTokenText ++;
-					cleanTokenTextLength --;
+					++ cleanTokenText;
+					-- cleanTokenTextLength;
 					isNewWord = true;
 				}
 				autostring32 textWithPunctuation = Melder_dup (cleanTokenText);   // store it without leading silence but with trailing punctuation
@@ -378,7 +378,7 @@ WhisperTranscription SpeechRecognizer_recognize (constSpeechRecognizer me, const
 
 				while (cleanTokenTextLength > 0 && endsWithPunctuation (cleanTokenText)) {   // strip ALL trailing punctuation (e.g., all dots in ...)
 					cleanTokenText [cleanTokenTextLength - 1] = U'\0';
-					cleanTokenTextLength --;
+					-- cleanTokenTextLength;
 				}
 				autostring32 textWithoutPunctuation = Melder_dup (cleanTokenText);   // store it without leading silence and without trailing punctuation
 				const integer textWithoutPunctuationLength = Melder_length (textWithoutPunctuation.get());
