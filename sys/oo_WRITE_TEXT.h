@@ -115,7 +115,7 @@
 			texputintro (_file_, U"" #x U" [", Melder_integer (_irow), U"] []:"); \
 			for (integer _icol = 1; _icol <= _ncol; _icol ++) { \
 				texputintro (_file_, U"" #x U" [", Melder_integer (_irow), U"] [", Melder_integer (_icol), U"]:"); \
-				our x [_irow] [_icol]. writeText (_file_; \
+				our x [_irow] [_icol]. writeText (_file_); \
 				texexdent (_file_); \
 			} \
 			texexdent (_file_); \

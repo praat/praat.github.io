@@ -94,7 +94,7 @@
 		Melder_assert (our x.nrow == _nrow && our x.ncol == _ncol); \
 		for (integer _irow = 1; _irow <= _nrow; _irow ++) { \
 			for (integer _icol = 1; _icol <= _ncol; _icol ++) { \
-				our x [_irow] [_icol]. writeBinary (_filePointer_; \
+				our x [_irow] [_icol]. writeBinary (_filePointer_); \
 			} \
 		} \
 	}
