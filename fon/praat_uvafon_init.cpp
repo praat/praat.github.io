@@ -2879,6 +2879,15 @@ DO
 	CREATE_MULTIPLE_END
 }
 
+FORM (NEW_Corpus_readFromCGN, U"Read Corpus from CGN", U"Read Corpus from CGN...") {
+	FOLDER (folderName, U"CGN folder name", U"/Volumes/CGN")
+	OK
+DO
+	CREATE_ONE
+		autoCorpus result = Corpus_readFromCGN (folderName);
+	CREATE_ONE_END (U"CGN")
+}
+
 // MARK: - TRANSITION
 
 DIRECT (NEW_Transition_conflate) {
@@ -3137,6 +3146,9 @@ void praat_uvafon_init () {
 				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_timit);
 		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound with adjacent annotation files (Corpus Gesproken Nederlands)...",
 				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_cgn);
+	praat_addMenuCommand (U"Objects", U"Open", U"Open Corpus...", nullptr, 0, nullptr);
+		praat_addMenuCommand (U"Objects", U"Open", U"Read Corpus from CGN...",
+				nullptr, 1, NEW_Corpus_readFromCGN);
 
 	praat_addMenuCommand (U"Objects", U"ApplicationHelp", U"Praat Intro", nullptr, '?', HELP_PraatIntro);
 	#ifndef macintosh

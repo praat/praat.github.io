@@ -39,7 +39,8 @@
 	thy x = our x;
 
 //#define oo_ENUMx_SET(kType, storage, x, setType)  \
-//	for (int _i = 0; _i <= (int) setType::MAX; _i ++) thy x [_i] = our x [_i];
+//	for (int _i = 0; _i <= (int) setType::MAX; _i ++) \
+//		thy x [_i] = our x [_i];
 
 #define oo_STRINGx(storage, x)  \
 	if (our x) \
@@ -53,12 +54,13 @@
 
 #define oo_STRINGx_VECTOR(storage, x, sizeExpression)  \
 	{ \
-		integer _size = (sizeExpression); \
+		const integer _size = (sizeExpression); \
 		Melder_assert (_size == our x.size); \
 		if (our x) { \
 			thy x = autoSTRVEC (_size); \
 			for (integer _i = 1; _i <= _size; _i ++) { \
-				if (our x [_i]) thy x [_i] = Melder_dup (our x [_i].get()); \
+				if (our x [_i]) \
+					thy x [_i] = Melder_dup (our x [_i].get()); \
 			} \
 		} \
 	}
@@ -73,7 +75,7 @@
 
 #define oo_STRUCTVEC(Type, x, sizeExpression)  \
 	{ \
-		integer _size = (sizeExpression); \
+		const integer _size = (sizeExpression); \
 		Melder_assert (_size == our x.size); \
 		if (_size > 0) { \
 			thy x = newvectorzero <struct##Type> (_size); \
@@ -98,7 +100,8 @@
 	}
 
 #define oo_OBJECT(Class, version, x)  \
-	if (our x) thy x = Data_copy (our x.get());
+	if (our x) \
+		thy x = Data_copy (our x.get());
 
 #define oo_COLLECTION_OF(Class, x, ItemClass, version)  \
 	if (our x._capacity > 0) { \

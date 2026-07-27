@@ -30,21 +30,21 @@
 
 #define oo_ANYVEC(type, storage, x, sizeExpression)  \
 	{ \
-		integer _size = (sizeExpression); \
+		const integer _size = (sizeExpression); \
 		Melder_assert (our x.size == _size); \
 		vector_writeText_##storage (our x.get(), _file_, U"" #x); \
 	}
 
 #define oo_ANYMAT(type, storage, x, nrowExpression, ncolExpression)  \
 	{ \
-		integer _nrow = (nrowExpression), _ncol = (ncolExpression); \
+		const integer _nrow = (nrowExpression), _ncol = (ncolExpression); \
 		Melder_assert (our x.nrow == _nrow && our x.ncol == _ncol); \
 		matrix_writeText_##storage (our x.get(), _file_, U"" #x); \
 	}
 
 #define oo_ANYTEN3(type, storage, x, ndim1Expression, ndim2Expression, ndim3Expression)  \
 	{ \
-		integer _ndim1 = (ndim1Expression), _ndim2 = (ndim2Expression), _ndim3 = (ndim3Expression); \
+		const integer _ndim1 = (ndim1Expression), _ndim2 = (ndim2Expression), _ndim3 = (ndim3Expression); \
 		tensor3_writeText_##storage (our x.get(), _file_, U"" #x); \
 	}
 
@@ -70,7 +70,7 @@
 
 #define oo_STRINGx_VECTOR(storage, x, n)  \
 	{ \
-		integer _size = (n); \
+		const integer _size = (n); \
 		Melder_assert (_size == our x.size); \
 		texputintro (_file_, U"" #x U" []: ", _size >= 1 ? nullptr : U"(empty)"); \
 		for (integer _i = 1; _i <= _size; _i ++) { \

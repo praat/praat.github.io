@@ -43,7 +43,7 @@
 
 #define oo_STRINGx_VECTOR(storage, x, sizeExpression)  \
 	{ \
-		integer _size = (sizeExpression); \
+		const integer _size = (sizeExpression); \
 		Melder_assert (_size == our x.size); \
 		if (our x) { \
 			for (integer _i = 1; _i <= _size; _i ++) { \
@@ -54,7 +54,8 @@
 	}
 
 #define oo_STRUCT(Type, x)  \
-	if (! our x. canWriteAsEncoding (encoding)) return false;
+	if (! our x. canWriteAsEncoding (encoding)) \
+		return false;
 
 #define oo_STRUCT_SET(Type, x, setType)  \
 	for (int _i = 0; _i <= (int) setType::MAX; _i ++) { \
@@ -64,7 +65,7 @@
 
 #define oo_STRUCTVEC(Type, x, sizeExpression)  \
 	{ \
-		integer _size = (sizeExpression); \
+		const integer _size = (sizeExpression); \
 		Melder_assert (_size == our x.size); \
 		for (integer _i = 1; _i <= _size; _i ++) { \
 			if (! our x [_i]. canWriteAsEncoding (encoding)) \

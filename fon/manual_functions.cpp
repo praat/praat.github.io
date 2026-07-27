@@ -5313,7 +5313,7 @@ or if the file is (or would be) on a read-only device.
 
 For instance, if my TIMIT database is in a read-only disk image called `TIMIT.dmg`,
 and I mounted that disk image on my Mac (by double-clicking `TIMIT.dmg`), then trying
-{
+{;
 	\#{tryToAppendFile} ("/Volumes/TIMIT/readme.doc")
 }
 would return 0.
@@ -5346,7 +5346,7 @@ or if the file is (or would be) on a read-only device.
 
 For instance, if my TIMIT database is in a read-only disk image called `TIMIT.dmg`,
 and I mounted that disk image on my Mac (by double-clicking `TIMIT.dmg`), then trying
-{
+{;
 	\#{tryToWriteFile} ("/Volumes/TIMIT/hello.txt")
 }
 would return 0.

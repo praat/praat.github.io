@@ -30,17 +30,18 @@
 
 #define oo_ANYVEC(type, storage, x, sizeExpression)  \
 	{ \
-		integer _size = (sizeExpression); \
+		const integer _size = (sizeExpression); \
 		Melder_assert (our x.size == _size); \
-		if (! NUMequal (our x.get(), thy x.get())) \
-			return false; \
+		if (_size > 0) { \
+			if (! NUMequal (our x.get(), thy x.get())) \
+				return false; \
+		} \
 	}
 
 #define oo_ANYMAT(type, storage, x, nrowExpression, ncolExpression)  \
 	{ \
-		integer _nrow = (nrowExpression); \
-		integer _ncol = (ncolExpression); \
-		if (_nrow != 0 && _ncol != 0) { \
+		const integer _nrow = (nrowExpression), _ncol = (ncolExpression); \
+		if (_nrow > 0 && _ncol > 0) { \
 			/*Melder_assert (our x.nrow == _nrow && our x.ncol == _ncol); BUG routinely violated in SSCP for lowerCholesky */ \
 			if (! NUMequal (our x.get(), thy x.get())) \
 				return false; \
@@ -49,10 +50,8 @@
 
 #define oo_ANYTEN3(type, storage, x, ndim1Expression, ndim2Expression, ndim3Expression)  \
 	{ \
-		integer _ndim1 = (ndim1Expression); \
-		integer _ndim2 = (ndim2Expression); \
-		integer _ndim3 = (ndim3Expression); \
-		if (_ndim1 != 0 && _ndim2 != 0 && _ndim3 != 0) { \
+		const integer _ndim1 = (ndim1Expression), _ndim2 = (ndim2Expression), _ndim3 = (ndim3Expression); \
+		if (_ndim1 > 0 && _ndim2 > 0 && _ndim3 > 0) { \
 			if (! NUMequal (our x.get(), thy x.get())) \
 				return false; \
 		} \
@@ -78,7 +77,7 @@
 
 #define oo_STRINGx_VECTOR(storage, x, sizeExpression)  \
 	{ \
-		integer _size = (sizeExpression); \
+		const integer _size = (sizeExpression); \
 		Melder_assert (_size == our x.size); \
 		if (! our x != ! thy x) \
 			return false; \
@@ -114,7 +113,7 @@
 
 #define oo_STRUCTMAT(Type, x, nrowExpression, ncolExpression)  \
 	{ \
-		integer _nrow = (nrowExpression), _ncol = (ncolExpression); \
+		const integer _nrow = (nrowExpression), _ncol = (ncolExpression); \
 		Melder_assert (_nrow == our x.nrow && _ncol == our x.ncol); \
 		if (thy x.nrow != _nrow || thy x.ncol != _ncol) \
 			return false; \

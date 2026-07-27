@@ -189,7 +189,7 @@ autoMelderReadText MelderReadText_createFromFile (MelderFile file) {
 	byte header [2];
 	const size_t nreadFromHeader = fread (header, 1, 2, file -> filePointer);
 	if (nreadFromHeader == 2 && header [0] == 0x1F && header [1] == 0x8B) {
-		TRACE
+		//TRACE
 		/*
 			This is a Gzipped file.
 
