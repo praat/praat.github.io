@@ -1308,11 +1308,12 @@ autoSound Sound_readWithAdjacentAnnotationFiles_timit (conststring32 soundFileNa
 	}
 }
 
-autoSound Sound_readWithAdjacentAnnotationFiles_cgn (conststring32 soundFileName, autoTextGrid *out_textgrid) {
+autoTextGrid TextGrid_Sound_readFromCorpusGesprokenNederlands (conststring32 soundFileName, autoSound *out_sound) {
 	try {
 		structMelderFile file { };
 		Melder_pathToFile (soundFileName, & file);
-		autoSound sound = Sound_readFromSoundFile (& file);
+		if (out_sound)
+			*out_sound = Sound_readFromSoundFile (& file);
 		OrderedOf <structTextGrid> textgrids;
 
 		/*
@@ -1421,13 +1422,14 @@ autoSound Sound_readWithAdjacentAnnotationFiles_cgn (conststring32 soundFileName
 			textgrids. addItem_ref (fon.get());
 		}
 
-		*out_textgrid = TextGrids_merge (& textgrids, true);
-		for (integer itier = 1; itier <= (*out_textgrid) -> tiers->size; itier ++)
-			TextGrid_setTierName (out_textgrid->get(), itier, replace_STR ((*out_textgrid) -> tiers->at [itier] -> name.get(), U"_", U"/", 0).get());
+		autoTextGrid me = TextGrids_merge (& textgrids, true);
+		for (integer itier = 1; itier <= my tiers->size; itier ++)
+			TextGrid_setTierName (me.get(), itier, replace_STR (my tiers->at [itier] -> name.get(), U"_", U"/", 0).get());
 
-		Thing_setName (sound.get(), baseName.get());
-		Thing_setName (out_textgrid->get(), baseName.get());
-		return sound;
+		if (out_sound)
+			Thing_setName (out_sound->get(), baseName.get());
+		Thing_setName (me.get(), baseName.get());
+		return me;
 	} catch (MelderError) {
 		Melder_throw (U"Sound “", soundFileName, U"” not read with adjacent CGN annotation files.");
 	}

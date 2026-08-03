@@ -53,6 +53,6 @@ void TextGrid_Sound_diarizeInterval (TextGrid me, Sound sound, integer tierNumbe
 
 autoSound Sound_readWithAdjacentAnnotationFiles_buckeye (conststring32 soundFileName, autoTextGrid *out_textgrid);
 autoSound Sound_readWithAdjacentAnnotationFiles_timit   (conststring32 soundFileName, autoTextGrid *out_textgrid);
-autoSound Sound_readWithAdjacentAnnotationFiles_cgn     (conststring32 soundFileName, autoTextGrid *out_textgrid);
+autoTextGrid TextGrid_Sound_readFromCorpusGesprokenNederlands   (conststring32 soundFileName, autoSound *out_Sound);
 
 /* End of file TextGrid_Sound.h */

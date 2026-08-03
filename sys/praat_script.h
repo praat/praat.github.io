@@ -22,7 +22,7 @@
 
 bool praat_executeCommand (Interpreter me, char32 *command);   // returns false only if nocheck cancelled an error
 void praat_executeCommandFromStandardInput (conststring32 programName);
-void praat_executeScript_noGUI (MelderFile file);
+void praat_executeScript_noGUI (MelderFile file, bool fullTrust);
 void praat_runScript (InterpreterStack interpreterStack, conststring32 fileName, integer narg, Stackel args, Editor optionalInterpreterOwningEditor);   // called only from Formula as `runScript` (last checked 2022-10-07)
 void praat_runScriptWithForm (conststring32 fileName, bool fullTrust);
 void praat_runNotebook (InterpreterStack interpreterStack, conststring32 fileName, integer narg, Stackel args, Editor optionalInterpreterOwningEditor);

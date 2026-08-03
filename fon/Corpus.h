@@ -19,6 +19,7 @@
  */
 
 #include "Table.h"
+#include "TextGrid.h"
 
 #include "Corpus_def.h"
 

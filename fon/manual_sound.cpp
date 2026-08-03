@@ -1287,7 +1287,7 @@ Setting
 
 ################################################################################
 "Sound: Get power..."
-© Paul Boersma 2022-12-02
+© Paul Boersma 1999,2004,2007,2022,2026
 
 A command available in the @@Query submenu@ if you select a @Sound object.
 The Info window will show the power within a specified time window.
@@ -1304,7 +1304,7 @@ Mathematical definition
 =======================
 
 The power is defined as
-~	1/(%t_2\-m%t_1)  \\in__%t1_^^%t2^ %x^2(%t) %dt
+~	1/(%t_2\-m%t_1)  \in__%t1_^^%t2^ %x^2(%t) %dt
 
 where %x(%t) is the amplitude of the sound.
 For how stereo sounds are handled, see @@Sound: Get energy...@.

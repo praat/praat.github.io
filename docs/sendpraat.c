@@ -142,22 +142,18 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
 	/*
 	 * Save the message file (Windows and Linux only).
 	 */
-	#if win || unix
-	{
-		FILE *messageFile;
-		if ((messageFile = fopen (messageFileName, "w")) == NULL) {
-			sprintf (errorMessage, "Cannot create message file \"%s\" "
-				"(no privilege to write to folder, or disk full, or program is not called %s).\n", messageFileName, programName);
-			return errorMessage;
-		}
-		#if unix
-			if (timeOut)
-				fprintf (messageFile, "#%ld\n", (long) getpid ());   /* Write own process ID for callback. */
-		#endif
-		fprintf (messageFile, "%s", text);
-		fclose (messageFile);
+	FILE *messageFile;
+	if ((messageFile = fopen (messageFileName, "w")) == NULL) {
+		sprintf (errorMessage, "Cannot create message file \"%s\" "
+			"(no privilege to write to folder, or disk full, or program is not called %s).\n", messageFileName, programName);
+		return errorMessage;
 	}
+	#if unix
+		if (timeOut)
+			fprintf (messageFile, "#%ld\n", (long) getpid ());   /* Write own process ID for callback. */
 	#endif
+	fprintf (messageFile, "%s", text);
+	fclose (messageFile);
 
 	/*
 	 * Where shall we send the message?

@@ -167,6 +167,15 @@ void Interpreter_rememberScript (Interpreter me, MelderFile scriptFile, const bo
 	my scriptReference -> trusted |= fullTrust;
 }
 
+void Interpreter_rememberScript_override (Interpreter me, MelderFile scriptFile, const bool fullTrust) {
+	if (MelderFile_isNull (scriptFile))
+		return;
+	autoScript script = Script_createFromFile (scriptFile);
+	Script_rememberDuringThisAppSession_move (script.move());
+	my scriptReference = Script_find (MelderFile_peekPath (scriptFile));
+	my scriptReference -> trusted = fullTrust;
+}
+
 static bool Melder_scriptTextIsNotebookText (conststring32 text) {
 	/*
 		Notebooks start with a opening double quote.

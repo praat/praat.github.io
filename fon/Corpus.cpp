@@ -38,7 +38,7 @@
 #include "oo_DESCRIPTION.h"
 #include "Corpus_def.h"
 
-Thing_implement (Corpus, Table, 0);
+Thing_implement (Corpus, Table, 1);
 
 autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soundFileExtension,
 	conststring32 folderWithAnnotationFiles, conststring32 annotationFileExtension)
@@ -101,11 +101,12 @@ autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
 					autoTextGrid textGrid;
 					autoSound sound;
 					try {
-						sound = Sound_readWithAdjacentAnnotationFiles_cgn (Melder_cat (MelderFolder_peekPath (& regionFolder), U"/", soundFileNames [ifile].get()), & textGrid);
+						textGrid = TextGrid_Sound_readFromCorpusGesprokenNederlands (Melder_cat (MelderFolder_peekPath (& regionFolder), U"/", soundFileNames [ifile].get()), nullptr);
 						Table_appendRow (me.get());
 						Table_setStringValue (me.get(), my rows.size, 1, compFolderNames [icomp].get());
 						Table_setStringValue (me.get(), my rows.size, 2, regionNames [iregion]);
 						Table_setStringValue (me.get(), my rows.size, 3, soundFileNames [ifile].get());
+						my textGrids. addItem_move (textGrid.move());
 					} catch (MelderError) {
 						Melder_clearError ();
 						trace (U"Error handling file ", soundFileNames [ifile].get());

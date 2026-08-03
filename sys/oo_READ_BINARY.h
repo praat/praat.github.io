@@ -156,7 +156,7 @@
 
 #define oo_FROM(from)  \
 	{ \
-		int _from = (from); \
+		const int _from = (from); \
 		if (_formatVersion_ >= _from) {
 
 #define oo_ENDFROM  \

@@ -159,7 +159,7 @@ static void common_menu_cb_run (ScriptEditor me, const bool fullTrust) {
 				Pop up a dialog box for querying the arguments.
 			*/
 			my argsDialog = Interpreter_createForm (interpreter.get(), my windowForm, my optionalReferenceToOwningEditor, nullptr,
-					fullTrust ? args_ok_FULL_TRUST : args_ok, me, false);
+					fullTrust ? args_ok_FULL_TRUST : args_ok, me, false);   // trust setting cannot be done earlier 
 			my interpreterStack -> interpreters [1] = interpreter.move();
 			UiForm_do (my argsDialog.get(), false);
 		} else {

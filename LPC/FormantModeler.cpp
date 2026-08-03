@@ -1195,7 +1195,7 @@ autoOptimalCeilingTier Sound_to_OptimalCeilingTier (Sound me,
 			const double tmin = time - smoothingWindow / 2.0;
 			const double tmax = tmin + smoothingWindow;
 			const integer index = Formants_getSmoothestInInterval (& formants, tmin, tmax, numberOfFormantTracks, numberOfParametersPerTrack,	weighFormants,
-				false, numberOfSigmas, power, 200.0, 1500.0, 300.0, 3000.0, 1000.0);   // min/max values are not used
+					false, numberOfSigmas, power, 200.0, 1500.0, 300.0, 3000.0, 1000.0);   // min/max values are not used
 			const double ceiling = minCeiling + (index - 1) * frequencyStep;
 			RealTier_addPoint (octier.get(), time, ceiling);
 		}

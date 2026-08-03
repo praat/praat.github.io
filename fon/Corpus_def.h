@@ -22,6 +22,9 @@ oo_DEFINE_CLASS (Corpus, Table)
 
 	oo_STRING (folderWithSoundFiles)
 	oo_STRING (folderWithAnnotationFiles)
+	oo_FROM (1)
+		oo_COLLECTION_OF (OrderedOf, textGrids, TextGrid, 0)
+	oo_ENDFROM
 
 oo_END_CLASS (Corpus)
 #undef ooSTRUCT

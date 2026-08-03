@@ -2862,8 +2862,8 @@ DO
 	CREATE_MULTIPLE
 		autoTextGrid textgrid;
 		autoSound sound = Sound_readWithAdjacentAnnotationFiles_timit (soundFileName, & textgrid);
-		praat_new (sound.move());
-		praat_new (textgrid.move());
+		praat_newWithFile (sound.move(), nullptr, soundFileName);
+		praat_newWithFile (textgrid.move(), nullptr, soundFileName);
 	CREATE_MULTIPLE_END
 }
 
@@ -2872,10 +2872,10 @@ FORM (NEW_Sound_readWithAdjacentAnnotationFiles_cgn, U"Read with adjacent annota
 	OK
 DO
 	CREATE_MULTIPLE
-		autoTextGrid textgrid;
-		autoSound sound = Sound_readWithAdjacentAnnotationFiles_cgn (soundFileName, & textgrid);
-		praat_new (sound.move());
-		praat_new (textgrid.move());
+		autoSound sound;
+		autoTextGrid textgrid = TextGrid_Sound_readFromCorpusGesprokenNederlands (soundFileName, & sound);
+		praat_newWithFile (sound.move(), nullptr, soundFileName);
+		praat_newWithFile (textgrid.move(), nullptr, soundFileName);
 	CREATE_MULTIPLE_END
 }
 
