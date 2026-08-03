@@ -32,9 +32,9 @@ describes how you can use these tools in Praat. It assumes that you are familiar
 especially with @@Intro 7. Annotation@.
 
 Transcription is performed with @@whisper.cpp@ and it requires at least one external model
-installed on your computer; diarization is performed with an adapted @@pyannote.audio@
+installed on your computer; speaker diarization is performed with an adapted @@pyannote.audio@
 diarization pipeline and it works without any external models. Diarization can also be performed
-together with transcription, so that transcribed text is divided between speakers.
+together with transcription, so that transcribed text is divided among the detected speakers.
 
 After you have read the chapters ##1. Automatic transcription# and ##2. Automatic speaker
 diarization#, you might be interested in what can be done to improve the performance of these
@@ -156,7 +156,7 @@ settings influencing non-speech detection.
 
 ##Diarization...# is switched on and off by its first setting ##Include diarization#: when it is
 on, diarization is also run on the Sound (independently of transcription). The results from both
-transcription and diarization are then combined: transcribed text is divided between the detected
+transcription and diarization are then combined: transcribed text is divided among the detected
 speakers. See @@speaker diarization with adapted pyannote.audio@ and ##2.2 How to configure
 settings# for the description of the diarization settings.
 
@@ -743,7 +743,7 @@ they are arbitrary labels that roughly follow the order in which the speakers fi
 sound.
 
 Diarization in Praat always modifies an existing TextGrid by producing one tier per detected
-speaker. It can be done as part of transcription (so that the transcribed text is split between
+speaker. It can be done as part of transcription (so that the transcribed text is split among the
 speaker tiers) or standalone (so that each speaker tier contains the intervals labelled as
 non-speech or speech). See @@Speech recognition@ tutorial for details on how to use it.
 
