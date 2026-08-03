@@ -33,7 +33,10 @@
 
 conststring32 Melder_getenv (conststring32 variableName) {
 	#if defined (macintosh) || defined (UNIX) || defined (__MINGW32__) || defined (__CYGWIN__)
-		return Melder_peek8to32_u (getenv (Melder_peek32to8 (variableName)));
+		char *value = getenv (Melder_peek32to8 (variableName));
+		if (! value)
+			return nullptr;
+		return Melder_peek8to32_u (value);
 	#elif defined (_WIN32)
 		static char32 buffer [11] [255];
 		static int ibuffer = 0;

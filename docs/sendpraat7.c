@@ -1,19 +1,20 @@
-/* sendpraat.c */
+/* sendpraat7.c */
 /* by Paul Boersma */
 /* 13 November 2021 */
 /* 26 August 2025: changed WM_USER to WM_APP (needed since February 2025) */
+/* 2 August 2026: new preference-directory locations, and added flag for "full trust" */
 
 /*
- * The sendpraat subroutine (macOS; Windows; Linux) sends a message
+ * The sendpraat7 subroutine (macOS; Windows; Linux) sends a message
  * to a running Praat (or another program that uses the Praat shell).
  * The sendpraat program behaves identically from a macOS terminal window,
  * from a Windows console, or from a Linux command shell.
  *
  * Newer versions of sendpraat may be found at https://praat.org/sendpraat.html or https://www.fon.hum.uva.nl/praat/sendpraat.html
  *
- * On macOS X (and 11 and 12), this version works with all Praat versions.
- * On Windows, this version works only with Praat version 6.4.26 (February 2025) or newer.
- * On Linux, this version works only with Praat version 6.1.31 (November 2020) or newer.
+ * On macOS X, this version works only with Praat version 7.0 (August 2026) or newer.
+ * On Windows, this version works only with Praat version 7.0 (August 2026) or newer.
+ * On Linux, this version works only only with Praat version 7.0 (August 2026) or newer.
  * Newer versions of Praat may respond faster or more reliably.
  */
 
@@ -55,10 +56,9 @@
 /*
  * The way to call the sendpraat subroutine from another program.
  */
-char *sendpraat (void *display, const char *programName, long timeOut, const char *text);
+char *sendpraat7 (long timeOut, int fullTrust, const char *programName, const char *text);
 /*
  * Parameters:
- * `display` is ignored. You can provide NULL.
  * `programName` is the name of the program that receives the message.
  *    This program must have been built with the Praat shell (the most common such programs are Praat and ALS).
  *    On macOS, `programName` must be "Praat", "praat", "ALS", or the Mac signature of any other program.
@@ -71,6 +71,8 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
  *    to handle the message.
  *    On Windows, the time out is ignored.
  * `text` contains the contents of the Praat script to be sent to the receiving program, encoded as UTF-8.
+ * `fullTrust` is a boolean (0 or 1) that determines whether the script should be allowed
+ *    to save files and call system commands.
  */
 
 static char errorMessage [1000];
@@ -80,21 +82,20 @@ static char errorMessage [1000];
 	static void handleTimeOut (int message) { (void) message; sprintf (errorMessage, "Timed out after %ld seconds.", theTimeOut); }
 #endif
 
-char *sendpraat (void *display, const char *programName, long timeOut, const char *text) {
-	char nativeProgramName [100];
+char *sendpraat7 (long timeOut, int fullTrust, const char *programName, const char *text) {
+	char nativeProgramName [100], preferencesDirectory [256], messageFileName [256];
 	#if mac
+		char *home;
 		AEDesc programDescriptor;
 		AppleEvent event, reply;
 		OSStatus err;
 		UInt32 signature;
-		(void) display;
 	#elif win
-		char homeDirectory [256], messageFileName [256], windowName [256];
+		char homeDirectory [256], windowName [256];
 		HWND window;
-		(void) display;
 		(void) timeOut;
 	#elif unix
-		char *home, pidFileName [256], messageFileName [256];
+		char *home, *xdgHome, pidFileName [256];
 		FILE *pidFile;
 		long pid, wid = 0;
 	#endif
@@ -117,30 +118,39 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
 	/*
 	 * If the text is going to be sent in a file, create its name.
 	 * The file is going to be written into the preferences folder of the receiving program.
-	 * On Linux, the name will be something like /home/jane/.praat-dir/message.
-	 * On Windows, the name will be something like C:\Users\Jane\Praat\Message.txt,
-	 * or C:\Windows\Praat\Message.txt on older systems.
-	 * On macOS, the text is NOT going to be sent in a file.
+	 * On Linux, the name will be something like /home/jane/.config/praat/Message.txt.
+	 * On Windows, the name will be something like C:\Users\Jane\AppData\Roaming\Praat\Message.txt.
+	 * On macOS, the name will be something like /Users/Jane/Library/Application Support/Praat/Message.txt.
 	 */
-	#if win
-		if (GetEnvironmentVariableA ("USERPROFILE", homeDirectory, 255)) {
-			;   /* Ready. */
-		} else if (GetEnvironmentVariableA ("HOMEDRIVE", homeDirectory, 255)) {
-			GetEnvironmentVariableA ("HOMEPATH", homeDirectory + strlen (homeDirectory), 255);
-		} else {
-			GetWindowsDirectoryA (homeDirectory, 255);
+	#if mac
+		if ((home = getenv ("HOME")) == NULL) {
+			sprintf (errorMessage, "HOME environment variable not set.");
+			return errorMessage;
 		}
-		sprintf (messageFileName, "%s\\%s\\Message.txt", homeDirectory, programName);
+		sprintf (preferencesDirectory, "%s/Library/Application Support/.%s", home, nativeProgramName);
+		sprintf (messageFileName, "%s/%s", preferencesDirectory, "Message.txt");
+	#elif win
+		if (! GetEnvironmentVariableA ("USERPROFILE", homeDirectory, 255)) {
+			sprintf (errorMessage, "USERPROFILE environment variable not set.");
+			return errorMessage;
+		}
+		sprintf (preferencesDirectory, "%s\\AppData\\Roaming\\%s", homeDirectory, nativeProgramName);
+		sprintf (messageFileName, "%s\\%s", preferencesDirectory, "Message.txt");
 	#elif unix
 		if ((home = getenv ("HOME")) == NULL) {
 			sprintf (errorMessage, "HOME environment variable not set.");
 			return errorMessage;
 		}
-		sprintf (messageFileName, "%s/.%s-dir/message", home, programName);
+		xdgHome = getenv ("XDG_CONFIG_HOME");
+		if (xdgHome)
+			sprintf (preferencesDirectory, "%s/%s", xdgHome, nativeProgramName);
+		else
+			sprintf (preferencesDirectory, "%s/.config/%s", home, nativeProgramName);
+		sprintf (messageFileName, "%s/%s", preferencesDirectory, "Message.txt");
 	#endif
 
 	/*
-	 * Save the message file (Windows and Linux only).
+	 * Save the message file.
 	 */
 	FILE *messageFile;
 	if ((messageFile = fopen (messageFileName, "w")) == NULL) {
@@ -152,6 +162,8 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
 		if (timeOut)
 			fprintf (messageFile, "#%ld\n", (long) getpid ());   /* Write own process ID for callback. */
 	#endif
+	if (fullTrust)
+		fprintf (messageFile, "\n# --FULL-TRUST\n");
 	fprintf (messageFile, "%s", text);
 	fclose (messageFile);
 
@@ -184,7 +196,7 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
 		/*
 		 * Get the process ID and the window ID of a running Praat-shell program.
 		 */
-		sprintf (pidFileName, "%s/.%s-dir/pid", home, programName);
+		sprintf (pidFileName, "%s/pid", preferencesDirectory);
 		if ((pidFile = fopen (pidFileName, "r")) == NULL) {
 			sprintf (errorMessage, "Program %s not running.", programName);
 			return errorMessage;
@@ -205,7 +217,7 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
 		 * Notify the running program by sending it an Apple event of the magic class 758934755.
 		 */
 		AECreateAppleEvent (758934755, 0, & programDescriptor, kAutoGenerateReturnID, 1, & event);
-		AEPutParamPtr (& event, 1, typeChar, text, (Size) strlen (text) + 1);
+		//AEPutParamPtr (& event, 1, typeChar, text, (Size) strlen (text) + 1);
 		err = AESendMessage (& event, & reply,
 			( timeOut == 0 ? kAENoReply : kAEWaitReply ) | kAECanInteract | kAECanSwitchLayer,
 			timeOut == 0 ? kNoTimeOut : 60 * timeOut);
@@ -267,36 +279,42 @@ char *sendpraat (void *display, const char *programName, long timeOut, const cha
 }
 
 /*
- * To compile sendpraat as a stand-alone program, use the -DSTAND_ALONE option to the C compiler:
+ * To compile sendpraat7 as a stand-alone program, use the -DSTAND_ALONE option to the C compiler.
+ * Because of the awkward syntax, this is recommended only for testing the sendpraat7 subroutine;
+ * for sending scripts to a running Praat, use "praat --SEND <scriptFileName>" instead.
  */
 #ifdef STAND_ALONE
 /*
-	To compile on MacOS X:
-		cc sendpraat.c -o sendpraat-mac -DSTAND_ALONE -Dmacintosh -framework CoreServices -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/Headers
-	To compile on Linux:
-		gcc -std=gnu99 sendpraat.c -o sendpraat-linux -DSTAND_ALONE -DUNIX
-	To compile on Windows under MinGW:
-		~/path/to/your/toolchains/mingw64/bin/gcc -std=gnu99 sendpraat.c -o sendpraat-win.exe -DSTAND_ALONE -D_WIN32 -isystem ~/path/to/your/toolchains/mingw64/include
+	To compile on MacOS X (ARM64 and x86_64 architectures combined):
+		cc sendpraat7.c -arch arm64 -arch x86_64 -o sendpraat7-mac -DSTAND_ALONE -Dmacintosh -framework CoreServices -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/Headers
+	To compile on Windows from the MSYS2 CLANG64 shell:
+		cc -std=gnu99 sendpraat7.c -o sendpraat7-win-x64.exe -DSTAND_ALONE -mconsole
+	To compile on Windows from the MSYS2 CLANGARM64 shell:
+		cc -std=gnu99 sendpraat7.c -o sendpraat7-win-arm64.exe -DSTAND_ALONE -mconsole
+	To compile on Linux from Ubuntu x86_64:
+		cc -std=gnu99 sendpraat7.c -o sendpraat7-linux-x64 -DSTAND_ALONE -DUNIX
+	To compile on Linux from Ubuntu ARM64:
+		cc -std=gnu99 sendpraat7.c -o sendpraat7-linux-arm64 -DSTAND_ALONE -DUNIX
 */
 int main (int argc, char **argv) {
-	int iarg, line, length = 0;
+	int iarg, line, length = 0, fullTrust = 0;
 	long timeOut = 10;   /* Default. */
 	char programName [64], *message, *result;
 	if (argc == 1) {
 		printf ("Syntax:\n");
 		#if win
-			printf ("   sendpraat <program> <message>\n");
+			printf ("   sendpraat7 [--FULL-TRUST] <program> <message>\n");
 		#else
-			printf ("   sendpraat [<timeOut>] <program> <message>\n");
+			printf ("   sendpraat7 [<timeOut>] [--FULL-TRUST] <program> <message>\n");
 		#endif
 		printf ("\n");
 		printf ("Arguments:\n");
 		printf ("   <program>: the name of a running program that uses the Praat shell.\n");
 		printf ("   <message>: a sequence of Praat shell lines (commands and directives).\n");
 		#if ! win
-			printf ("   <timeOut>: the number of seconds that sendpraat will wait for an answer\n");
+			printf ("   <timeOut>: the number of seconds that sendpraat7 will wait for an answer\n");
 			printf ("              before writing an error message. A <timeOut> of 0 means that\n");
-			printf ("              the message will be sent asynchronously, i.e., that sendpraat\n");
+			printf ("              the message will be sent asynchronously, i.e., that sendpraat7\n");
 			printf ("              will return immediately without issuing any error message.\n");
 		#endif
 		printf ("\n");
@@ -307,20 +325,20 @@ int main (int argc, char **argv) {
 		printf ("Examples:\n");
 		printf ("\n");
 		#if win
-			printf ("   sendpraat praat Quit\n");
+			printf ("   sendpraat7 praat Quit\n");
 		#else
-			printf ("   sendpraat 0 praat Quit\n");
+			printf ("   sendpraat7 0 praat Quit\n");
 		#endif
 		printf ("      Causes the program \"praat\" to quit (gracefully).\n");
-		printf ("      This works because \"Quit\" is a fixed command in Praat's Control menu.\n");
+		printf ("      This works because \"Quit\" is a fixed command in Praat's Praat menu.\n");
 		#if ! win
 			printf ("      Sendpraat will return immediately.\n");
 		#endif
 		printf ("\n");
 		#if win
-			printf ("   sendpraat praat \"Play reverse\"\n");
+			printf ("   sendpraat7 praat \"Play reverse\"\n");
 		#else
-			printf ("   sendpraat 1000 praat \"Play reverse\"\n");
+			printf ("   sendpraat7 1000 praat \"Play reverse\"\n");
 		#endif
 		printf ("      Causes the program \"praat\", which can play sounds,\n");
 		printf ("      to play the selected Sound objects backwards.\n");
@@ -331,18 +349,14 @@ int main (int argc, char **argv) {
 		#endif
 		printf ("\n");
 		#if win
-			printf ("   sendpraat praat \"execute C:\\MyDocuments\\MyScript.praat\"\n");
+			printf ("   sendpraat7 praat --FULL-TRUST \"runScript: ~C:\\MyDocuments\\MyScript.praat\"\n");
 		#else
-			printf ("   sendpraat praat \"execute ~/MyResearch/MyProject/MyScript.praat\"\n");
+			printf ("   sendpraat7 praat 0 --FULL-TRUST \"runScript: ~~/MyResearch/MyProject/MyScript.praat\"\n");
 		#endif
-		printf ("      Causes the program \"praat\" to execute a script.\n");
+		printf ("      Causes the program \"praat\" to execute a script (obsolete; use `praat --SEND` instead.\n");
 		#if ! win
 			printf ("      Sendpraat will allow \"praat\" at most 10 seconds (the default time out).\n");
 		#endif
-		printf ("\n");
-		printf ("   sendpraat als \"for i from 1 to 5\" \"Draw circle... 0.5 0.5 0.1*i\" \"endfor\"\n");
-		printf ("      Causes the program \"als\" to draw five concentric circles\n");
-		printf ("      into its Picture window.\n");
 		exit (0);
 	}
 	iarg = 1;
@@ -355,10 +369,20 @@ int main (int argc, char **argv) {
 			timeOut = atol (argv [iarg ++]);
 	#endif
 
+	if (iarg >= argc) {
+		fprintf (stderr, "sendpraat: missing program name. Type \"sendpraat\" to get help.\n");
+		exit (1);
+	}
+
+	if (! strcmp (argv [iarg], "--FULL-TRUST")) {
+		fullTrust = 1;
+		iarg ++;
+	}
+
 	/*
 	 * Get program name.
 	 */
-	if (iarg == argc) {
+	if (iarg >= argc) {
 		fprintf (stderr, "sendpraat: missing program name. Type \"sendpraat\" to get help.\n");
 		exit (1);
 	}
@@ -381,7 +405,7 @@ int main (int argc, char **argv) {
 	/*
 	 * Send message.
 	 */
-	result = sendpraat (NULL, programName, timeOut, message);
+	result = sendpraat7 (timeOut, fullTrust, programName, message);
 	if (result != NULL) {
 		fprintf (stderr, "sendpraat: %s\n", result);
 		exit (1);
@@ -392,4 +416,4 @@ int main (int argc, char **argv) {
 }
 #endif
 
-/* End of file sendpraat.c */
+/* End of file sendpraat7.c */
