@@ -45,7 +45,6 @@
 #include "Strings_.h"
 #include "../kar/UnicodeData.h"
 #include "InfoEditor.h"
-extern "C" char *sendpraat (void *display, const char *programName, long timeOut, const char *text);
 
 Thing_implement (Praat_Command, Thing, 0);
 

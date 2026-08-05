@@ -59,20 +59,20 @@
 char *sendpraat7 (long timeOut, int fullTrust, const char *programName, const char *text);
 /*
  * Parameters:
- * `programName` is the name of the program that receives the message.
- *    This program must have been built with the Praat shell (the most common such programs are Praat and ALS).
- *    On macOS, `programName` must be "Praat", "praat", "ALS", or the Mac signature of any other program.
- *    On Windows, you can use either "Praat", "praat", or the name of any other program.
- *    On Linux, the program name is usually all lower case, e.g. "praat" or "als", or the name of any other program.
  * `timeOut` is the time (in seconds) after which sendpraat will return with a time-out error message
  *    if the receiving program sends no notification of completion.
  *    On macOS and Linux, the message is sent asynchronously if `timeOut` is 0;
  *    this means that sendpraat will return OK (NULL) without waiting for the receiving program
  *    to handle the message.
  *    On Windows, the time out is ignored.
- * `text` contains the contents of the Praat script to be sent to the receiving program, encoded as UTF-8.
  * `fullTrust` is a boolean (0 or 1) that determines whether the script should be allowed
  *    to save files and call system commands.
+ * `programName` is the name of the program that receives the message.
+ *    This program must have been built with the Praat shell (the most common such programs are Praat and ALS).
+ *    On macOS, `programName` must be "Praat", "praat", "ALS", or the Mac signature of any other program.
+ *    On Windows, you can use either "Praat", "praat", or the name of any other program.
+ *    On Linux, the program name is usually all lower case, e.g. "praat" or "als", or the name of any other program.
+ * `text` contains the contents of the Praat script to be sent to the receiving program, encoded as UTF-8.
  */
 
 static char errorMessage [1000];
@@ -302,21 +302,18 @@ int main (int argc, char **argv) {
 	char programName [64], *message, *result;
 	if (argc == 1) {
 		printf ("Syntax:\n");
-		#if win
-			printf ("   sendpraat7 [--FULL-TRUST] <program> <message>\n");
-		#else
-			printf ("   sendpraat7 [<timeOut>] [--FULL-TRUST] <program> <message>\n");
-		#endif
+		printf ("   sendpraat7 [<timeOut>] [--FULL-TRUST] <program> <message>\n");
 		printf ("\n");
 		printf ("Arguments:\n");
+		printf ("   <timeOut>: the number of seconds that sendpraat7 will wait for an answer\n");
+		printf ("              before writing an error message. A <timeOut> of 0 means that\n");
+		printf ("              the message will be sent asynchronously, i.e., that sendpraat7\n");
+		printf ("              will return immediately without issuing any error message.\n");
+		printf ("              This option may be ignored on Windows.\n");
+		printf ("   --FULL-TRUST: an optional flag that determines whether the script\n");
+		printf ("                 should be allowed to save files and call system commands.\n");
 		printf ("   <program>: the name of a running program that uses the Praat shell.\n");
 		printf ("   <message>: a sequence of Praat shell lines (commands and directives).\n");
-		#if ! win
-			printf ("   <timeOut>: the number of seconds that sendpraat7 will wait for an answer\n");
-			printf ("              before writing an error message. A <timeOut> of 0 means that\n");
-			printf ("              the message will be sent asynchronously, i.e., that sendpraat7\n");
-			printf ("              will return immediately without issuing any error message.\n");
-		#endif
 		printf ("\n");
 		printf ("Usage:\n");
 		printf ("   Each line is a separate argument.\n");
@@ -324,53 +321,33 @@ int main (int argc, char **argv) {
 		printf ("\n");
 		printf ("Examples:\n");
 		printf ("\n");
-		#if win
-			printf ("   sendpraat7 praat Quit\n");
-		#else
-			printf ("   sendpraat7 0 praat Quit\n");
-		#endif
+		printf ("   sendpraat7 praat Quit\n");
 		printf ("      Causes the program \"praat\" to quit (gracefully).\n");
 		printf ("      This works because \"Quit\" is a fixed command in Praat's Praat menu.\n");
-		#if ! win
-			printf ("      Sendpraat will return immediately.\n");
-		#endif
+		printf ("      Sendpraat will return immediately.\n");
 		printf ("\n");
-		#if win
-			printf ("   sendpraat7 praat \"Play reverse\"\n");
-		#else
-			printf ("   sendpraat7 1000 praat \"Play reverse\"\n");
-		#endif
+		printf ("   sendpraat7 1000 praat \"Play reverse\"\n");
 		printf ("      Causes the program \"praat\", which can play sounds,\n");
 		printf ("      to play the selected Sound objects backwards.\n");
 		printf ("      This works because \"Play reverse\" is an action command\n");
 		printf ("      that becomes available in Praat's dynamic menu when Sounds are selected.\n");
-		#if ! win
-			printf ("      Sendpraat will allow \"praat\" at most 1000 seconds to perform this.\n");
-		#endif
+		printf ("      Sendpraat will allow \"praat\" at most 1000 seconds to perform this.\n");
 		printf ("\n");
-		#if win
-			printf ("   sendpraat7 praat --FULL-TRUST \"runScript: ~C:\\MyDocuments\\MyScript.praat\"\n");
-		#else
-			printf ("   sendpraat7 praat 0 --FULL-TRUST \"runScript: ~~/MyResearch/MyProject/MyScript.praat\"\n");
-		#endif
-		printf ("      Causes the program \"praat\" to execute a script (obsolete; use `praat --SEND` instead.\n");
-		#if ! win
-			printf ("      Sendpraat will allow \"praat\" at most 10 seconds (the default time out).\n");
-		#endif
+		printf ("   sendpraat7 praat --FULL-TRUST \"runScript: ~~/MyResearch/MyProject/MyScript.praat\"\n");
+		printf ("      Causes the program \"praat\" to execute a script (obsolete; use `praat --SEND` instead).\n");
+		printf ("      Sendpraat will allow \"praat\" at most 10 seconds (the default time out).\n");
 		exit (0);
 	}
 	iarg = 1;
 
-	#if ! win
-		/*
-		 * Get time-out.
-		 */
-		if (isdigit (argv [iarg] [0]))
-			timeOut = atol (argv [iarg ++]);
-	#endif
+	/*
+	 * Get time-out.
+	 */
+	if (isdigit (argv [iarg] [0]))
+		timeOut = atol (argv [iarg ++]);
 
 	if (iarg >= argc) {
-		fprintf (stderr, "sendpraat: missing program name. Type \"sendpraat\" to get help.\n");
+		fprintf (stderr, "sendpraat7: missing program name. Type \"sendpraat\" to get help.\n");
 		exit (1);
 	}
 
@@ -383,7 +360,7 @@ int main (int argc, char **argv) {
 	 * Get program name.
 	 */
 	if (iarg >= argc) {
-		fprintf (stderr, "sendpraat: missing program name. Type \"sendpraat\" to get help.\n");
+		fprintf (stderr, "sendpraat7: missing program name. Type \"sendpraat7\" to get help.\n");
 		exit (1);
 	}
 	strcpy (programName, argv [iarg ++]);
@@ -407,7 +384,7 @@ int main (int argc, char **argv) {
 	 */
 	result = sendpraat7 (timeOut, fullTrust, programName, message);
 	if (result != NULL) {
-		fprintf (stderr, "sendpraat: %s\n", result);
+		fprintf (stderr, "sendpraat7: %s\n", result);
 		exit (1);
 	}
 

@@ -2,7 +2,7 @@
 #define _Notebook_h_
 /* Notebook.h
  *
- * Copyright (C) 2023,2024 Paul Boersma
+ * Copyright (C) 2023,2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,13 @@ Thing_define (Notebook, SimpleString) {
 };
 
 autoNotebook Notebook_createFromFile (MelderFile file);
+
+Collection_define (NotebookSet, SortedSetOfStringOf, Notebook) {
+};
+
+void Notebook_rememberDuringThisAppSession_move (autoNotebook me);
+
+Notebook Notebook_find (conststring32 filePath);   // should exist, cannot be null
 
 /* End of file Notebook.h */
 #endif

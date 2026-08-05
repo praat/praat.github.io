@@ -13,46 +13,47 @@ Scripting 8.1. The sendpraat subroutine
 </b></font></table></table>
 <p>Sendpraat can be a subroutine for sending messages to a <i>running</i> Praat program.</p>
 <h2>C syntax</h2>
-<code>   <b>sendpraat</b> (void *<i>display</i>, const char *<i>program</i>, long <i>timeOut</i>, char *<i>text</i>);<br></code>
+<code>   <b>sendpraat7</b> (long <i>timeOut</i>, int fullTrust, const char *<i>program</i>, char *<i>text</i>);<br></code>
 <h2>Arguments</h2>
 <dl>
-<dt><i><code><font size=+1>display</font></code></i>
-<dd>this argument is ignored; you can supply NULL.</dd>
-<dt><i><code><font size=+1>program</font></code></i>
-<dd>the name of a running program that uses the Praat shell, e.g. "Praat" or "ALS". The first letter may be specified as lower or upper case; it will be converted to upper case for Windows or MacOS and to lower case for Linux.</dd>
 <dt><i><code><font size=+1>timeOut</font></code></i> (MacOS and Linux only)
 <dd>the number of seconds that <code><font size=+1>sendpraat</font></code> will wait for an answer before writing an error message. A <i><code><font size=+1>timeOut</font></code></i> of 0 means that the message will be sent asynchronously, i.e., that sendpraat will return immediately without issuing any error message.</dd>
+<dt><i><code><font size=+1>fullTrust</font></code></i>
+<dd>a boolean (0 or 1) that determines whether the script should be allowed to save files and call system commands (1), or not (0).</dd>
+<dt><i><code><font size=+1>program</font></code></i>
+<dd>the name of a running program that uses the Praat shell, e.g. "Praat". The first letter may be specified as lower or upper case; it will be converted to upper case for Windows or MacOS and to lower case for Linux.</dd>
 <dt><i><code><font size=+1>text</font></code></i>
 <dd>the script text to be sent. Sendpraat may alter this text!</dd>
 </dl>
 <h2>Example 1: killing a program</h2>
 <code>   char message [100], *errorMessage;<br></code>
 <code>   strcpy (message, "Quit");<br></code>
-<code>   errorMessage = <b>sendpraat</b> (NULL, "praat", 0, message);<br></code>
+<code>   errorMessage = <b>sendpraat7</b> (0, 0, "praat", message);<br></code>
 <code>   if (errorMessage) fprintf (stderr, "%s", errorMessage);<br></code>
 <p>This causes the program <b>Praat</b> to quit (gracefully), because <b>Quit</b> is a fixed command in one of the menus of that program. On MacOS and Linux, sendpraat returns immediately; on Windows, the <i>timeOut</i> argument is ignored. The return value <i>errorMessage</i> is a statically allocated string internal to sendpraat, and is overwritten by the next call to sendpraat.</p>
 <h2>Example 2: playing a sound file in reverse</h2>
 <p>Suppose you have a sound file whose name is in the variable <i><code><font size=+1>fileName</font></code></i>, and you want the program <b>Praat</b>, which can play sounds, to play this sound backwards.</p>
 <code>   char message [1000], *errorMessage;<br></code>
 <code>   snprintf (message,1000, "Read from file: ~%s\nPlay reverse\nRemove", fileName);<br></code>
-<code>   errorMessage = <b>sendpraat</b> (NULL, "praat", 3000, message);<br></code>
+<code>   errorMessage = <b>sendpraat7</b> (3000, 0, "praat", message);<br></code>
 <p>This will work because <b>Play reverse</b> is an action command that becomes available in the dynamic menu when a Sound is selected. On Linux, sendpraat will allow <b>Praat</b> at most 3000 seconds to perform this.</p>
 <h2>Example 3: executing a large script file</h2>
 <p>Sometimes, it may be unpractical to send a large script directly to <b>sendpraat</b>. Fortunately, the receiving program knows <b>runScript</b>:</p>
 <code>   char message [100], *errorMessage;<br></code>
 <code>   strcpy (message, "runScript: \"doAll.praat\", 20");<br></code>
-<code>   errorMessage = <b>sendpraat</b> (NULL, "praat", 0, message);<br></code>
+<code>   errorMessage = <b>sendpraat7</b> (0, 1, "praat", message);<br></code>
 <p>This causes the program <b>Praat</b> to run the script <code><font size=+1>doAll.praat</font></code> with an argument of "20".</p>
 <h2>How to download</h2>
 <p>You can download the source code of the sendpraat subroutine via <b>https://praat.org/sendpraat.html</b> or from <b>https://www.fon.hum.uva.nl/praat/sendpraat.html</b>.</p>
 <h2>Instead</h2>
 <p>Instead of using <code><font size=+1>sendpraat</font></code>, you can also just take the following simple steps in your program:</p>
 <dl>
-<dd style="position:relative;padding-left:1em;text-indent:-2em">1. on Linux, write the Praat script that you want to run, and save it as <code><font size=+1>~/.praat-dir/message</font></code>;</dd>
-<dd style="position:relative;padding-left:1em;text-indent:-2em">2. get Praat's process id from <code><font size=+1>~/.praat-dir/pid</font></code>;</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">1. on Linux, write the Praat script that you want to run, and save it as <code><font size=+1>~/.config/Message.txt</font></code>;</dd>
+<dd style="position:relative;padding-left:1em;text-indent:-2em">2. get Praat's process id from <code><font size=+1>~/.config/pid</font></code>;</dd>
 <dd style="position:relative;padding-left:1em;text-indent:-2em">3. if Praat's process id is e.g. 1178, send it a SIGUSR1 signal: <code><font size=+1>kill -USR1 1178</font></code></dd>
 </dl>
 <p>If the first line of your script is the comment &#8220;<code><font size=+1># 999</font></code>&#8221;, where 999 stands for the process id of your program, Praat will send your program a SIGUSR2 signal back when it finishes handling the script. If you do not want to receive such a message (if your program has no handler for it, the SIGUSR2 signal will kill your program), then do not include such a line.</p>
+<p>If the second line of your script is &#8220;<code><font size=+1># --FULL-TRUST</font></code>&#8221;</p>
 <h2>See also</h2>
 <p>To start a program from the command line instead and sending it a message, you would not use <b>sendpraat</b>, but instead run the program with a script file as an argument. See <a href="Scripting_6_9__Calling_from_the_command_line.html">Scripting 6.9. Calling from the command line</a>.</p>
 <h3>Links to this page</h3>
@@ -63,7 +64,7 @@ Scripting 8.1. The sendpraat subroutine
 </ul>
 <hr>
 <address>
-	<p>© Paul Boersma 2002,2003,2005,2009,2014,2015,2021,2023</p>
+	<p>© Paul Boersma 2002,2003,2005,2009,2014,2015,2021,2023,2026</p>
 </address>
 </body>
 </html>

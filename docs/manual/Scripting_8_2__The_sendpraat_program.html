@@ -13,20 +13,20 @@ Scripting 8.2. The sendpraat program
 </b></font></table></table>
 <p>Sendpraat can be a Windows console or Unix (MacOS, Linux) terminal program for sending messages to a <i>running</i> Praat program.</p>
 <h2>Command line syntax</h2>
-<code>   <b>sendpraat</b> [<i>timeOut</i>] <i>program</i> <i>message</i> ...<br></code>
+<code>   <b>sendpraat7</b> [<i>timeOut</i>] [--FULL-TRUST] <i>program</i> <i>message</i> ...<br></code>
 <p>For the meaning of the arguments, see <a href="Scripting_8_1__The_sendpraat_subroutine.html">the sendpraat subroutine</a>.</p>
 <h2>Example 1: killing a program</h2>
-<code>   <b>sendpraat</b> 0 praat Quit<br></code>
+<code>   <b>sendpraat7</b> 0 praat Quit<br></code>
 <p>Causes the program <b>Praat</b> to quit (gracefully), because <b>Quit</b> is a fixed command in one of its menus. On Unix, <code><font size=+1>sendpraat</font></code> returns immediately; on Windows, you leave out the <i><code><font size=+1>timeOut</font></code></i> argument.</p>
 <h2>Example 2: playing a sound file in reverse</h2>
-<code>   <b>sendpraat</b> 1000 praat "Read from file... hello.wav" "Play reverse" "Remove"<br></code>
+<code>   <b>sendpraat7</b> 1000 praat "Read from file... hello.wav" "Play reverse" "Remove"<br></code>
 <p>This works because <b>Play reverse</b> is an action command that becomes available in the dynamic menu of the <b>Praat</b> program when a Sound is selected. On Unix, <code><font size=+1>sendpraat</font></code> will allow <b>Praat</b> at most 1000 seconds to perform this.</p>
 <p>Each line is a separate argument. Lines that contain spaces should be put inside double quotes.</p>
 <h2>Example 3: drawing</h2>
-<code>   <b>sendpraat</b> als "for i from 1 to 5" "Draw circle: 0.5, 0.5, i" "endfor"<br></code>
+<code>   <b>sendpraat7</b> als "for i from 1 to 5" "Draw circle: 0.5, 0.5, i" "endfor"<br></code>
 <p>This causes the program <b>Als</b> to draw five concentric circles into the Picture window.</p>
 <p>Example 4: running a large script</p>
-<code>   <b>sendpraat</b> praat "runScript: \"doAll.praat\", 20"<br></code>
+<code>   <b>sendpraat7</b> praat "runScript: \"doAll.praat\", 20"<br></code>
 <p>This causes the program <b>Praat</b> to execute the script <b>doAll.praat</b> with an argument of "20".</p>
 <h2>How to download</h2>
 <p>You can download the sendpraat program via <code><font size=+1>https://praat.org/sendpraat.html</font></code> or from <code><font size=+1>https://www.fon.hum.uva.nl/praat/sendpraat.html</font></code>.</p>
@@ -37,7 +37,7 @@ Scripting 8.2. The sendpraat program
 </ul>
 <hr>
 <address>
-	<p>© Paul Boersma #1997,2000,2003,2005,2014,2015,2021,2023</p>
+	<p>© Paul Boersma #1997,2000,2003,2005,2014,2015,2021,2023,2026</p>
 </address>
 </body>
 </html>

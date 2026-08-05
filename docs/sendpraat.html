@@ -14,48 +14,61 @@ which will start up Praat if it’s not running yet
 <b>Sendpraat</b> is available as a subroutine for macOS, Windows, and Linux,
 and as a command-line program for macOS, Windows, and Linux.
 The Praat manual contains a page about <a href=manual/sendpraat.html>how to use the
-<b>sendpraat</b> program</a>.
+<b>sendpraat7</b> program</a>.
 </p>
 
-<p>The source code is in <a href=sendpraat.c>sendpraat.c</a>.
+<p>The source code is in <a href=sendpraat7.c>sendpraat7.c</a>.
 In the line above the definition of main (), this file contains either "if 0" or "if 1",
 depending on whether you use it as a subroutine or as a command-line program.</p>
 
 <h2>Sendpraat for macOS</h2>
 <p>You can freely use sendpraat as a subroutine in your own C programs, in which case
-the <b>sendpraat subroutine</b> becomes a part of your macOS application,
-or use the executable program
-<a href=sendpraat-mac>sendpraat-mac</a> (17,756 bytes)
+the <b>sendpraat subroutine</b> becomes a part of your macOS application.</p>
+<p>If you must (but <b>praat --send</b> is easier), you can use the executable program
+<a href=sendpraat7-mac>sendpraat7-mac</a> (67,344 bytes)
 from the macOS command line (Terminal).</p>
 <p>You could also compile this executable program yourself with</p>
 <pre>
-   cc sendpraat.c -o sendpraat-mac -DSTAND_ALONE -Dmacintosh -framework CoreServices -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/Headers
+   cc sendpraat7.c -arch arm64 -arch x86_64 -o sendpraat-mac -DSTAND_ALONE -Dmacintosh -framework CoreServices -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers -I/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/Headers
 </pre>
 
 <h2>Sendpraat for Windows</h2>
 <p>You can freely use sendpraat as a subroutine in your own C programs, in which case
-the <b>sendpraat subroutine</b> becomes a part of your Windows application,
-or use the executable program
-<a href=sendpraat-win.exe>sendpraat-win.exe</a> (136,662 bytes)
+the <b>sendpraat subroutine</b> becomes a part of your Windows application.</p>
+<p>If you must (but <b>praat --send</b> is easier), you can use the executable program
+<a href=sendpraat7-win-x64.exe>sendpraat7-win-x64.exe</a> (88,576 bytes)
+or
+<a href=sendpraat7-win-arm64.exe>sendpraat7-win-arm64.exe</a> (87,040 bytes)
 from the command line (console).</p>
-<p>You could also compile this executable program yourself under MinGW with something like</p>
+<p>You could also compile this executable program yourself with something like</p>
 <pre>
-   ~/path/to/your/toolchains/mingw64/bin/gcc -std=gnu99 sendpraat.c -o sendpraat-win.exe -DSTAND_ALONE -D_WIN32 -isystem ~/path/to/your/toolchains/mingw64/include
+   cc -std=gnu99 sendpraat7.c -o sendpraat7-win-x64.exe -DSTAND_ALONE -mconsole
 </pre>
+from an MSYS2 CLANG64 shell, or
+<pre>
+   cc -std=gnu99 sendpraat7.c -o sendpraat7-win-arm64.exe -DSTAND_ALONE -mconsole
+</pre>
+from an MSYS2 CLANGARM64 shell.
 
 <h2>Sendpraat for Linux</h2>
 <p>You can freely use sendpraat as a subroutine in your own C programs, in which case
-the <b>sendpraat subroutine</b> becomes a part of your Linux application,
-or use the executable program
-<a href=sendpraat-linux>sendpraat-linux</a> (17,736 bytes; 64-bit)
+the <b>sendpraat subroutine</b> becomes a part of your Linux application.</p>
+<p>If you must (but <b>praat --send</b> is easier), you can use the executable program
+<a href=sendpraat7-linux-x64>sendpraat7-linux-x64</a> (17,224 bytes)
+or
+<a href=sendpraat7-linux-arm64>sendpraat7-linux-arm64</a> (18,392 bytes)
 from the command line (Terminal).</p>
 <p>You could also compile this executable program yourself with</p>
 <pre>
-   gcc -std=gnu99 sendpraat.c -o sendpraat-linux -DSTAND_ALONE -DUNIX
+   cc -std=gnu99 sendpraat7.c -o sendpraat7-linux-x64 -DSTAND_ALONE -DUNIX
+</pre>
+or
+<pre>
+   cc -std=gnu99 sendpraat7.c -o sendpraat7-linux-arm64 -DSTAND_ALONE -DUNIX
 </pre>
 
 <hr>
-<a href=https://www.fon.hum.uva.nl/paul/>Paul Boersma</a>, August 28, 2025<br>
+<a href=https://www.fon.hum.uva.nl/paul/>Paul Boersma</a>, 3 August 2026<br>
 Phonetic Sciences<br>
 University of Amsterdam<br>
 Spuistraat 134, Amsterdam<br>

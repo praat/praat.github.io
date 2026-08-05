@@ -29,6 +29,15 @@ R"~~~(
 
 Latest changes in Praat.
 
+##7.0# (4 August 2026)
+• Major version update, because of the following two breaking changes.
+• Full-trust checking for scripts that attempt to write files or access system commands
+  (this is a breaking change for automation).
+• New location of settings file, buttons file and plug-ins on Mac, Windows and Linux,
+  corresponding to how these platforms standardized such locations since 2007
+  (this is a breaking change for plug-in writers and users of the sendpraat subroutine).
+• Flatpak distribution by Anna Simmons.
+
 ##6.6.30# (30 June 2026)
 • Tutorial documentation on @@speech recognition@.
 • Removed a crashing bug when cross-correlating or convolving two MFCC objects.

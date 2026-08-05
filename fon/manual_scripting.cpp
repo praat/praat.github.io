@@ -3379,30 +3379,31 @@ As sendpraat cannot start up a new instance of Praat, you may often want to use
 
 ################################################################################
 "Scripting 8.1. The sendpraat subroutine"
-© Paul Boersma 2002,2003,2005,2009,2014,2015,2021,2023
+© Paul Boersma 2002,2003,2005,2009,2014,2015,2021,2023,2026
 
 Sendpraat can be a subroutine for sending messages to a %running Praat program.
 
 C syntax
 ========
 {; C
-	\#{sendpraat} (void *\%{display}, const char *\%{program}, long \%{timeOut}, char *\%{text});
+	\#{sendpraat7} (long \%{timeOut}, int fullTrust, const char *\%{program}, char *\%{text});
 }
 Arguments
 =========
-%`display`
-: this argument is ignored; you can supply NULL.
-
-%`program`
-: the name of a running program that uses the Praat shell, e.g. "Praat" or "ALS".
-  The first letter may be specified as lower or upper case; it will be converted
-  to upper case for Windows or MacOS and to lower case for Linux.
-
 %`timeOut` (MacOS and Linux only)
 : the number of seconds that `sendpraat` will wait for an answer
   before writing an error message. A %`timeOut` of 0 means that
   the message will be sent asynchronously, i.e., that sendpraat
   will return immediately without issuing any error message.
+
+%`fullTrust`
+: a boolean (0 or 1) that determines whether the script should be allowed
+  to save files and call system commands (1), or not (0).
+
+%`program`
+: the name of a running program that uses the Praat shell, e.g. "Praat".
+  The first letter may be specified as lower or upper case; it will be converted
+  to upper case for Windows or MacOS and to lower case for Linux.
 
 %`text`
 : the script text to be sent. Sendpraat may alter this text!
@@ -3412,7 +3413,7 @@ Example 1: killing a program
 {; C
 	char message [100], *errorMessage;
 	strcpy (message, "Quit");
-	errorMessage = \#{sendpraat} (NULL, "praat", 0, message);
+	errorMessage = \#{sendpraat7} (0, 0, "praat", message);
 	if (errorMessage) fprintf (stderr, "%s", errorMessage);
 }
 This causes the program #Praat to quit (gracefully), because #Quit is a fixed
@@ -3429,7 +3430,7 @@ to play this sound backwards.
 {; C
 	char message [1000], *errorMessage;
 	snprintf (message,1000, "Read from file: ~%s\nPlay reverse\nRemove", fileName);
-	errorMessage = \#{sendpraat} (NULL, "praat", 3000, message);
+	errorMessage = \#{sendpraat7} (3000, 0, "praat", message);
 }
 This will work because ##Play reverse# is an action command
 that becomes available in the dynamic menu when a Sound is selected.
@@ -3442,7 +3443,7 @@ Fortunately, the receiving program knows #runScript:
 {; C
 	char message [100], *errorMessage;
 	strcpy (message, "runScript: \"doAll.praat\", 20");
-	errorMessage = \#{sendpraat} (NULL, "praat", 0, message);
+	errorMessage = \#{sendpraat7} (0, 1, "praat", message);
 }
 This causes the program #Praat to run the script `doAll.praat` with an argument of "20".
 
@@ -3454,14 +3455,16 @@ via ##https://praat.org/sendpraat.html# or from ##https://www.fon.hum.uva.nl/pra
 Instead
 =======
 Instead of using `sendpraat`, you can also just take the following simple steps in your program:
-1. on Linux, write the Praat script that you want to run, and save it as `~/.praat-dir/message`;
-2. get Praat's process id from `~/.praat-dir/pid`;
+1. on Linux, write the Praat script that you want to run, and save it as `~/.config/Message.txt`;
+2. get Praat's process id from `~/.config/pid`;
 3. if Praat's process id is e.g. 1178, send it a SIGUSR1 signal: `kill -USR1 1178`
 
 If the first line of your script is the comment “`# 999`”, where 999 stands for the process id of your program,
 Praat will send your program a SIGUSR2 signal back when it finishes handling the script.
 If you do not want to receive such a message (if your program has no handler for it, the SIGUSR2 signal will kill your program),
 then do not include such a line.
+
+If the second line of your script is “`# --FULL-TRUST`”
 
 See also
 ========
@@ -3471,21 +3474,21 @@ See @@Scripting 6.9. Calling from the command line@.
 
 ################################################################################
 "Scripting 8.2. The sendpraat program"
-© Paul Boersma #1997,2000,2003,2005,2014,2015,2021,2023
+© Paul Boersma #1997,2000,2003,2005,2014,2015,2021,2023,2026
 
 Sendpraat can be a Windows console or Unix (MacOS, Linux) terminal program for sending messages to a %running Praat program.
 
 Command line syntax
 ===================
 {; sh
-	\#{sendpraat} [\%{timeOut}] \%{program} \%{message} ...
+	\#{sendpraat7} [\%{timeOut}] [--FULL-TRUST] \%{program} \%{message} ...
 }
 For the meaning of the arguments, see @@Scripting 8.1. The sendpraat subroutine|the sendpraat subroutine@.
 
 Example 1: killing a program
 ============================
 {; sh
-	\#{sendpraat} 0 praat Quit
+	\#{sendpraat7} 0 praat Quit
 }
 Causes the program #Praat to quit (gracefully), because #Quit is a fixed command in one of its menus.
 On Unix, `sendpraat` returns immediately; on Windows, you leave out the %`timeOut` argument.
@@ -3493,7 +3496,7 @@ On Unix, `sendpraat` returns immediately; on Windows, you leave out the %`timeOu
 Example 2: playing a sound file in reverse
 ==========================================
 {; sh
-	\#{sendpraat} 1000 praat "Read from file... hello.wav" "Play reverse" "Remove"
+	\#{sendpraat7} 1000 praat "Read from file... hello.wav" "Play reverse" "Remove"
 }
 This works because ##Play reverse# is an action command
 that becomes available in the dynamic menu of the #Praat program when a Sound is selected.
@@ -3504,13 +3507,13 @@ Each line is a separate argument. Lines that contain spaces should be put inside
 Example 3: drawing
 ==================
 {; sh
-	\#{sendpraat} als "for i from 1 to 5" "Draw circle: 0.5, 0.5, i" "endfor"
+	\#{sendpraat7} als "for i from 1 to 5" "Draw circle: 0.5, 0.5, i" "endfor"
 }
 This causes the program #Als to draw five concentric circles into the Picture window.
 
 Example 4: running a large script
 {; sh
-	\#{sendpraat} praat "runScript: \"doAll.praat\", 20"
+	\#{sendpraat7} praat "runScript: \"doAll.praat\", 20"
 }
 This causes the program #Praat to execute the script ##doAll.praat# with an argument of "20".
 

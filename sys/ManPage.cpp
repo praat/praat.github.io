@@ -153,7 +153,9 @@ void ManPage_runAllChunksToCache (ManPage me, Interpreter optionalInterpreterRef
 						if (Melder_startsWith (otherParagraph -> text, U"\tprocedure ") && Melder_endsWith (otherParagraph -> text, U"\tendproc\n"))
 							MelderString_append (& program, otherParagraph -> text);
 				}
+				//Interpreter_rememberNotebook (interpreterStack -> interpreters [1], <#MelderFile notebookFile#>, false);
 				interpreterStack -> runDown (autoInterpreter(), Melder_dup (program.string), chunkNumber > 1);
+				//interpreterStack -> runDown (interpreterStack -> interpreters [1], Melder_dup (program.string), chunkNumber > 1);
 			} catch (MelderError) {
 				anErrorHasOccurred = true;
 				errorChunk = chunkNumber;

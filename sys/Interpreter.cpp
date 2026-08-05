@@ -22,6 +22,7 @@
 #include "UiPause.h"
 #include "DemoEditor.h"
 #include "Formula.h"
+#include "Notebook.h"
 #include "../kar/UnicodeData.h"
 
 #include "../fon/Vector.h"
@@ -166,7 +167,6 @@ void Interpreter_rememberScript (Interpreter me, MelderFile scriptFile, const bo
 	my scriptReference = Script_find (MelderFile_peekPath (scriptFile));
 	my scriptReference -> trusted |= fullTrust;
 }
-
 void Interpreter_rememberScript_override (Interpreter me, MelderFile scriptFile, const bool fullTrust) {
 	if (MelderFile_isNull (scriptFile))
 		return;
@@ -174,6 +174,17 @@ void Interpreter_rememberScript_override (Interpreter me, MelderFile scriptFile,
 	Script_rememberDuringThisAppSession_move (script.move());
 	my scriptReference = Script_find (MelderFile_peekPath (scriptFile));
 	my scriptReference -> trusted = fullTrust;
+}
+
+void Interpreter_rememberNotebook (Interpreter me, MelderFile notebookFile, const bool fullTrust) {
+	TRACE
+	trace (U"Remembering notebook file ", notebookFile);
+	if (MelderFile_isNull (notebookFile))
+		return;
+	autoNotebook notebook = Notebook_createFromFile (notebookFile);
+	Notebook_rememberDuringThisAppSession_move (notebook.move());
+	my notebookReference = Notebook_find (MelderFile_peekPath (notebookFile));
+	my notebookReference -> trusted |= fullTrust;
 }
 
 static bool Melder_scriptTextIsNotebookText (conststring32 text) {

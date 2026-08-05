@@ -124,6 +124,7 @@ static void menu_cb_run (NotebookEditor me, EDITOR_ARGS) {
 			autoMelderReadText readText = MelderReadText_createFromText (text.move());
 			autoManPages manPages = ManPages_createFromText (readText.get(), & my file);   // readText can release, because manPages duplicates (last checked 2023-03-25)
 			ManPage firstPage = manPages -> pages.at [1];
+			Interpreter_rememberNotebook (my interpreterStack -> interpreters [1].get(), & my file, false);
 			autoManual manual = Manual_create (firstPage -> title.get(), my interpreterStack -> interpreters [1].get(), manPages.releaseToAmbiguousOwner(), true, true);
 			manual.releaseToUser ();
 		}
@@ -158,6 +159,7 @@ static void menu_cb_runChunk (NotebookEditor me, EDITOR_ARGS) {
 		Editor (nullptr),
 		MelderFile (nullptr)   // TODO: probably wrong
 	);
+	Interpreter_rememberNotebook (interpreter.get(), & my file, false);
 	my interpreterStack -> emptyAll ();
 	my interpreterStack -> runDown (interpreter.move(), text.move(), true);
 }

@@ -202,6 +202,7 @@ autoInterpreter Interpreter_createFromEnvironment (
 
 void Interpreter_rememberScript (Interpreter me, MelderFile scriptFile, bool fullTrust);
 void Interpreter_rememberScript_override (Interpreter me, MelderFile scriptFile, const bool fullTrust);
+void Interpreter_rememberNotebook (Interpreter me, MelderFile notebookFile, const bool fullTrust);
 
 void Interpreters_undangleEnvironment (Editor environment) noexcept;
 

@@ -1,0 +1,8 @@
+"beep"
+(co) Paul Boersma, 3 August 2026
+
+This will beep:
+{
+	Create Sound from formula: "sineWithNoise", 1, 0, 1, 44100, "1/2 * sin(2*pi*377*x) + randomGauss(0,0.1)"
+	Play
+}
