@@ -442,7 +442,7 @@ all-self:
 	$(MAKE) -C artsynth
 	$(MAKE) -C main main_Praat.o $(ICON)
 
-clean: clean-external clean-self
+clean: clean-external clean-self clean-test
 	$(RM) praat
 
 clean-external:
@@ -477,6 +477,15 @@ clean-self:
 	$(MAKE) -C FFNet clean
 	$(MAKE) -C artsynth clean
 	$(MAKE) -C main clean
+
+clean-test:
+	$(MAKE) -C dwtest clean
+	$(MAKE) -C test/dwtools clean
+	$(MAKE) -C test/fon clean
+	$(MAKE) -C test/kar clean
+	$(MAKE) -C test/script clean
+	$(MAKE) -C test/stat clean
+	$(MAKE) -C test/sys clean
 
 install:
 	$(INSTALL_BIN)
