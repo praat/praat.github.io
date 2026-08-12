@@ -113,7 +113,7 @@
 
 #define oo_STRUCTMAT(Type, x, nrowExpression, ncolExpression)  \
 	{ \
-		const integer _nrow = (sizeExpression), _ncol = (ncolExpression); \
+		const integer _nrow = (nrowExpression), _ncol = (ncolExpression); \
 		Melder_assert (_nrow == our x.nrow && _ncol == our x.ncol); \
 		if (thy x.nrow != _nrow || thy x.ncol != _ncol) \
 			return false; \

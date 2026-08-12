@@ -21,6 +21,7 @@
 #include "PermutationInversionCounter.h"
 #include "SlopeSelector.h"
 
+#if 0
 #include "oo_DESTROY.h"
 #include "SlopeSelector_def.h"
 #include "oo_COPY.h"
@@ -39,6 +40,7 @@
 #include "SlopeSelector_def.h"
 #include "oo_DESCRIPTION.h"
 #include "SlopeSelector_def.h"
+#endif
 
 #include "enums_getText.h"
 #include "SlopeSelector_enums.h"
@@ -50,7 +52,7 @@ static void randomInteger_INTVEC_inout (INTVEC iv, integer ilow, integer ihigh) 
 		iv [i] = NUMrandomInteger (ilow, ihigh);
 }
 
-Thing_implement (SlopeSelector, Daata, 1);
+Thing_implement (SlopeSelector, Thing, 0);
 
 void structSlopeSelector :: newDataPoints (constVEC const& x, constVEC const& y) {
 	Melder_assert (x.size == y.size);

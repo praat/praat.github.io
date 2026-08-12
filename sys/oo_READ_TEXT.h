@@ -108,7 +108,7 @@
 			our x = newmatrixzero <struct##Type> (_nrow, _ncol); \
 			for (integer _irow = 1; _irow <= _nrow; _irow ++) { \
 				for (integer _icol = 1; _icol <= _ncol; _icol ++) { \
-					our x [_irow] [_icol]. readText (_filePointer_, _formatVersion_); \
+					our x [_irow] [_icol]. readText (_textSource_, _formatVersion_); \
 				} \
 			} \
 		} \

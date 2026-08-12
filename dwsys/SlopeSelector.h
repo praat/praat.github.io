@@ -2,7 +2,7 @@
 #define _SlopeSelector_h_
 /* SlopeSelector.h
  *
- * Copyright (C) 2025 David Weenink
+ * Copyright (C) 2025-2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,91 @@
 #include "SlopeSelector_enums.h"
 #include "ExtendedReal.h"
 
-#include "SlopeSelector_def.h"
+//#include "SlopeSelector_def.h"
+
+struct structExtendedCrossing {
+	double real;
+	integer low, high;
+	
+	friend bool operator<  (const structExtendedCrossing& lhs, const structExtendedCrossing& rhs) {
+		auto approximatelyEqual = [&] (double numericalEqualityPrecision) {
+			if (std::fabs (lhs.real) < numericalEqualityPrecision || std::fabs (rhs.real) < numericalEqualityPrecision) {
+				return std::fabs (lhs.real - rhs.real) < numericalEqualityPrecision;
+			}
+			// Use relative difference otherwise
+			return std::fabs (lhs.real - rhs.real) <= numericalEqualityPrecision * std::fmax (std::fabs (lhs.real), std::fabs (rhs.real));
+		};
+		const bool r = ( !approximatelyEqual (1e-12) ? (lhs.real < rhs.real) :
+				(lhs.high != rhs.high ? (lhs.high > rhs.high) : (lhs.low < rhs.low)) );
+		return r;
+	}
+	/*
+		All derived from above comparison
+	*/
+	friend inline bool operator>  (const structExtendedCrossing& lhs, const structExtendedCrossing& rhs) {
+		return rhs < lhs;
+	}
+	friend inline bool operator<= (const structExtendedCrossing& lhs, const structExtendedCrossing& rhs) {
+		return ! (lhs > rhs);
+	}
+	friend inline bool operator>= (const structExtendedCrossing& lhs, const structExtendedCrossing& rhs) {
+		return ! (lhs < rhs);
+	}
+	friend inline bool operator== (const structExtendedCrossing& lhs, const structExtendedCrossing& rhs) {
+		return std::tie (lhs.real, lhs.low, lhs.high) == std::tie (rhs.real, rhs.low, rhs.high);
+	}
+	friend inline bool operator!= (const structExtendedCrossing& lhs, const structExtendedCrossing& rhs) {
+		return ! (lhs == rhs);
+	}
+};
+
+typedef struct structExtendedCrossing *ExtendedCrossing;
+typedef const struct structExtendedCrossing *constExtendedCrossing;
+
+Thing_define (SlopeSelector, Thing) {
+	integer numberOfPoints;
+    integer sampleSize;
+    integer numberOfTries;
+	integer maximumNumberOfTries;
+    integer maximumContractionSize; // > sampleSize + numberOfPoints
+	autoPermutation lineRankingAtLowX;
+	autoPermutation lineRankingAtLowXPrevious;
+	autoPermutation inverseOfLineRankingAtLowX;
+	autoPermutation lineRankingAtHighX;
+	autoPermutation lineRankingAtHighXPrevious;
+	autoINTVEC sortedRandomCrossingCodes;
+	integer inversionsSize;
+	autoINTVEC currentInversions;
+	autovector<structExtendedCrossing> xslopes;
+	autoVEC buffer; // for buffering and final quantile calculations
+	autovector<structExtendedCrossing> xcrossings;
+	autoPermutationInversionCounter inversionCounter;
+
+	constVEC xp;	// links to the outside world data points (by newDataPoints(x,y))
+	constVEC yp;	//
+
+	void newDataPoints (constVEC const& x, constVEC const& y);
+				
+	double getSlope_Siegel ();
+		
+	double getSlope_TheilSen ();
+		
+	double getIntercept (double slope);
+		
+	void getSlopeAndIntercept_leastSquares (double &slope, double& intercept);
+				
+	void getKth_TheilSen (integer k, double& kth, double& kp1th);
+
+	double slopeQuantile_TheilSen (double factor);
+
+	double slopeQuantile_orderNSquared (double factor);
+
+	double slopeQuantile_orderNSquaredWithBuffer (double factor, VEC const& buffer);
+
+	double slopeQuantile (double factor) {
+		return slopeQuantile_TheilSen (factor);
+	}
+};
 
 /*
     Preconditions:

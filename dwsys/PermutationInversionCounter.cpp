@@ -19,6 +19,7 @@
 #include "NUM2.h"
 #include "PermutationInversionCounter.h"
 
+#if 0
 #include "oo_DESTROY.h"
 #include "PermutationInversionCounter_def.h"
 #include "oo_COPY.h"
@@ -37,14 +38,14 @@
 #include "PermutationInversionCounter_def.h"
 #include "oo_DESCRIPTION.h"
 #include "PermutationInversionCounter_def.h"
-
+#endif
 /*
 	The core of the algorithm to do merge-sort was found in (CLRS) Corman, Leiserson, Rivest & Stein: Introduction to algorithms,
 		third edition, The MIT press, as the solution of problem 2.4.d.
 	However, on 15 January 2025, on the web-site of the book their solution had the counting variable in the wrong position
 */
 
-Thing_implement (PermutationInversionCounter, Daata, 1);
+Thing_implement (PermutationInversionCounter, Thing, 0);
 
 integer structPermutationInversionCounter :: mergeInversions (integer left, integer mid, integer right) {
 	const integer nl = mid - left + 1;
