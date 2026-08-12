@@ -19,7 +19,44 @@
  */
 
 #include "Permutation.h"
-#include "PermutationInversionCounter_def.h"
+//#include "PermutationInversionCounter_def.h"
+
+Thing_define (PermutationInversionCounter, Thing) {
+	constPermutation pdata, potherInverse; // links
+	autoPermutation psortingOrder;
+	integer numberOfElements;
+	autoINTVEC workspace;
+	integer totalNumberOfInversions;
+	integer totalNumberOfInversionsInInterval;
+	integer numberOfInversionsRegistered;
+	integer numberOfInversionsToRegister;
+	integer posInSortedSelectedInversionIndices;
+	INTVEC inversions;			// the inversions as pairs of (ilow, ihigh) to be output, link to storage supplied by caller
+	INTVEC otherInverse;		// link to potherInverse -> p.get() supplied by user
+		
+	constINTVEC sortedSelectedInversionIndices; // link to storage supplied by caller
+	
+	void newData (constPermutation p);
+		
+	void reset ();
+		
+	integer mergeInversions (integer p, integer q, integer r);
+		
+	integer mergeSort (integer p, integer r);
+		
+	integer getNumberOfInversions (constPermutation p);
+		
+	integer getSelectedInversionsNotInOther (constPermutation p, constPermutation otherInverse, 
+		constINTVEC const& sortedSelectedInversionIndices, INTVEC const& out_inversions
+	);
+		
+	integer getSelectedInversions (
+		constPermutation p, constINTVEC const& sortedSelectedInversionIndices, INTVEC const& out_inversions
+	);
+		
+	integer getInversions (constPermutation p, INTVEC const& out_inversions);
+			
+};
 
 /*			
 	Given a vector v with n elements, we define an inversion as i < j && v [i] > v [j].
