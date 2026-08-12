@@ -20,7 +20,7 @@
 	An ExtendedReal has two parts (real,extension)
 	The number in the extension part represents: power (epsilon, power (2, extension)),
 	where epsilon is a number larger than zero but smaller than any real number r.
-	r.epsilon < expsilon^2.
+	r.epsilon < epsilon^2.
 */
 
 #define ooSTRUCT ExtendedReal
