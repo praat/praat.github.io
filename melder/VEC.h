@@ -402,6 +402,8 @@ extern autoINTVEC from_to_INTVEC (integer from, integer to);
 extern autoINTVEC from_to_by_INTVEC (integer from, integer to, integer by);
 extern autoINTVEC from_to_count_INTVEC (integer from, integer to, integer count);
 
-extern autoVEC blake3_VEC (constMATVU const& x);
+extern autoVEC blake3_VEC (constVECVU const& vec);
+extern autoVEC blake3_VEC (constMATVU const& mat);
+extern autoVEC blake3_VEC (conststring32 str);
 
 /* End of file VEC.h */

@@ -5453,14 +5453,17 @@ static void do_combine_VEC () {
 static void do_blake3_VEC () {
 	const Stackel narg = pop;
 	Melder_assert (narg->which == Stackel_NUMBER);
-	const integer numberOfArguments = Melder_iround (narg->number);
 	Melder_require (narg->number == 1,
-		U"The function “blake3#” requires exactly one argument (namely a matrix), not the ", narg->number, U" given.");
+		U"The function “blake3#” requires exactly one argument (namely a vector, matrix or string), not the ", narg->number, U" given.");
 	const Stackel arg = pop;
-	Melder_require (arg->which == Stackel_NUMERIC_MATRIX,
-		U"The argument of the function “blake3#” should be a numeric matrix, not ", arg->whichText(), U".");
-	const constMAT mat = arg->numericMatrix;
-	pushNumericVector (blake3_VEC (mat));
+	if (arg->which == Stackel_NUMERIC_VECTOR)
+		pushNumericVector (blake3_VEC (arg->numericVector));
+	else if (arg->which == Stackel_NUMERIC_MATRIX)
+		pushNumericVector (blake3_VEC (arg->numericMatrix));
+	else if (arg->which == Stackel_STRING)
+		pushNumericVector (blake3_VEC (arg->getString()));
+	else
+		Melder_throw (U"The argument of the function “blake3#” should be a vector, a matrix or a string, not ", arg->whichText(), U".");
 }
 static void do_part_VEC () {
 	/*
