@@ -543,7 +543,7 @@ This impulse response behaves well:
 	Black
 	Draw inner box
 	Text bottom: "yes", "Time %t (s)"
-	Text left: "yes", "Intensity impulse reponse %h (%t)"
+	Text left: "yes", "Intensity impulse response %h (%t)"
 	One mark bottom: -0.2, "yes", "yes", "no", ""
 	One mark bottom: 0.0, "yes", "yes", "yes", ""
 	One mark bottom: 0.2, "yes", "yes", "no", ""
@@ -2480,7 +2480,7 @@ Settings
 :	the new average intensity of the Sound. The standard value is 70 dB SPL. This means that the root-mean-square amplitude
 of the sound will come to lie 70 dB above the assumed auditory threshold of 0.00002 Pa. Please check whether as a result a peak in the sound
 does not get below -1 Pa or above +1 Pa. If that happens, the sound will be clipped when played, which will be audible as distortion;
-in thast case you may want to set this number to 60 dB or even lower.
+in that case you may want to set this number to 60 dB or even lower.
 
 ################################################################################
 "Sound: Scale peak..."

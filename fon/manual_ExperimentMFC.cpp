@@ -651,7 +651,7 @@ NORMAL (U"An example is the %%/i/ prototype% task: the top of the screen just sa
 	"each of which contains a different [i]-like sound. That is, if the participant clicks on a response button, "
 	"an [i]-like sound is played, and every response button has its own sound.")
 NORMAL (U"Such a task can be regarded as reversing the task of the example experiment, "
-	"in which the stimulus was a sound and the reponse was a phonological category. "
+	"in which the stimulus was a sound and the response was a phonological category. "
 	"In the /i/ prototype task, the stimulus is a phonological category, and the response is a sound.")
 NORMAL (U"This is what the experiment file could look like:")
 CODE (U"\"ooTextFile\"")

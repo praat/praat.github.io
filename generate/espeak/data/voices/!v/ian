@@ -9,7 +9,7 @@ name Ian
 
 ##The formant settings
 ##  Formant 0 is used to give a low frequency component to the sounds.
-## The three numbers are frequency, strength, and Width, in that order.  Please note, the numbers are seperated by a space.
+## The three numbers are frequency, strength, and Width, in that order.  Please note, the numbers are separated by a space.
 ##The next line is a setting you can change
 formant 0 20 120 50
 

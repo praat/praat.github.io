@@ -704,7 +704,7 @@ by a factor of 0.373 (if the pitch top is 800 Hz, and the “attenuation at top�
 This effect is so strong that the standard “octave cost” can be much higher for filtered pitch analysis
 (the standard value is 0.055 per octave) than for raw pitch analysis (where the standard value is 0.01 per octave):
 this still reduces the formant problem heavily, and it reduces the unwanted octave drops
-by making the analysis more resistent to %lower-frequency parts of the background noise.
+by making the analysis more resistant to %lower-frequency parts of the background noise.
 - ##Filtering leads to better tracking of formant transitions.# Fast formant movements
 in transitions between consonants and vowels cause waveforms to change their shape strongly in time.
 This reduces the self-similarity of the waveform, leading to the “raw AC” method judging
