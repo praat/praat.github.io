@@ -196,6 +196,22 @@ static autoMatrix PowerCepstrogram_to_Matrix_CPP (PowerCepstrogram me, bool tren
 	}
 }
 
+autoCPP PowerCepstrogram_to_CPP (PowerCepstrogram me, double pitchFloor, double pitchCeiling,
+	double deltaF0, kVector_peakInterpolation peakInterpolationType, double qminFit, double qmaxFit,
+	kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod)
+{
+	try {
+		autoMatrix mat = PowerCepstrogram_to_Matrix_CPP (me, false, pitchFloor, pitchCeiling,
+			deltaF0, peakInterpolationType, qminFit, qmaxFit, lineType, fitMethod);
+		autoCPP thee = CPP_create (my xmin, my xmax, my nx, my dx, my x1);
+		for (integer iframe = 1; iframe <= my nx; iframe ++)
+			thy z[1] [iframe] = mat -> z [6][iframe];
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U"no CPP created.");
+	}
+}
+
 autoTable PowerCepstrogram_to_Table_CPP (PowerCepstrogram me, bool includeFrameNumber, bool includeTime,
 	integer numberOfTimeDecimals, integer numberOfCPPdecimals, bool includePeakQuefrency, integer numberOfQuefrencyDecimals,
 	double pitchFloor, double pitchCeiling, double deltaF0, kVector_peakInterpolation peakInterpolationType, double qminFit, double qmaxFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod) {

@@ -1,9 +1,9 @@
 # meson.build of the library "LPC"
-# David Weenink, 24 September 2025
+# David Weenink, 13 August 2026
 
 sources = '''
 	Cepstrum.cpp Cepstrumc.cpp Cepstrum_and_Spectrum.cpp
-	Cepstrogram.cpp
+	Cepstrogram.cpp CPP.cpp
 	Formant_extensions.cpp
 	FormantModeler.cpp FormantModelerList.cpp
 	FormantPath.cpp FormantPath_to_IntervalTier.cpp FormantPathArea.cpp FormantPathEditor.cpp
