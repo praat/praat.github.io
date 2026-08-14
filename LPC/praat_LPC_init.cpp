@@ -38,6 +38,7 @@
 #include "NUM2.h"
 #include "PowerCepstrum.h"
 #include "PowerCepstrogram.h"
+#include "Sound_to_CPP.h"
 #include "Sound_to_PowerCepstrogram.h"
 #include "Sound_and_LPC.h"
 #include "Sound_to_Formant_mt.h"
@@ -404,9 +405,9 @@ FORM (GRAPHICS_EACH__PowerCepstrum_drawTrendLine, U"PowerCepstrum: Draw trend li
 	REAL (fromAmplitude_dB, U"left Amplitude range (dB)", U"0.0")
 	REAL (toAmplitude_dB, U"right Amplitude range (dB)", U"0.0")
 	COMMENT (U"Parameters for the trend line fit")
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -532,9 +533,9 @@ DO
 }
 
 FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getTrendLineSlope, U"PowerCepstrum: Get trend line slope", U"PowerCepstrum: Get trend line slope...") {
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -545,9 +546,9 @@ DO
 }
 
 FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getTrendLineIntercept, U"PowerCepstrum: Get trend line intercept", U"PowerCepstrum: Get trend line intercept...") {
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -559,9 +560,9 @@ DO
 
 FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getTrendLineValue, U"PowerCepstrum: Get trend line value", U"PowerCepstrum: Get trend line value...") {
 	REAL (quefrency, U"Quefrency (s)", U"0.001")
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -585,9 +586,9 @@ FORM (QUERY_ONE_FOR_REAL__PowerCepstrum_getPeakProminence, U"PowerCepstrum: Get 
 	REAL (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -599,10 +600,10 @@ DO
 }
 
 FORM (MODIFY_EACH__PowerCepstrum_subtractTrend_inplace, U"PowerCepstrum: Subtract trend (in-place)", U"PowerCepstrum: Subtract trend...") {
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
 	
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -632,9 +633,9 @@ DO
 }
 
 FORM (CONVERT_EACH_TO_ONE__PowerCepstrum_subtractTrend, U"PowerCepstrum: Subtract trend", U"PowerCepstrum: Subtract trend...") {
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -733,9 +734,9 @@ DIRECT (QUERY_ONE_FOR_REAL__PowerCepstrogram_getQuefrencyStep) {
 }
 
 FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_subtractTrend, U"PowerCepstrogram: Subtract trend", nullptr) {
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -745,9 +746,9 @@ DO
 }
 
 FORM (MODIFY_EACH__PowerCepstrogram_subtractTrend_inplace, U"PowerCepstrogram: Subtract trend (in-place)", nullptr) {
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -777,16 +778,17 @@ FORM (QUERY_ONE_FOR_REAL__PowerCepstrogram_getCPPS, U"PowerCepstrogram: Get CPPS
 	BOOLEAN (subtractTrendBeforeSmoothing, U"Subtract trend before smoothing", true)
 	REAL (smoothingWindowDuration, U"Time averaging window (s)", U"0.02")
 	REAL (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
-	COMMENT (U"Peak search:")
-	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
-	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
+	COMMENT (U"Peak search in PowerCepstrum:")
+	REAL (fromPitch, U"left Pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Pitch range (Hz)", U"330.0")
 	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
-	COMMENT (U"Trend line:")
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	COMMENT (U"Trend line fitting in PowerCepstrum:")
+	COMMENT (U"")
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -799,27 +801,27 @@ DO
 }
 
 FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_to_CPP, U"PowerCepstrogram: To CPP", nullptr) {
-	COMMENT (U"Smoothing of the Cepstrogram")
+	COMMENT (U"Smoothing of the Cepstrogram:")
 	BOOLEAN (subtractTrendBeforeSmoothing, U"Subtract trend before smoothing", true)
 	REAL (smoothingWindowDuration, U"Time averaging window (s)", U"0.02")
 	REAL (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
-	COMMENT (U"Peak search:")
+	COMMENT (U"Peak search in PowerCepstrum:")
 	REAL (pitchFloor, U"left Peak search pitch range (Hz)", U"60.0")
 	REAL (pitchCeiling, U"right Peak search pitch range (Hz)", U"330.0")
 	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
-	COMMENT (U"Trend line:")
-	REAL (quefrencyFloor, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (quefrencyCeiling, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	COMMENT (U"Trend line fitting in PowerCepstrum:")
+	REAL (quefrencyFloor, U"left Quefrency range (s)", U"0.001")
+	REAL (quefrencyCeiling, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
 	CONVERT_EACH_TO_ONE (PowerCepstrogram)
 		autoCPP result = PowerCepstrogram_to_CPP (me, pitchFloor, pitchCeiling, tolerance,
 			peakInterpolationType, quefrencyFloor, quefrencyCeiling, lineType, fitMethod);
-	CONVERT_EACH_TO_ONE_END (U"")
+	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
 FORM (MODIFY__EACH_WEAK__PowerCepstrogram_formula, U"PowerCepstrogram: Formula", nullptr) {
@@ -856,9 +858,9 @@ FORM (LIST__PowerCepstrogram_listCPP, U"PowerCepstrogram: List cepstral peak pro
 	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -882,9 +884,9 @@ FORM (NEW__PowerCepstrogram_to_Table_CPP, U"PowerCepstrogram: To Table (cepstral
 	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -902,9 +904,9 @@ FORM (NEW__PowerCepstrogram_to_Table_CPPvalues, U"PowerCepstrogram: To Table (CP
 	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
-	REAL (fromQuefrency_trendLine, U"left Trend line quefrency range (s)", U"0.001")
-	REAL (toQuefrency_trendLine, U"right Trend line quefrency range (s)", U"0.05")
-	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	REAL (fromQuefrency_trendLine, U"left Quefrency range (s)", U"0.001")
+	REAL (toQuefrency_trendLine, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
 	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
 	OK
 DO
@@ -1262,6 +1264,35 @@ DIRECT (CONVERT_EACH_TO_ONE__LPC_downto_Matrix_area) {
 
 /********************** Sound *******************************************/
 
+FORM (CONVERT_EACH_TO_ONE__Sound_to_CPP, U"Sound: To CPP", U"Sound: To CPP...") {
+	HEADING (U"Analysis parameters to get the PowerCepstrogram:")
+	POSITIVE (pitchFloor, U"left Pitch range (Hz)", U"60.0")
+	POSITIVE (pitchCeiling, U"right Pitch range (Hz)", U"330.0")
+	POSITIVE (maximumFrequency, U"Maximum frequency (Hz)", U"5000.0")
+	POSITIVE (timeStep, U"Time step (s)", U"0.002")
+	POSITIVE (preEmphasisFrequency, U"Pre-emphasis from (Hz)", U"50.0")
+	HEADING (U"Smoothing parameters of the PowerCepstrogram:")
+	BOOLEAN (subtractTrendBeforeSmoothing, U"Subtract trend before smoothing", U"yes")
+	REAL (timeAveragingWindow, U"Time averaging window (s)", U"0.02")
+	REAL (quefrencyAveragingWindow, U"Quefrency averaging window (s)", U"0.0005")
+	HEADING (U"Peak search in each PowerCepstrum:")
+	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
+	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
+			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
+	HEADING (U"Trend line parameters in each PowerCepstrum:")
+	REAL (qstartFit, U"left Quefrency range (s)", U"0.001")
+	REAL (qendFit, U"right Quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Line type", kCepstrum_trendType::DEFAULT)
+	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Sound)
+		autoCPP result = Sound_to_CPP (me, pitchFloor, pitchCeiling, timeStep, maximumFrequency, 
+			preEmphasisFrequency, subtractTrendBeforeSmoothing, timeAveragingWindow, quefrencyAveragingWindow,
+			tolerance, peakInterpolationType, qstartFit, qendFit, lineType, fitMethod
+		);
+	CONVERT_EACH_TO_ONE_END (my name.get())
+}
 FORM (CONVERT_EACH_TO_ONE__Sound_to_PowerCepstrogram, U"Sound: To PowerCepstrogram", U"Sound: To PowerCepstrogram...") {
 	POSITIVE (pitchFloor, U"Pitch floor (Hz)", U"60.0")
 	POSITIVE (timeStep, U"Time step (s)", U"0.002")
@@ -1273,6 +1304,7 @@ DO
 		autoPowerCepstrogram result = Sound_to_PowerCepstrogram (me, pitchFloor, timeStep, maximumFrequency, preEmphasisFrequency);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
+
 
 FORM (CONVERT_EACH_TO_ONE__Sound_to_PowerCepstrogram_hillenbrand, U"Sound: To PowerCepstrogram (hillenbrand)", U"Sound: To PowerCepstrogram...") {
 	POSITIVE (pitchFloor, U"Pitch floor (Hz)", U"60.0")
@@ -1921,8 +1953,12 @@ praat_addAction1 (classPowerCepstrogram, 0, U"To Matrix", nullptr, 0,
 
 	praat_addAction1 (classSound, 0, U"To PowerCepstrogram...", U"To Harmonicity (gne)...", 1, 
 			CONVERT_EACH_TO_ONE__Sound_to_PowerCepstrogram);
-	praat_addAction1 (classSound, 0, U"To PowerCepstrogram (hillenbrand)...", U"To Harmonicity (gne)...", GuiMenu_DEPTH_1 | GuiMenu_HIDDEN,
-			CONVERT_EACH_TO_ONE__Sound_to_PowerCepstrogram_hillenbrand);
+	praat_addAction1 (classSound, 0, U"To CPP...", U"To Harmonicity (gne)...", 1, 
+			CONVERT_EACH_TO_ONE__Sound_to_CPP);
+	
+	praat_addAction1 (classSound, 0, U"To PowerCepstrogram (hillenbrand)...", U"To Harmonicity (gne)...", 
+			GuiMenu_DEPTH_1 | GuiMenu_HIDDEN, CONVERT_EACH_TO_ONE__Sound_to_PowerCepstrogram_hillenbrand);
+	
 	praat_addAction1 (classSound, 0, U"To Formant (robust)...", U"To Formant (sl)...", 2,
 			CONVERT_EACH_TO_ONE__Sound_to_Formant_robust);
 	praat_addAction1 (classSound, 0, U"To FormantPath...", U"To Formant (robust)...", 2, 
