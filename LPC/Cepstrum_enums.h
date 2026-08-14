@@ -25,7 +25,7 @@ enums_end (kCepstrum_peakInterpolation, 2, PARABOLIC)
 enums_begin (kCepstrum_trendType, 1)
 	enums_add (kCepstrum_trendType, 1, LINEAR, U"Straight")
 	enums_add (kCepstrum_trendType, 2, EXPONENTIAL_DECAY, U"Exponential decay")
-enums_end (kCepstrum_trendType, 2, EXPONENTIAL_DECAY)
+enums_end (kCepstrum_trendType, 2, LINEAR)
 
 enums_begin (kCepstrum_trendFit, 1)
 	enums_add (kCepstrum_trendFit, 1, ROBUST_FAST, U"Robust")
