@@ -37,6 +37,7 @@
 #include "LPC_to_Spectrum.h"
 #include "NUM2.h"
 #include "PowerCepstrum.h"
+#include "PowerCepstrogram.h"
 #include "Sound_to_PowerCepstrogram.h"
 #include "Sound_and_LPC.h"
 #include "Sound_to_Formant_mt.h"
@@ -58,6 +59,22 @@ static const conststring32 MODIFY_BUTTON   = U"Modify -";
 
 void praat_CC_init (ClassInfo klas);
 void praat_TimeFrameSampled_query_init (ClassInfo klas);
+
+DIRECT (HELP__CPP_help) {
+	HELP (U"CPP")
+}
+
+FORM (GRAPHICS_EACH__CPP_draw, U"CPP: Draw", U"") {
+	REAL (tmin, U"left Time range (s)", U"0.0")
+	REAL (tmax, U"right Time range (s)", U"0.0 (=all)")
+	POSITIVE (cppmax, U"Maximum CPP (dB)", U"100.0")
+	BOOLEAN (garnish, U"Garnish", U"yes");
+	OK
+DO
+	GRAPHICS_EACH (CPP)
+		CPP_draw (me, GRAPHICS, tmin, tmax, 0.0, cppmax, garnish);
+	GRAPHICS_EACH_END
+}
 
 DIRECT (HELP__FormantPath_help) {
 	HELP (U"FormantPath")
@@ -779,6 +796,30 @@ DO
 			peakInterpolationType, fromQuefrency_trendLine, toQuefrency_trendLine, lineType, fitMethod
 		);
 	QUERY_ONE_FOR_REAL_END (U" dB");
+}
+
+FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_to_CPP, U"PowerCepstrogram: To CPP", nullptr) {
+	COMMENT (U"Smoothing of the Cepstrogram")
+	BOOLEAN (subtractTrendBeforeSmoothing, U"Subtract trend before smoothing", true)
+	REAL (smoothingWindowDuration, U"Time averaging window (s)", U"0.02")
+	REAL (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
+	COMMENT (U"Peak search:")
+	REAL (pitchFloor, U"left Peak search pitch range (Hz)", U"60.0")
+	REAL (pitchCeiling, U"right Peak search pitch range (Hz)", U"330.0")
+	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
+	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
+			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
+	COMMENT (U"Trend line:")
+	REAL (quefrencyFloor, U"left Trend line quefrency range (s)", U"0.001")
+	REAL (quefrencyCeiling, U"right Trend line quefrency range (s)", U"0.05")
+	OPTIONMENU_ENUM (kCepstrum_trendType, lineType, U"Trend type", kCepstrum_trendType::DEFAULT)
+	OPTIONMENU_ENUM (kCepstrum_trendFit, fitMethod, U"Fit method", kCepstrum_trendFit::DEFAULT)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (PowerCepstrogram)
+		autoCPP result = PowerCepstrogram_to_CPP (me, pitchFloor, pitchCeiling, tolerance,
+			peakInterpolationType, quefrencyFloor, quefrencyCeiling, lineType, fitMethod);
+	CONVERT_EACH_TO_ONE_END (U"")
 }
 
 FORM (MODIFY__EACH_WEAK__PowerCepstrogram_formula, U"PowerCepstrogram: Formula", nullptr) {
@@ -1604,12 +1645,18 @@ void praat_uvafon_LPC_init () {
 	
 	Data_recognizeFileType (HTKParameterFileRecognizer);
 	
-	Thing_recognizeClassesByName (classCepstrumc, classPowerCepstrum, classCepstrogram, classFormantPath, classFormantPathEditor, classPowerCepstrogram, classLPC, classLFCC, classLineSpectralFrequencies, classMFCC, classVocalTractTier);
+	Thing_recognizeClassesByName (
+		classCepstrumc, classPowerCepstrum, classCepstrogram, classCPP, classFormantPath, classFormantPathEditor,
+		classPowerCepstrogram, classLPC, classLFCC, classLineSpectralFrequencies,classMFCC, classVocalTractTier
+	);
 	
 	structFormantPathArea  :: f_preferences ();
 	structFormantPathEditor  :: f_preferences ();
 
-
+	praat_addAction1 (classCPP, 0, U"CPP help", nullptr, 0,
+			HELP__CPP_help);
+	praat_addAction1 (classCPP, 0, U"Draw...", nullptr, 0, 
+			GRAPHICS_EACH__CPP_draw);
 	praat_addAction1 (classCepstrumc, 0, U"Analyse", nullptr, 0, nullptr);
 	praat_addAction1 (classCepstrumc, 0, U"To LPC", nullptr, 0,
 			CONVERT_EACH_TO_ONE__Cepstrumc_to_LPC);
@@ -1867,7 +1914,9 @@ void praat_uvafon_LPC_init () {
 			CONVERT_EACH_TO_ONE__PowerCepstrogram_smooth);
 	praat_addAction1 (classPowerCepstrogram, 0, U"Subtract trend... || Subtract tilt...",
 			nullptr, 0, CONVERT_EACH_TO_ONE__PowerCepstrogram_subtractTrend);   // alternative GuiMenu_DEPRECATED_2019
-	praat_addAction1 (classPowerCepstrogram, 0, U"To Matrix", nullptr, 0,
+	praat_addAction1 (classPowerCepstrogram, 0, U"To CPP...", nullptr, 0,
+			CONVERT_EACH_TO_ONE__PowerCepstrogram_to_CPP);
+praat_addAction1 (classPowerCepstrogram, 0, U"To Matrix", nullptr, 0,
 			CONVERT_EACH_TO_ONE__PowerCepstrogram_to_Matrix);
 
 	praat_addAction1 (classSound, 0, U"To PowerCepstrogram...", U"To Harmonicity (gne)...", 1, 

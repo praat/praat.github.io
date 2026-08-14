@@ -91,6 +91,12 @@ NORMAL (U"where %z__%ji_ is the matrix element in row %j and column %i and "
 	"%c__%ij_ is the %j-th cepstral coefficient in frame %i.")
 MAN_END
 
+MAN_BEGIN (U"CPP", U"djmw", 20260814)
+INTRO (U"One of the @@types of objects@ in Praat.")
+NORMAL (U"A CPP object represents Cepstral Peak Prominence as a function of time.")
+NORMAL (U"CPP shows periodicity in the Spectrum. Periodicity in the Spectrum is caused by periodicity in the sound if the sound is composed of %%multiple% harmonics. A single sine with frequency f0 does not show periodicity in the spectrum, just a single peak. Only if there are harmonics of f0, periodicity in the spectrum will turn up.")
+MAN_END
+
 MAN_BEGIN (U"Formant: List formant slope...", U"djmw", 20210813)
 INTRO (U"A command available in the @@Query submenu@ if you select a @@Formant@ object. The Info window will show the characteristics of the slope of the chosen interval as a vector with a number of values.")
 ENTRY (U"Settings")

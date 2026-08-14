@@ -1,11 +1,11 @@
 # Makefile of the library "LPC"
-# David Weenink and Paul Boersma, 23 May 2026
+# David Weenink and Paul Boersma, 13 August 2026
 
 CPPFLAGS += -I . -I ../kar -I ../melder -I ../fon -I ../foned -I ../dwtools -I ../sys -I ../dwsys -I ../stat \
 	-I ..external/num
 
 OBJECTS = Cepstrum.o Cepstrumc.o Cepstrum_and_Spectrum.o \
-	Cepstrogram.o \
+	Cepstrogram.o CPP.o \
 	Formant_extensions.o \
 	FormantModeler.o FormantModelerList.o \
 	FormantPath.o FormantPath_to_IntervalTier.o FormantPathArea.o FormantPathEditor.o \
