@@ -19,18 +19,17 @@
 #include "Sound_to_CPP.h"
 
 autoCPP Sound_to_CPP (constSound me, double pitchFloor, double pitchCeiling, double dt, double maximumFrequency, 
-	double preEmphasisFrequency,
-	bool subtractTrendBeforeSmoothing, double timeAveragingWindow, double quefrencyAveragingWindow,
-	double deltaF0, kVector_peakInterpolation peakInterpolationType,
-	double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod
-) {
+	double preEmphasisFrequency, bool subtractTrendBeforeSmoothing, double timeAveragingWindow, double quefrencyAveragingWindow,
+	kVector_peakInterpolation peakInterpolationType,
+	double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod)
+{
 	try {
 		autoPowerCepstrogram ps = Sound_to_PowerCepstrogram (me, pitchFloor, dt, maximumFrequency, preEmphasisFrequency);
 		if (subtractTrendBeforeSmoothing) {
 			ps = PowerCepstrogram_subtractTrend (ps.get(), qstartFit, qendFit, lineType, fitMethod).move();
 		}
 		autoPowerCepstrogram smoothed = PowerCepstrogram_smooth (ps.get(), timeAveragingWindow, quefrencyAveragingWindow);
-		autoCPP cpp = PowerCepstrogram_to_CPP (smoothed.get(), pitchFloor, pitchCeiling, deltaF0,
+		autoCPP cpp = PowerCepstrogram_to_CPP (smoothed.get(), pitchFloor, pitchCeiling,
 			peakInterpolationType,  qstartFit,  qendFit, lineType, fitMethod);
 		return cpp;
 	} catch (MelderError) {

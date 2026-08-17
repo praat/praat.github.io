@@ -22,10 +22,9 @@
 #include "CPP.h"
 
 
-autoCPP Sound_to_CPP (constSound me, double pitchFloor, double pitchCeiling, double dt, double maximumFrequency, 
-	double preEmphasisFrequency,
-	bool subtractTrendBeforeSmoothing, double timeAveragingWindow, double quefrencyAveragingWindow,
-	double deltaF0, kVector_peakInterpolation peakInterpolationType,
+autoCPP Sound_to_CPP (constSound me, double pitchFloor, double pitchCeiling, double dt, double maximumFrequency,
+	double preEmphasisFrequency, bool subtractTrendBeforeSmoothing, double timeAveragingWindow,
+	double quefrencyAveragingWindow, kVector_peakInterpolation peakInterpolationType,
 	double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod
 );
 

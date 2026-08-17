@@ -38,6 +38,7 @@
 #include "NUM2.h"
 #include "PowerCepstrum.h"
 #include "PowerCepstrogram.h"
+#include "praat_TimeVector.h"
 #include "Sound_to_CPP.h"
 #include "Sound_to_PowerCepstrogram.h"
 #include "Sound_and_LPC.h"
@@ -75,6 +76,95 @@ DO
 	GRAPHICS_EACH (CPP)
 		CPP_draw (me, GRAPHICS, tmin, tmax, 0.0, cppmax, garnish);
 	GRAPHICS_EACH_END
+}
+
+FORM (REAL_CPP_getMaximum, U"CPP: Get maximum", U"CPP: Get maximum...") {
+	praat_TimeVector_INTERPOLATED_EXTREMUM (fromTime, toTime, interpolation)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = Vector_getMaximum (me, fromTime, toTime, interpolation);
+	QUERY_ONE_FOR_REAL_END (U" dB")
+}
+
+FORM (REAL_CPP_getMean, U"CPP: Get mean", U"CPP: Get mean...") {
+	praat_TimeFunction_RANGE (fromTime, toTime)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = CPP_getMean (me, fromTime, toTime);
+	QUERY_ONE_FOR_REAL_END (U" dB")
+}
+
+FORM (REAL_CPP_getMinimum, U"CPP: Get minimum", U"CPP: Get minimum...") {
+	praat_TimeVector_INTERPOLATED_EXTREMUM (fromTime, toTime, interpolation)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = Vector_getMinimum (me, fromTime, toTime, interpolation);
+	QUERY_ONE_FOR_REAL_END (U" dB")
+}
+
+FORM (REAL_CPP_getStandardDeviation, U"CPP: Get standard deviation", U"CPP: Get standard deviation...") {
+	praat_TimeFunction_RANGE (fromTime, toTime)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = CPP_getStandardDeviation (me, fromTime, toTime);
+	QUERY_ONE_FOR_REAL_END (U" dB")
+}
+
+FORM (REAL_CPP_getTimeOfMaximum, U"CPP: Get time of maximum", U"CPP: Get time of maximum...") {
+	praat_TimeVector_INTERPOLATED_EXTREMUM (fromTime, toTime, interpolation)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = Vector_getXOfMaximum (me, fromTime, toTime, interpolation);
+	QUERY_ONE_FOR_REAL_END (U" seconds")
+}
+
+FORM (REAL_CPP_getTimeOfMinimum, U"CPP: Get time of minimum", U"CPP: Get time of minimum...") {
+	praat_TimeVector_INTERPOLATED_EXTREMUM (fromTime, toTime, interpolation)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = Vector_getXOfMinimum (me, fromTime, toTime, interpolation);
+	QUERY_ONE_FOR_REAL_END (U" seconds")
+}
+
+FORM (REAL_CPP_getValueAtTime, U"CPP: Get value at time", U"CPP: Get value at time...") {
+	praat_TimeVector_INTERPOLATED_VALUE (time, interpolation)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = Vector_getValueAtX (me, time, 1, interpolation);
+	QUERY_ONE_FOR_REAL_END (U" dB")
+}
+
+FORM (REAL_CPP_getValueInFrame, U"CPP: Get value in frame", U"CPP: Get value in frame...") {
+	INTEGER (frameNumber, U"Frame number", U"10")
+	OK
+DO
+	QUERY_ONE_FOR_REAL (CPP)
+		const double result = ( frameNumber < 1 || frameNumber > my nx ? undefined : my z [1] [frameNumber] );
+	QUERY_ONE_FOR_REAL_END (U" dB")
+}
+
+FORM (MODIFY_CPP_formula, U"CPP Formula", U"CPP: Formula...") {
+	COMMENT (U"`x` is time")
+	COMMENT (U"for col := 1 to ncol do { self [col] := `formula` ; x := x + dx }")
+	FORMULA (formula, U"Formula", U"self")
+	OK
+DO
+	MODIFY_EACH_WEAK (CPP)
+		Matrix_formula (me, formula, interpreter, nullptr);
+	MODIFY_EACH_WEAK_END
+}
+
+DIRECT (CONVERT_ONE_AND_ONE_TO_ONE__CPP_Pitch_markUnvoiced) {
+	CONVERT_ONE_AND_ONE_TO_ONE (CPP, Pitch)
+		autoCPP result = CPP_and_Pitch_to_CPP_markUnvoiced (me, you);
+	CONVERT_ONE_AND_ONE_TO_ONE_END (my name.get(), U"_uv")
 }
 
 DIRECT (HELP__FormantPath_help) {
@@ -808,7 +898,6 @@ FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_to_CPP, U"PowerCepstrogram: To CPP",
 	COMMENT (U"Peak search in PowerCepstrum:")
 	REAL (pitchFloor, U"left Peak search pitch range (Hz)", U"60.0")
 	REAL (pitchCeiling, U"right Peak search pitch range (Hz)", U"330.0")
-	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
 	COMMENT (U"Trend line fitting in PowerCepstrum:")
@@ -819,7 +908,7 @@ FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_to_CPP, U"PowerCepstrogram: To CPP",
 	OK
 DO
 	CONVERT_EACH_TO_ONE (PowerCepstrogram)
-		autoCPP result = PowerCepstrogram_to_CPP (me, pitchFloor, pitchCeiling, tolerance,
+		autoCPP result = PowerCepstrogram_to_CPP (me, pitchFloor, pitchCeiling,
 			peakInterpolationType, quefrencyFloor, quefrencyCeiling, lineType, fitMethod);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
@@ -1271,12 +1360,11 @@ FORM (CONVERT_EACH_TO_ONE__Sound_to_CPP, U"Sound: To CPP", U"Sound: To CPP...") 
 	POSITIVE (maximumFrequency, U"Maximum frequency (Hz)", U"5000.0")
 	POSITIVE (timeStep, U"Time step (s)", U"0.002")
 	POSITIVE (preEmphasisFrequency, U"Pre-emphasis from (Hz)", U"50.0")
-	HEADING (U"Smoothing parameters of the PowerCepstrogram:")
+	HEADING (U"Smoothing parameters for the PowerCepstrogram:")
 	BOOLEAN (subtractTrendBeforeSmoothing, U"Subtract trend before smoothing", U"yes")
-	REAL (timeAveragingWindow, U"Time averaging window (s)", U"0.02")
-	REAL (quefrencyAveragingWindow, U"Quefrency averaging window (s)", U"0.0005")
+	REAL (timeAveragingWindow, U"Time window (s)", U"0.02")
+	REAL (quefrencyAveragingWindow, U"Quefrency window (s)", U"0.0005")
 	HEADING (U"Peak search in each PowerCepstrum:")
-	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
 	CHOICE_ENUM (kVector_peakInterpolation, peakInterpolationType,
 			U"Interpolation", kVector_peakInterpolation :: PARABOLIC)
 	HEADING (U"Trend line parameters in each PowerCepstrum:")
@@ -1289,7 +1377,7 @@ DO
 	CONVERT_EACH_TO_ONE (Sound)
 		autoCPP result = Sound_to_CPP (me, pitchFloor, pitchCeiling, timeStep, maximumFrequency, 
 			preEmphasisFrequency, subtractTrendBeforeSmoothing, timeAveragingWindow, quefrencyAveragingWindow,
-			tolerance, peakInterpolationType, qstartFit, qendFit, lineType, fitMethod
+			peakInterpolationType, qstartFit, qendFit, lineType, fitMethod
 		);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
@@ -1689,6 +1777,40 @@ void praat_uvafon_LPC_init () {
 			HELP__CPP_help);
 	praat_addAction1 (classCPP, 0, U"Draw...", nullptr, 0, 
 			GRAPHICS_EACH__CPP_draw);
+	praat_addAction1 (classCPP, 1, U"Query -", nullptr, 0, nullptr);
+		praat_TimeFrameSampled_query_init (classCPP);
+		praat_addAction1 (classCPP, 1, U"-- get content --",
+				nullptr, 1, nullptr);
+		praat_addAction1 (classCPP, 1, U"Get value at time...",
+				nullptr, 1, REAL_CPP_getValueAtTime);
+		praat_addAction1 (classCPP, 1, U"Get value in frame...",
+				nullptr, 1, REAL_CPP_getValueInFrame);
+		praat_addAction1 (classCPP, 1, U"-- get extreme --",
+				nullptr, 1, nullptr);
+		praat_addAction1 (classCPP, 1, U"Get minimum...",
+				nullptr, 1, REAL_CPP_getMinimum);
+		praat_addAction1 (classCPP, 1, U"Get time of minimum...",
+				nullptr, 1, REAL_CPP_getTimeOfMinimum);
+		praat_addAction1 (classCPP, 1, U"Get maximum...",
+				nullptr, 1, REAL_CPP_getMaximum);
+		praat_addAction1 (classCPP, 1, U"Get time of maximum...",
+				nullptr, 1, REAL_CPP_getTimeOfMaximum);
+		praat_addAction1 (classCPP, 1, U"-- get statistics --",
+				nullptr, 1, nullptr);
+		praat_addAction1 (classCPP, 1, U"Get mean...",
+				nullptr, 1, REAL_CPP_getMean);
+		praat_addAction1 (classCPP, 1, U"Get standard deviation...",
+				nullptr, 1, REAL_CPP_getStandardDeviation);	
+		
+		
+	praat_addAction1 (classCPP, 0, U"Modify", nullptr, 0, nullptr);
+		praat_TimeFunction_modify_init (classCPP);
+		praat_addAction1 (classCPP, 0, U"Formula...",
+			nullptr, 0, MODIFY_CPP_formula);
+
+	praat_addAction2 (classCPP, 1, classPitch, 1, U"Mark unvoiced frames", nullptr, 0, 
+			CONVERT_ONE_AND_ONE_TO_ONE__CPP_Pitch_markUnvoiced);
+		
 	praat_addAction1 (classCepstrumc, 0, U"Analyse", nullptr, 0, nullptr);
 	praat_addAction1 (classCepstrumc, 0, U"To LPC", nullptr, 0,
 			CONVERT_EACH_TO_ONE__Cepstrumc_to_LPC);
