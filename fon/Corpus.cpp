@@ -77,7 +77,24 @@ autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
 	Melder_require (MelderFolder_exists (& rootFolder),
 		U"CGN folder ", MelderFolder_messageName (& rootFolder), U" does not exist.");
 
-	autoSTRVEC compFolderNames = folderNames_STRVEC (Melder_cat (MelderFolder_peekPath (& rootFolder), U"/comp-*"));
+	structMelderFolder dataFolder { };
+	MelderFolder_getSubfolder (& rootFolder, U"data", & dataFolder);
+	Melder_require (MelderFolder_exists (& dataFolder),
+		U"CGN folder ", MelderFolder_messageName (& dataFolder), U" does not exist.");
+
+	structMelderFolder audioFolder { };
+	MelderFolder_getSubfolder (& dataFolder, U"audio", & audioFolder);
+	Melder_require (MelderFolder_exists (& audioFolder),
+		U"CGN folder ", MelderFolder_messageName (& audioFolder), U" does not exist.");
+
+	structMelderFolder wavFolder { };
+	MelderFolder_getSubfolder (& audioFolder, U"wav", & wavFolder);
+	Melder_require (MelderFolder_exists (& wavFolder),
+		U"CGN folder ", MelderFolder_messageName (& wavFolder), U" does not exist.");
+
+	my folderWithSoundFiles = Melder_dup (MelderFolder_peekPath (& wavFolder));
+
+	autoSTRVEC compFolderNames = folderNames_STRVEC (Melder_cat (MelderFolder_peekPath (& wavFolder), U"/comp-*"));
 	Melder_require (compFolderNames.size > 0,
 		U"The folder ", MelderFolder_messageName (& rootFolder), U" contains no folders whose names start with “comp-”.");
 
@@ -85,18 +102,14 @@ autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
 	const constSTRVEC regionNames = ARRAY_TO_STRVEC (regionNames_array);
 	for (integer icomp = 1; icomp <= compFolderNames.size; icomp ++) {
 		structMelderFolder compFolder { };
-		MelderFolder_getSubfolder (& rootFolder, compFolderNames [icomp].get(), & compFolder);
+		MelderFolder_getSubfolder (& wavFolder, compFolderNames [icomp].get(), & compFolder);
 		for (integer iregion = 1; iregion <= regionNames.size; iregion ++) {
 			structMelderFolder regionFolder { };
 			MelderFolder_getSubfolder (& compFolder, regionNames [iregion], & regionFolder);
 			if (MelderFolder_exists (& regionFolder)) {   // allow partial corpora
 				autoSTRVEC soundFileNames = fileNames_STRVEC (Melder_cat (MelderFolder_peekPath (& regionFolder), U"/*.wav"));
-				const conststring32 brokenFiles [] = {
-					U"fn000483.wav",   // zeroes,
-					U"fv701103.wav"    // missing ort
-				};
-				for (integer ifile = 1; ifile <= soundFileNames.size; ifile ++) if (! NUMfindFirst (ARRAY_TO_STRVEC (brokenFiles), soundFileNames [ifile].get())) {
-					TRACE
+				for (integer ifile = 1; ifile <= soundFileNames.size; ifile ++) {
+					//TRACE
 					trace (U"Reading file ", soundFileNames [ifile].get());
 					autoTextGrid textGrid;
 					autoSound sound;

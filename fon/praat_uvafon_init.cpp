@@ -17,7 +17,7 @@
  */
 
 #include "Cochleagram_and_Excitation.h"
-#include "Corpus.h"
+#include "CorpusEditor.h"
 #include "Distributions_and_Strings.h"
 #include "Distributions_and_Transition.h"
 #include "Excitation_to_Formant.h"
@@ -163,7 +163,7 @@ DO
 
 DIRECT (EDITOR_ONE_Corpus_edit) {
 	EDITOR_ONE (a,Corpus)
-		autoTableEditor editor = TableEditor_create (ID_AND_FULL_NAME, me);
+		autoCorpusEditor editor = CorpusEditor_create (ID_AND_FULL_NAME, me);
 	EDITOR_ONE_END
 }
 

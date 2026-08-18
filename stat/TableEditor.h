@@ -2,11 +2,11 @@
 #define _TableEditor_h_
 /* TableEditor.h
  *
- * Copyright (C) 2006,2007,2010-2012,2015-2019,2022,2023 Paul Boersma
+ * Copyright (C) 2006,2007,2010-2012,2015-2019,2022,2023,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -49,6 +49,8 @@ Thing_define (TableEditor, Editor) {
 
 	#include "TableEditor_prefs.h"
 };
+
+void TableEditor_init (TableEditor me, conststring32 title, Table table);
 
 autoTableEditor TableEditor_create (conststring32 title, Table table);
 
