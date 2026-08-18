@@ -1317,7 +1317,7 @@ autoTextGrid TextGrid_Sound_readFromCorpusGesprokenNederlands (conststring32 sou
 		OrderedOf <structTextGrid> textgrids;
 
 		/*
-			The sound file resides in a folder like /Volumes/CGN/comp-a/nl/.
+			The sound file resides in a folder like /Volumes/CGN_2.0.3/data/audio/wav/comp-a/nl/.
 			We extract the name of the sound file and of the enclosing folders.
 		*/
 
@@ -1331,6 +1331,10 @@ autoTextGrid TextGrid_Sound_readFromCorpusGesprokenNederlands (conststring32 sou
 		autostring32 baseName = Melder_dup (soundName);
 		baseName [soundNamelength - 4] = U'\0';   // remove extension ".wav"
 
+		/*
+			Travel up to the data folder.
+		*/
+
 		structMelderFolder regionFolder { };
 		MelderFile_getParentFolder (& file, & regionFolder);
 		conststring32 regionName = MelderFolder_name (& regionFolder);
@@ -1343,17 +1347,27 @@ autoTextGrid TextGrid_Sound_readFromCorpusGesprokenNederlands (conststring32 sou
 		Melder_require (Melder_length (compName) == 6 && Melder_stringMatchesCriterion (compName, kMelder_string::STARTS_WITH, U"comp-", true),
 			U"Folder name should be “comp-” plus another letter, not “", compName, U"”.");
 
-		/*
-			Travel up to the CGN folder.
-		*/
-		structMelderFolder cgnFolder { };
-		MelderFolder_getParentFolder (& compFolder, & cgnFolder);
+		structMelderFolder wavFolder { };
+		MelderFolder_getParentFolder (& compFolder, & wavFolder);
+		conststring32 wavName = MelderFolder_name (& wavFolder);
+		Melder_require (Melder_stringMatchesCriterion (wavName, kMelder_string::EQUAL_TO, U"wav", true),
+			U"Folder name should be “wav”, not “", wavName, U"”.");
+
+		structMelderFolder audioFolder { };
+		MelderFolder_getParentFolder (& wavFolder, & audioFolder);
+		conststring32 audioName = MelderFolder_name (& audioFolder);
+		Melder_require (Melder_stringMatchesCriterion (audioName, kMelder_string::EQUAL_TO, U"audio", true),
+			U"Folder name should be “audio”, not “", audioName, U"”.");
+
+		structMelderFolder dataFolder { };
+		MelderFolder_getParentFolder (& audioFolder, & dataFolder);
+		conststring32 dataName = MelderFolder_name (& dataFolder);
+		Melder_require (Melder_stringMatchesCriterion (dataName, kMelder_string::EQUAL_TO, U"data", true),
+			U"Folder name should be “data”, not “", dataName, U"”.");
 
 		/*
 			Travel down to the annotation text folder.
 		*/
-		structMelderFolder dataFolder { };
-		MelderFolder_getSubfolder (& cgnFolder, U"data", & dataFolder);
 		structMelderFolder annotFolder { };
 		MelderFolder_getSubfolder (& dataFolder, U"annot", & annotFolder);
 		structMelderFolder annotTextFolder { };
