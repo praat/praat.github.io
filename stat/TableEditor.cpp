@@ -310,26 +310,30 @@ void structTableEditor :: v_createMenuItems_help (EditorMenu menu) {
 	EditorMenu_addCommand (menu, U"TableEditor help", U'?', menu_cb_TableEditorHelp);
 }
 
+void TableEditor_init (TableEditor me, conststring32 title, Table table) {
+	Editor_init (me, 0, 0, 700, 500, title, table);
+	#if motif
+		Melder_assert (XtWindow (my drawingArea -> d_widget));
+	#endif
+	my topRow = 1;
+	my leftColumn = 1;
+	my selectedColumn = 1;
+	my selectedRow = 1;
+	my graphics = Graphics_create_xmdrawingarea (my drawingArea);
+	const double size_pixels = SIZE_INCHES * Graphics_getResolution (my graphics.get());
+	Graphics_setWsViewport (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
+	Graphics_setWsWindow (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
+	Graphics_setViewport (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
+	Graphics_setFont (my graphics.get(), kGraphics_font::COURIER);
+	Graphics_setFontSize (my graphics.get(), 12);
+	Graphics_setUnderscoreIsSubscript (my graphics.get(), false);
+	Graphics_setAtSignIsLink (my graphics.get(), true);
+}
+
 autoTableEditor TableEditor_create (conststring32 title, Table table) {
 	try {
 		autoTableEditor me = Thing_new (TableEditor);
-		Editor_init (me.get(), 0, 0, 700, 500, title, table);
-		#if motif
-			Melder_assert (XtWindow (my drawingArea -> d_widget));
-		#endif
-		my topRow = 1;
-		my leftColumn = 1;
-		my selectedColumn = 1;
-		my selectedRow = 1;
-		my graphics = Graphics_create_xmdrawingarea (my drawingArea);
-		const double size_pixels = SIZE_INCHES * Graphics_getResolution (my graphics.get());
-		Graphics_setWsViewport (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
-		Graphics_setWsWindow (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
-		Graphics_setViewport (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
-		Graphics_setFont (my graphics.get(), kGraphics_font::COURIER);
-		Graphics_setFontSize (my graphics.get(), 12);
-		Graphics_setUnderscoreIsSubscript (my graphics.get(), false);
-		Graphics_setAtSignIsLink (my graphics.get(), true);
+		TableEditor_init (me.get(), title, table);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"TableEditor not created.");

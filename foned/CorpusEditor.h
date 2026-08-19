@@ -1,6 +1,8 @@
-/* main_Praat.h
+#ifndef _CorpusEditor_h_
+#define _CorpusEditor_h_
+/* CorpusEditor.h
  *
- * Copyright (C) 2024-2026 Paul Boersma
+ * Copyright (C) 2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,18 +18,18 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
-	These things have to be #defines so that they can be used not only in main_Praat.cpp when initializing the app,
-	but also in an automated `praat.plist` (for macOS).
-	To achieve this automation, go to `Build Settings` -> `Packaging` in the Praat Xcode project,
-	and then set `Preprocess Info.plist File` to `Yes`
-	and `Info.plist Preprocessor Prefix File` to `main/main_Praat.h`.
-*/
-#define PRAAT_NAME  Praat
-#define PRAAT_VERSION_STR  7.0.01
-#define PRAAT_VERSION_NUM  7001
-#define PRAAT_YEAR  2026
-#define PRAAT_MONTH  8
-#define PRAAT_DAY  18
+#include "TableEditor.h"
+#include "Corpus.h"
+#include "Sound.h"
 
-/* End of file main_Praat.h */
+Thing_define (CorpusEditor, TableEditor) {
+	Corpus corpus() { return static_cast <Corpus> (our data()); }
+	autoSound sound;
+	bool v_clickCell (integer row, integer column, bool shiftKeyPressed)
+		override;
+};
+
+autoCorpusEditor CorpusEditor_create (conststring32 title, Corpus corpus);
+
+/* End of file CorpusEditor.h */
+#endif
