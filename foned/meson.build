@@ -1,5 +1,5 @@
 # meson.build of the library "foned"
-# David Weenink, 3 January 2024
+# David Weenink, 18 August 2026
 
 sources = '''
 	SoundRecorder.cpp
@@ -12,7 +12,7 @@ sources = '''
    RealTierEditor.cpp PitchTierEditor.cpp IntensityTierEditor.cpp
    DurationTierEditor.cpp AmplitudeTierEditor.cpp
    ManipulationEditor.cpp TextGridEditor.cpp FormantGridEditor.cpp
-   RunnerMFC.cpp MovieWindow.cpp'''.split()
+   RunnerMFC.cpp MovieWindow.cpp CorpusEditor.cpp'''.split()
 
 libfoned = static_library (
 	'foned',
