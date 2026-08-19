@@ -29,6 +29,10 @@ R"~~~(
 
 Latest changes in Praat.
 
+##7.0.01# (18 August 2026)
+• @CPP.
+• Corpus: read CGN 2.0.3.
+
 ##7.0# (4 August 2026)
 • Major version update, because of the following two breaking changes.
 • Full-trust checking for scripts that attempt to write files or access system commands
