@@ -1,5 +1,5 @@
 # Makefile of the library "foned"
-# Paul Boersma, 23 May 2026
+# Paul Boersma, 18 August 2026
 
 CPPFLAGS += -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../dwtools -I ../LPC -I ../fon -I ../external/portaudio -I ../external/flac -I ../external/mp3 -I ../external/espeak
 
@@ -13,7 +13,7 @@ OBJECTS = SoundRecorder.o \
    RealTierEditor.o PitchTierEditor.o IntensityTierEditor.o \
    DurationTierEditor.o AmplitudeTierEditor.o \
    ManipulationEditor.o TextGridEditor.o FormantGridEditor.o \
-   RunnerMFC.o MovieWindow.o
+   RunnerMFC.o MovieWindow.o CorpusEditor.o
 
 .PHONY: all clean
 
