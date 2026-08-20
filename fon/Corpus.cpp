@@ -75,22 +75,22 @@ autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
 	structMelderFolder rootFolder { };
 	Melder_relativePathToFolder (rootFolderPath, & rootFolder);
 	Melder_require (MelderFolder_exists (& rootFolder),
-		U"CGN folder ", MelderFolder_messageName (& rootFolder), U" does not exist.");
+		U"CGN folder ", & rootFolder, U" does not exist.");
 
 	structMelderFolder dataFolder { };
 	MelderFolder_getSubfolder (& rootFolder, U"data", & dataFolder);
 	Melder_require (MelderFolder_exists (& dataFolder),
-		U"CGN folder ", MelderFolder_messageName (& dataFolder), U" does not exist.");
+		U"CGN folder ", & dataFolder, U" does not exist.");
 
 	structMelderFolder audioFolder { };
 	MelderFolder_getSubfolder (& dataFolder, U"audio", & audioFolder);
 	Melder_require (MelderFolder_exists (& audioFolder),
-		U"CGN folder ", MelderFolder_messageName (& audioFolder), U" does not exist.");
+		U"CGN folder ", & audioFolder, U" does not exist.");
 
 	structMelderFolder wavFolder { };
 	MelderFolder_getSubfolder (& audioFolder, U"wav", & wavFolder);
 	Melder_require (MelderFolder_exists (& wavFolder),
-		U"CGN folder ", MelderFolder_messageName (& wavFolder), U" does not exist.");
+		U"CGN folder ", & wavFolder, U" does not exist.");
 
 	my folderWithSoundFiles = Melder_dup (MelderFolder_peekPath (& wavFolder));
 
@@ -114,7 +114,9 @@ autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
 					autoTextGrid textGrid;
 					autoSound sound;
 					try {
-						textGrid = TextGrid_Sound_readFromCorpusGesprokenNederlands (Melder_cat (MelderFolder_peekPath (& regionFolder), U"/", soundFileNames [ifile].get()), nullptr);
+						structMelderFile soundFile { };
+						MelderFolder_getFile (& regionFolder, soundFileNames [ifile].get(), & soundFile);
+						textGrid = TextGrid_Sound_readFromCorpusGesprokenNederlands (MelderFile_peekPath (& soundFile), nullptr);
 						Table_appendRow (me.get());
 						Table_setStringValue (me.get(), my rows.size, 1, compFolderNames [icomp].get());
 						Table_setStringValue (me.get(), my rows.size, 2, regionNames [iregion]);

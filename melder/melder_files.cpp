@@ -653,7 +653,11 @@ FILE * Melder_fopen (MelderFile file, const char *type) {
 		else if (errno == EOVERFLOW)
 			Melder_appendError (U"Not-so-useful hint: the file size is too big.");
 		else if (errno != 0)
-			Melder_appendError (U"Not-so-useful hint: unexpected error ", errno, U".");
+			#ifdef _WIN32
+				Melder_appendError (U"Not-so-useful hint: unexpected error ", errno, U" (", _doserrno, U").");
+			#else
+				Melder_appendError (U"Not-so-useful hint: unexpected error ", errno, U".");
+			#endif
 		if (isFolder)
 			Melder_appendError (U"Hint: this is a folder, not a file.");
 		else if (path [0] == U'\0')

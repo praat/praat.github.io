@@ -38,13 +38,21 @@ bool structCorpusEditor :: v_clickCell (integer row, integer column, bool shiftK
 		our sound = Data_readFromFile (& soundFile).static_cast_move <structSound>();
 		Melder_require (our sound -> classInfo == classSound,
 			U"File ", & soundFile, U" contains a ", Thing_className (our sound.get()), U" instead of a sound.");
-		autoTextGridEditor textgridEditor = TextGridEditor_create (rowTitle, our corpus() -> textGrids.at [our selectedRow], our sound.get(), nullptr, nullptr);
 		/*
-			TODO: the following five lines probably don't belong here.
+			TODO: the following lines probably don't belong here.
 		*/
 		int IOBJECT;
 		WHERE (theCurrentPraatObjects -> list [IOBJECT]. object == our corpus())
 			break;
+		Melder_assert (IOBJECT > 0);
+		Melder_assert (IOBJECT <= theCurrentPraatObjects -> n);
+		autoTextGridEditor textgridEditor = TextGridEditor_create (
+			Melder_cat (ID_AND_FULL_NAME, U"  –  ", rowTitle),
+			our corpus() -> textGrids.at [our selectedRow],
+			our sound.get(),
+			nullptr,
+			nullptr
+		);
 		praat_installEditor (textgridEditor.get(), IOBJECT);
 		textgridEditor.releaseToUser();
 	}
