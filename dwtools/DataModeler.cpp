@@ -1552,6 +1552,7 @@ void DataModeler_draw_inside (DataModeler me, Graphics g, double xmin, double xm
 	Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 	double x1, y1, x2, y2;
 	bool x1defined = false, x2defined = false;
+	autoLineSegmentClipper clipper = LineSegmentClipper_create (xmin, xmax, ymin, ymax);
 	for (integer ipoint = ixmin; ipoint <= ixmax; ipoint ++) {
 		if (my data [ipoint]. status != kDataModelerData::INVALID) {
 			const double x = my data [ipoint]. x, y = my data [ipoint]. y;
@@ -1570,11 +1571,9 @@ void DataModeler_draw_inside (DataModeler me, Graphics g, double xmin, double xm
 			}
 			if (x2defined) { // if (x1defined && x2defined)
 				if (connectPoints) {
-					double xo1, yo1, xo2, yo2;
-					if (NUMclipLineWithinRectangle (x1, y1, x2, y2,
-						xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2)) {
-						Graphics_line (g, xo1, yo1, xo2, yo2);
-					}
+					double x1c = x1, y1c = y1, x2c = x2c, y2c = y2;
+					if (clipper -> clip (x1c, y1c, x2c, y2c))
+						Graphics_line (g, x1c, y1c, x2c, y2c);
 				}
 				x1 = x;
 				y1 = y2;
@@ -1620,11 +1619,11 @@ void DataModeler_drawModel_inside (DataModeler me, Graphics g, double xmin, doub
 	if (isundef (ymin) || isundef (ymax))
 		return;
 	Graphics_setWindow (g, xmin, xmax, ymin, ymax);
+	autoLineSegmentClipper clipper = LineSegmentClipper_create (xmin, xmax, ymin, ymax);
 	for (integer ipoint = 2; ipoint <= numberOfPoints; ipoint ++) {
-		double segment_x1, segment_y1, segment_x2, segment_y2;
-		if (NUMclipLineWithinRectangle (x [ipoint - 1], y [ipoint - 1], x [ipoint], y [ipoint],
-			xmin, ymin, xmax, ymax, & segment_x1, & segment_y1, & segment_x2, & segment_y2))
-				Graphics_line (g, segment_x1, segment_y1, segment_x2, segment_y2);
+		double x1 = x [ipoint - 1], y1 = y [ipoint - 1], x2 = x [ipoint], y2 = y [ipoint];
+		if (clipper -> clip (x1, y1, x2, y2))
+				Graphics_line (g, x1, y1, x2, y2);
 	}
 }
 

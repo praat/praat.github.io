@@ -249,4 +249,91 @@ integer getGridCellIndex (double x, double y, integer numberOfRows, integer numb
 	return (irow - 1) * numberOfColumns + icol; // left-to-right, top-to-bottom
 }
 
+autoLineSegmentClipper LineSegmentClipper_create (double xL, double xR, double yB, double yT) {
+	try {
+		autoLineSegmentClipper me = std::make_unique <structLineSegmentClipper> ();
+		my init (xL, xR, yB, yT);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot create LineSegmentClipper.");
+	}
+}
+
+bool LineSegmentClipper_clip (LineSegmentClipper me, double& x1, double& y1, double& x2, double& y2) {
+	return my clip (x1, y1, x2, y2);
+}
+
+struct structLineClipper {
+private:
+	typedef struct structHPoint {
+		double x, y, w;
+	} *HPoint;
+	/*
+		The four corners of the rectangle in homogeneous coordinates (x, y, w)
+		Order BottomLeft, BottomRight, TopRight, TopLeft
+		The edges from c[1] to c[2], c[2] to c[3], c[3] to c[4], c[4] to c[1].
+	*/
+	autovector<structHPoint> corners;
+	autovector<structHPoint> edges;
+	autoINTVEC tab1, tab2;
+	struct structHPoint from = {0.0, 0.0, 1.0}, to = {0.0, 0.0, 1.0};
+
+	void cross (HPoint a, HPoint b, HPoint p) {  // p = a x b
+		p -> x = a -> y * b -> w - b -> y * a -> w;
+		p -> y = b -> x * a -> w - a -> x * b -> w;
+		p -> w = a -> x * b -> y - b -> x * a -> y;
+	}
+
+	double in (HPoint a, HPoint b) {
+		return  a -> x * b -> x + a -> y * b -> y + a -> w * b -> w;
+	}
+
+	bool clipLine () {
+		struct structHPoint p;
+		cross (& from, & to, & p);
+		int c = 0;
+		for (int i = 1; i <= 4; i ++)
+			if (in (& p, & corners [i]) >= 0)
+				c |= 1 << (i - 1);
+		if (c == 0 || c == 15) // case 6, Fig 5:
+			return false;
+		Melder_assert (c % 5 != 0);
+		const int i = tab1 [c + 1], j = tab2 [c + 1]; // count from 1
+		cross (& p, & edges [i], & from);
+		cross (& p, & edges [j], & to);
+		return true;
+	}
+
+public:
+	
+	void init (double xL, double xR, double yB, double yT) {
+		Melder_assert (xL < xR && yB < yT);
+		corners = {{xL, yB, 1.0}, {xR, yB, 1.0}, {xR, yT, 1.0}, {xL, yT, 1.0}};
+		edges = newvectorzero<structHPoint> (4);
+		for (integer i = 1; i <= 4; i ++) {
+			const integer ip1 = i % 4 + 1;
+			cross (& corners [i], & corners[ip1], & edges[i]);
+		}
+		/*
+			Table 1 in Skala (2012)
+		*/
+		//tab1 = {-1, 3, 0, 3, 1, -2, 0, 3, 2, 2, -2, 2, 1, 1, 0, -1};
+		tab1 = {-1, 4, 1, 4, 2, -2, 1, 4, 3, 3, -2, 3, 2, 2, 1, -1}; // count from 1
+		//tab2 = {-1, 0, 1, 1, 2, -2, 2, 2, 3, 0, -2, 1, 3, 0, 3, -1};
+		tab2 = {-1, 1, 2, 2, 3, -2, 3, 3, 4, 1, -2, 2, 4, 1, 4, -1}; // count from 1
+	}
+	
+	bool clip (double& x1, double& y1, double& x2, double& y2) {
+		bool result = false;
+		from.x = x1; from.y = y1; from.w = 1.0;
+		to.x = x2; to.y = y2; to.w = 1.0;
+		if (clipLine ()) {
+			x1 = from.x / from.w; y1 = from.y / from.w;
+			x2 = to.x / to.w;     y2 = to.y / to.w;
+			result = true;
+		}
+		return result;
+	}
+};
+
 /* End of file Graphics_extensions.cpp */
