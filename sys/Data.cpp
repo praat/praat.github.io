@@ -289,7 +289,7 @@ autoDaata Data_readFromFile (MelderFile file) {
 	/*
 		Possibility 1: is this file a text file as defined in Data.cpp?
 	*/
-	if (nread > 9 && header [0] == 0x1F && header [1] == 0x8B) {
+	if (nread > 9 && header [0] == 0x1F && (unsigned char) header [1] == 0x8B) {
 		/*
 			A gzipped file. Assume that it is a text file (e.g. a gzipped TextGrid text file in the Corpus Gesproken Nederlands).
 		*/

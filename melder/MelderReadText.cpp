@@ -205,10 +205,9 @@ autoMelderReadText MelderReadText_createFromFile (MelderFile file) {
 		MelderFile_close (file);
 		autostring8 buffer (size);
 		#ifdef _WIN32
-			FILE *f = Melder_fopen (file, "rb");
-			gzFile gz = gzdopen (_fileno (f), "rb");
+			gzFile gz = gzopen_w (MelderFile_peekPathW (file)), "rb");
 		#else
-			gzFile gz = gzopen (Melder_peek32to8_fileSystem (MelderFile_peekPath (file)), "rb");
+			gzFile gz = gzopen (MelderFile_peekPath8 (file), "rb");
 		#endif
 		if (! gz) {
 			Melder_free (buffer);
