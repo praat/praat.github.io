@@ -6673,6 +6673,11 @@ NORMAL (U"R.N. Shepard (1964): \"Circularity in judgments of relative pitch.\" "
 	"%%Journal of the Acoustical Society of America% #36: 2346\\--2353.")
 MAN_END
 
+MAN_BEGIN (U"Skala (2005)", U"djmw", 20260819)
+NORMAL (U"V. Skala (2005): \"A new approach to line and line segment clipping in homogeneous coordinates.\" "
+	"%%Visual Comput.% #21: 905\\--914.")
+MAN_END
+
 MAN_BEGIN (U"Slaney (1993)", U"djmw", 19980712)
 NORMAL (U"M. Slaney (1993): \"An efficient implementation of the "
 	"Patterson-Holdsworth auditory filterbank.\" "

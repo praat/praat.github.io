@@ -41,7 +41,6 @@
  djmw 20060517 Added NUMregexp_compile
  djmw 20060518 Treat NULL string as empty string in strs_replace_regexp/literal. Don't accept empty search in replace_regexStr
  djmw 20060626 Extra NULL argument for ExecRE.
- djmw 20070302 NUMclipLineWithinRectangle
  djmw 20070614 updated to version 1.30 of regular expressions.
  djmw 20071022 Removed function NUMfvector_moment2.
  djmw 20071201 Melder_warning<n>

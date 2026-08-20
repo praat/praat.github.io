@@ -50,7 +50,7 @@ void structCPP :: v1_info () {
 	MelderInfo_writeLine (U"   First frame centred at: ", our x1, U" seconds");
 	autoVEC soundingValues = CPP_getSoundingValues (this, 0.0, 0.0);
 	if (soundingValues.size > 0) {
-		MelderInfo_writeLine (U"Periodicity-to-noise ratios of sounding frames:");
+		MelderInfo_writeLine (U"Cepstral Peak Prominence values of sounding frames:");
 		MelderInfo_writeLine (U"   Number of sounding frames: ", soundingValues.size);
 		sort_e_VEC_inout (soundingValues.get());
 		MelderInfo_writeLine (U"   Median ", Melder_single (NUMquantile (soundingValues.get(), 0.50)), U" dB");
