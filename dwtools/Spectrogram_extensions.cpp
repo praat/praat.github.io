@@ -216,15 +216,15 @@ void BandFilterSpectrogram_drawFrequencyScale (BandFilterSpectrogram me, Graphic
 
 	Graphics_setInner (g);
 	Graphics_setWindow (g, xmin, xmax, ymin, ymax);
-
+	autoLineSegmentClipper clipper = LineSegmentClipper_create (xmin, xmax, ymin, ymax);
 	const double dx = (xmax - xmin) / (n - 1);
 	double x1 = xmin, y1 = my v_hertzToFrequency (x1);
 	for (integer i = 2; i <= n; i ++) {
 		const double x2 = x1 + dx, y2 = my v_hertzToFrequency (x2);
 		if (isdefined (y1) && isdefined (y2)) {
-			double xo1, yo1, xo2, yo2;
-			if (NUMclipLineWithinRectangle (x1, y1, x2, y2, xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2))
-				Graphics_line (g, xo1, yo1, xo2, yo2);
+			double x1c = x1, y1c = y1, x2c = x2, y2c = y2;
+			if (clipper -> clip (x1c, y1c, x2c, y2c))
+				Graphics_line (g, x1c, y1c, x2c, y2c);
 		}
 		x1 = x2;
 		y1 = y2;
@@ -314,13 +314,13 @@ void BandFilterSpectrogram_drawSpectrumAtNearestTimeSlice (BandFilterSpectrogram
 	}
 	Graphics_setWindow (g, fmin, fmax, dBmin, dBmax);
 	Graphics_setInner (g);
-
+	autoLineSegmentClipper clipper = LineSegmentClipper_create (fmin, dBmin, fmax, dBmax);
 	double x1 = my y1 + (iymin -1) * my dy, y1 = spectrum [iymin];
 	for (integer i = iymin + 1; i <= iymax - 1; i ++) {
 		double x2 = my y1 + (i -1) * my dy, y2 = spectrum [i];
-		double xo1, yo1, xo2, yo2;
-		if (NUMclipLineWithinRectangle (x1, y1, x2, y2, fmin, dBmin, fmax, dBmax, & xo1, & yo1, & xo2, & yo2))
-			Graphics_line (g, xo1, yo1, xo2, yo2);
+		double x1c = x1, y1c = y1, x2c = x2, y2c = y2;
+		if (clipper -> clip (x1c, y1c, x2c, y2c))
+			Graphics_line (g, x1c, y1c, x2c, y2c);
 		x1 = x2;
 		y1 = y2;
 	}
@@ -372,6 +372,7 @@ void BarkSpectrogram_drawSekeyHansonFilterFunctions (BarkSpectrogram me, Graphic
 		xz [iz] = f;
 		xhz [iz] = my v_frequencyToHertz (f); // just in case we need the linear scale
 	}
+	autoLineSegmentClipper clipper = LineSegmentClipper_create (xmin, xmax, ymin, ymax);
 	for (integer ifilter = fromFilter; ifilter <= toFilter; ifilter ++) {
 		const double zMid = Matrix_rowToY (me, ifilter);
 		for (integer iz = 1; iz <= n; iz ++) {
@@ -383,9 +384,9 @@ void BarkSpectrogram_drawSekeyHansonFilterFunctions (BarkSpectrogram me, Graphic
 		for (integer iz = 2; iz <= n; iz ++) {
 			const double x2 = ( xIsHertz ? xhz [iz] : xz [iz] ), y2 = y [iz];
 			if (isdefined (x1) && isdefined (x2)) {
-				double xo1, yo1, xo2, yo2;
-				if (NUMclipLineWithinRectangle (x1, y1, x2, y2, xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2))
-					Graphics_line (g, xo1, yo1, xo2, yo2);
+				double x1c = x1, y1c = y1, x2c = x2, y2c = y2;
+				if (clipper -> clip (x1c, y1c, x2c, y2c))
+					Graphics_line (g, x1c, y1c, x2c, y2c);
 			}
 			x1 = x2;
 			y1 = y2;
@@ -467,7 +468,7 @@ void MelSpectrogram_drawTriangularFilterFunctions (MelSpectrogram me, Graphics g
 		xz [iz] = f;
 		xhz [iz] = my v_frequencyToHertz (f); // just in case we need the linear scale
 	}
-	
+	autoLineSegmentClipper clipper = LineSegmentClipper_create (xmin, xmax, ymin, ymax);
 	for (integer ifilter = fromFilter; ifilter <= toFilter; ifilter ++) {
 		const double zc = Matrix_rowToY (me, ifilter), zl = zc - my dy, zh = zc + my dy;
 		double xo1, yo1, xo2, yo2;
@@ -482,8 +483,9 @@ void MelSpectrogram_drawTriangularFilterFunctions (MelSpectrogram me, Graphics g
 				for (integer iz = 1; iz <= n; iz ++) {
 					const double x2 = ( xIsHertz ? xhz [iz] : xz [iz] ), y2 = y [iz];
 					if (isdefined (y2)) {
-						if (NUMclipLineWithinRectangle (x1, y1, x2, y2, xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2))
-							Graphics_line (g, xo1, yo1, xo2, yo2);
+						double x1c = x1, y1c = y1, x2c = x2, y2c = y2;
+						if (clipper -> clip (x1c, y1c, x2c, y2c))
+							Graphics_line (g, x1c, y1c, x2c, y2c);
 					}
 					x1 = x2;
 					y1 = y2;
@@ -492,11 +494,13 @@ void MelSpectrogram_drawTriangularFilterFunctions (MelSpectrogram me, Graphics g
 		} else {
 			const double x1 = xIsHertz ? my v_frequencyToHertz (zl) : zl;
 			const double x2 = xIsHertz ? my v_frequencyToHertz (zc) : zc;
-			if (NUMclipLineWithinRectangle (x1, 0, x2, 1, xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2))
-				Graphics_line (g, xo1, yo1, xo2, yo2);
+			double x1c = x1, y1c = 0.0, x2c = x2, y2c = 1.0;
+			if (clipper->clip (x1c, y1c, x2c, y2c))
+				Graphics_line (g, x1c, y1c, x2c, y2c);
 			const double x3 = xIsHertz ? my v_frequencyToHertz (zh) : zh;
-			if (NUMclipLineWithinRectangle (x2, 1, x3, 0, xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2))
-				Graphics_line (g, xo1, yo1, xo2, yo2);
+			x1c = x2, y1c = 1.0, x2c = x3, y2c = 0.0;
+			if (clipper -> clip (x1c, y1c, x2c, y2c))
+				Graphics_line (g, x1c, y1c, x2c, y2c);
 		}
 	}
 	Graphics_unsetInner (g);

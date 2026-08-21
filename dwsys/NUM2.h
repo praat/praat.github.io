@@ -838,12 +838,6 @@ integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, doubl
 	The returned value is the number of intersections found and is either 0 or 1 or 2.
 */
 
-bool NUMclipLineWithinRectangle (double line_x1, double line_y1, double line_x2, double line_y2, double rect_x1, double rect_y1, double rect_x2, double rect_y2, double *out_line_x1, double *out_line_y1, double *out_line_x2, double *out_line_y2);
-/*
-	If true, then returns in (out_line_x1, out_line_y1) and (out_line_x2, out_line_y2) the coordinates of start and end points of the line (line_x1, line_y1)..(line_x2, line_y2) that can be drawn within the rectangle with lowerleft corner (rect_x1, rect_y1) and upperright (rect_x2, rect_y2).
-	Returns false if there is nothing to be drawn inside.
-*/
-
 void NUMgetEllipseBoundingBox (double a, double b, double cospsi,
 	double *out_width, double *out_height);
 /*

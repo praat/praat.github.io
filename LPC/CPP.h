@@ -19,6 +19,7 @@
  */
 
 #include "Vector.h"
+#include "Pitch.h"
 
 Thing_define (CPP, Vector) {
 	void v1_info ()
@@ -29,6 +30,8 @@ Thing_define (CPP, Vector) {
 
 /* 
 	Cepstral Peak Prominence is a measure that shows periodicity in the Spectrum.
+	The peak prominenceis the distance between top of the first peak in the PowerCepstrum
+	and the peak's background.
 	Periodicity in the Spectrum is caused by periodicity in the sound if the
 	sound is composed of multiple harmonics. A single sine with frequency f0 does not show 
 	periodicity in the spectrum, just a single peak. Only if there are harmonics of f0,
@@ -67,5 +70,7 @@ double CPP_getQuantile (CPP me, double quantile);
 autoMatrix CPP_to_Matrix (CPP me);
 
 autoCPP Matrix_to_CPP (Matrix me);
+
+autoCPP CPP_and_Pitch_to_CPP_markUnvoiced (CPP me, Pitch thee);
 
 #endif // _CPP_h_

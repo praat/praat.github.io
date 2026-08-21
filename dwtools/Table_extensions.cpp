@@ -1318,6 +1318,7 @@ void Table_lineGraph (Table me, Graphics g, integer xcolumn, double xmin, double
 		//double symbolHeight = lineSpacing / 1.5;
 		double x1, y1;
 		Graphics_setFontSize (g, symbolFontSize);
+		autoLineSegmentClipper clipper = LineSegmentClipper_create (xmin, xmax, ymin, ymax);
 		for (integer irow = 1; irow <= my rows.size; irow ++) {
 			const double y2 = Table_getNumericValue_a (me, irow, ycolumn);
 			double x2 = xIsNumeric ? Table_getNumericValue_a (me, irow, xcolumn) : irow;
@@ -1326,10 +1327,10 @@ void Table_lineGraph (Table me, Graphics g, integer xcolumn, double xmin, double
 				if (symbol && y2 >= ymin && y2 <= ymax && x2 <= xmax)
 					Graphics_text (g, x2, y2, symbol);
 				if (irow > 1) {
-					double x3, y3, x4, y4, xo1, yo1, xo2, yo2;
+					double x3, y3, x4, y4;
 					if (Graphics_getConnectingLine (g, symbol, symbolFontSize, x1, y1, symbol, x2, y2, & x3, & y3, & x4, & y4) && 
-							NUMclipLineWithinRectangle (x3, y3, x4, y4, xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2))
-						Graphics_line (g, xo1, yo1, xo2, yo2);
+						clipper -> clip (x3, y3, x4, y4))
+						Graphics_line (g, x3, y3, x4, y4);
 				}
 			} else {
 				x2 = x2 < xmin ? xmin : xmax;

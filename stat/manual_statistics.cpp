@@ -132,14 +132,14 @@ to create an empty Table.
 "Create H1H2 table (Keating & Esposito 2006)"
 © Paul Boersma 2023
 
-A command in the ##Datasets fromm the literature# submenu of the #Tables submenu of the @@New menu@,
+A command in the ##Datasets from the literature# submenu of the #Tables submenu of the @@New menu@,
 to create a Table from @@Keating & Esposito (2006)@.
 
 ################################################################################
 "Create Table (Ganong 1980)"
 © Paul Boersma 2023
 
-A command in the ##Datasets fromm the literature# submenu of the #Tables submenu of the @@New menu@,
+A command in the ##Datasets from the literature# submenu of the #Tables submenu of the @@New menu@,
 to create a Table from @@Ganong (1980)@.
 
 ################################################################################

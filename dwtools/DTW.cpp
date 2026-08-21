@@ -38,6 +38,7 @@
 */
 
 #include "DTW.h"
+#include "Graphics_extensions.h"
 #include "Sound_extensions.h"
 #include "NUM2.h"
 #include "NUMmachar.h"
@@ -541,14 +542,14 @@ static void DTW_drawPath_raw (DTW me, Graphics g, double xmin, double xmax, doub
 	Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 	double x1 = RealTier_getXAtIndex (thy yfromx.get(), 1);
 	double y1 = RealTier_getValueAtIndex (thy yfromx.get(), 1);
+	autoLineSegmentClipper clipper = LineSegmentClipper_create (xmin, xmax, ymin, ymax);
 	for (integer i = 2; i <= thy yfromx -> points.size; i ++) {
 		const double x2 = RealTier_getXAtIndex (thy yfromx.get(), i);
 		const double y2 = RealTier_getValueAtIndex (thy yfromx.get(), i);
-		double xc1, yc1, xc2, yc2;
-		if (NUMclipLineWithinRectangle (x1, y1, x2, y2, xmin, ymin, xmax, ymax, & xc1, & yc1, & xc2, & yc2))
-			Graphics_line (g, xc1, yc1, xc2, yc2);
-
-		x1 = x2; 
+		double x1c = x1, y1c = y1, x2c = x2, y2c = y2;
+		if (clipper -> clip (x1c, y1c, x2c, y2c))
+			Graphics_line (g, x1c, y1c, x2c, y2c);
+		x1 = x2;
 		y1 = y2;
 	}
 
