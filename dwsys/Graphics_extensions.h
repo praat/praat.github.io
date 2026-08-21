@@ -153,9 +153,17 @@ public:
 	/*
 		For rectangular window:
 	*/
-	void init (double xL, double xR, double yB, double yT) {
-		Melder_assert (xL < xR && yB < yT);
-		corners = {{xL, yB, 1.0}, {xR, yB, 1.0}, {xR, yT, 1.0}, {xL, yT, 1.0}};
+	void init (double x1, double x2, double y1, double y2) {
+		/*
+			We want bottomLeft as (x1,y1) and topRight as (x2,y2),
+			corners anti clockwise
+		*/
+		if (x1 > x2)
+			std::swap (x1, x2);
+		if (y1 > y2)
+			std::swap (y1, y2);
+		//            BL             BR               TR            TL
+		corners = {{x1, y1, 1.0}, {x2, y1, 1.0}, {x2, y2, 1.0}, {x1, y2, 1.0}};
 		edges = newvectorzero<structHPoint> (4);
 		for (integer i = 1; i <= 4; i ++) {
 			const integer ip1 = i % 4 + 1;
