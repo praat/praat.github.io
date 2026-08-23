@@ -72,6 +72,15 @@ SPDX-License-Identifier: MIT
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="7.0.01" date="2026-08-18">
+      <url type="details">https://github.com/praat/praat.github.io/releases/tag/v7.0.01</url>
+      <description>
+        <ul>
+          <li>CPP.</li>
+          <li>Corpus: read CGN 2.0.3.</li>
+        </ul>
+      </description>
+    </release>
     <release version="7.0" date="2026-08-04">
       <url type="details">https://github.com/praat/praat.github.io/releases/tag/v7.0</url>
       <description>
