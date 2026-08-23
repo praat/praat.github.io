@@ -1,10 +1,10 @@
 /* melder_enums.h
  *
- * Copyright (C) 2007,2013,2015,2016,2018,2019 Paul Boersma
+ * Copyright (C) 2007,2013,2015,2016,2018,2019,2025,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -70,7 +70,7 @@ enums_begin (kMelder_textOutputEncoding, 1)
 	enums_add (kMelder_textOutputEncoding, 2, UTF16, U"UTF-16")
 	enums_add (kMelder_textOutputEncoding, 3, ASCII_THEN_UTF16, U"try ASCII, then UTF-16")
 	enums_add (kMelder_textOutputEncoding, 4, ISO_LATIN1_THEN_UTF16, U"try ISO Latin-1, then UTF-16")
-enums_end (kMelder_textOutputEncoding, 4, ASCII_THEN_UTF16)
+enums_end (kMelder_textOutputEncoding, 4, UTF8)
 
 enums_begin (kMelder_asynchronicityLevel, 0)
 	enums_add (kMelder_asynchronicityLevel, 0, SYNCHRONOUS, U"synchronous (nothing)")
