@@ -26,7 +26,9 @@
 autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soundFileExtension,
 	conststring32 folderWithAnnotationFiles, conststring32 annotationFileExtension);
 
-autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath);
+autoCorpus Corpus_importFromCGN (conststring32 rootFolderPath);
+
+autoTextGrid Corpus_extractTextGrid_number (Corpus me, integer recordingNumber);
 
 #endif
 /* End of file Corpus.h */

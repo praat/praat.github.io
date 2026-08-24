@@ -42,7 +42,7 @@ kMelder_textOutputEncoding Melder_getOutputEncoding () { return preferences. out
 
 void Melder_textEncoding_prefs () {
 	Preferences_addEnum (U"TextEncoding.inputEncoding", & preferences. inputEncoding, kMelder_textInputEncoding, kMelder_textInputEncoding::DEFAULT);
-	Preferences_addEnum (U"TextEncoding.outputEncoding", & preferences. outputEncoding, kMelder_textOutputEncoding, kMelder_textOutputEncoding::DEFAULT);
+	Preferences_addEnum (U"TextEncoding.outputEncoding.2", & preferences. outputEncoding, kMelder_textOutputEncoding, kMelder_textOutputEncoding::DEFAULT);
 }
 
 bool Melder_isValidAscii (conststring32 text) {

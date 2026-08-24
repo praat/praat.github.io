@@ -38,7 +38,7 @@
 #include "oo_DESCRIPTION.h"
 #include "Corpus_def.h"
 
-Thing_implement (Corpus, Table, 1);
+Thing_implement (Corpus, Daata, 0);
 
 autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soundFileExtension,
 	conststring32 folderWithAnnotationFiles, conststring32 annotationFileExtension)
@@ -49,12 +49,12 @@ autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soun
 		folderWithAnnotationFiles = folderWithSoundFiles;
 	my folderWithAnnotationFiles = Melder_dup (folderWithAnnotationFiles);
 	autoSTRVEC fileList = fileNames_STRVEC (Melder_cat (folderWithSoundFiles, U"/*.", soundFileExtension));
-	Table_initWithColumnNames (me.get(), fileList.size,
+	Table_initWithColumnNames (my recordings.get(), fileList.size,
 			autoSTRVEC ({ U"Sound", U"Annotation" }).get());
 	autoMelderString annotationFileName;
 	for (integer ifile = 1; ifile <= fileList.size; ifile ++) {
 		conststring32 soundFileName = fileList [ifile].get();
-		Table_setStringValue (me.get(), ifile, 1, soundFileName);
+		Table_setStringValue (my recordings.get(), ifile, 1, soundFileName);
 		const char32 *dotLocation = str32rchr (soundFileName, U'.');
 		Melder_assert (!! dotLocation);
 		MelderString_ncopy (& annotationFileName, soundFileName, dotLocation - soundFileName + 1);
@@ -62,15 +62,15 @@ autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soun
 		structMelderFile annotationFile { };
 		Melder_pathToFile (Melder_cat (folderWithAnnotationFiles, U"/", annotationFileName.string), & annotationFile);
 		if (MelderFile_exists (& annotationFile))
-			Table_setStringValue (me.get(), ifile, 2, annotationFileName.string);
+			Table_setStringValue (my recordings.get(), ifile, 2, annotationFileName.string);
 	}
 	return me;
 }
 
-autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
+autoCorpus Corpus_importFromCGN (conststring32 rootFolderPath) {
 	autoCorpus me = Thing_new (Corpus);
-	const conststring32 columnNames_array [] = { U"comp", U"region", U"data" };
-	Table_initWithColumnNames (me.get(), 0, ARRAY_TO_STRVEC (columnNames_array));
+	const conststring32 columnNames_array [] = { U"component", U"region", U"recording" };
+	my recordings = Table_createWithColumnNames (0, ARRAY_TO_STRVEC (columnNames_array));
 
 	structMelderFolder rootFolder { };
 	Melder_relativePathToFolder (rootFolderPath, & rootFolder);
@@ -117,10 +117,10 @@ autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
 						structMelderFile soundFile { };
 						MelderFolder_getFile (& regionFolder, soundFileNames [ifile].get(), & soundFile);
 						textGrid = TextGrid_Sound_readFromCorpusGesprokenNederlands (MelderFile_peekPath (& soundFile), nullptr);
-						Table_appendRow (me.get());
-						Table_setStringValue (me.get(), my rows.size, 1, compFolderNames [icomp].get());
-						Table_setStringValue (me.get(), my rows.size, 2, regionNames [iregion]);
-						Table_setStringValue (me.get(), my rows.size, 3, soundFileNames [ifile].get());
+						Table_appendRow (my recordings.get());
+						Table_setStringValue (my recordings.get(), my recordings -> rows.size, 1, compFolderNames [icomp].get());
+						Table_setStringValue (my recordings.get(), my recordings -> rows.size, 2, regionNames [iregion]);
+						Table_setStringValue (my recordings.get(), my recordings -> rows.size, 3, soundFileNames [ifile].get());
 						my textGrids. addItem_move (textGrid.move());
 					} catch (MelderError) {
 						Melder_clearError ();
@@ -130,7 +130,34 @@ autoCorpus Corpus_readFromCGN (conststring32 rootFolderPath) {
 			}
 		}
 	}
+
+	structMelderFolder metadataFolder { };
+	MelderFolder_getSubfolder (& dataFolder, U"meta", & metadataFolder);
+	Melder_require (MelderFolder_exists (& metadataFolder),
+		U"CGN folder ", & metadataFolder, U" does not exist.");
+
+	structMelderFolder metadataTextFolder { };
+	MelderFolder_getSubfolder (& metadataFolder, U"text", & metadataTextFolder);
+	Melder_require (MelderFolder_exists (& metadataTextFolder),
+		U"CGN folder ", & metadataTextFolder, U" does not exist.");
+
+	structMelderFile speakersFile { };
+	MelderFolder_getFile (& metadataTextFolder, U"speakers.txt", & speakersFile);
+	Melder_require (MelderFile_exists (& speakersFile),
+		U"CGN file ", & speakersFile, U" does not exist.");
+
+	my speakers = Table_readFromCharacterSeparatedTextFile (& speakersFile, U'\t', false);
 	return me;
+}
+
+autoTextGrid Corpus_extractTextGrid_number (Corpus me, integer recordingNumber) {
+	Melder_require (recordingNumber >= 1,
+		U"The recording number (", recordingNumber, U") should be at least 1.");
+	Melder_require (recordingNumber <= my recordings -> rows.size,
+		U"The recording number (", recordingNumber, U") should be at most the number of recordings (", my recordings -> rows.size, U").");
+	autoTextGrid thee = Data_copy (my textGrids.at [recordingNumber]);
+	Thing_setName (thee.get(), Table_getStringValue_a (my recordings.get(), recordingNumber, 3));
+	return thee;
 }
 
 /* End of file Corpus.cpp */

@@ -23,7 +23,7 @@
 #include "Sound.h"
 
 Thing_define (CorpusEditor, TableEditor) {
-	Corpus corpus() { return static_cast <Corpus> (our data()); }
+	Corpus corpus;
 	autoSound sound;
 	bool v_clickCell (integer row, integer column, bool shiftKeyPressed)
 		override;

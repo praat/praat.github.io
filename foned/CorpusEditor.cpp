@@ -27,7 +27,7 @@ bool structCorpusEditor :: v_clickCell (integer row, integer column, bool shiftK
 	if (our selectedColumn == 3) {
 		conststring32 rowTitle = Table_getStringValue_a (our table(), our selectedRow, our selectedColumn);
 		structMelderFolder wavFolder { };
-		Melder_relativePathToFolder (our corpus() -> folderWithSoundFiles.get(), & wavFolder);
+		Melder_relativePathToFolder (our corpus -> folderWithSoundFiles.get(), & wavFolder);
 		structMelderFolder compFolder { };
 		MelderFolder_getSubfolder (& wavFolder, Table_getStringValue_a (our table(), our selectedRow, 1), & compFolder);
 		structMelderFolder regionFolder { };
@@ -42,13 +42,13 @@ bool structCorpusEditor :: v_clickCell (integer row, integer column, bool shiftK
 			TODO: the following lines probably don't belong here.
 		*/
 		int IOBJECT;
-		WHERE (theCurrentPraatObjects -> list [IOBJECT]. object == our corpus())
+		WHERE (theCurrentPraatObjects -> list [IOBJECT]. object == our corpus)
 			break;
 		Melder_assert (IOBJECT > 0);
 		Melder_assert (IOBJECT <= theCurrentPraatObjects -> n);
 		autoTextGridEditor textgridEditor = TextGridEditor_create (
 			Melder_cat (ID_AND_FULL_NAME, U"  –  ", rowTitle),
-			our corpus() -> textGrids.at [our selectedRow],
+			our corpus -> textGrids.at [our selectedRow],
 			our sound.get(),
 			nullptr,
 			nullptr
@@ -62,7 +62,8 @@ bool structCorpusEditor :: v_clickCell (integer row, integer column, bool shiftK
 autoCorpusEditor CorpusEditor_create (conststring32 title, Corpus corpus) {
 	try {
 		autoCorpusEditor me = Thing_new (CorpusEditor);
-		TableEditor_init (me.get(), title, corpus);
+		TableEditor_init (me.get(), title, corpus -> recordings.get());
+		my corpus = corpus;
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"CorpusEditor not created.");

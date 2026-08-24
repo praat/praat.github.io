@@ -17,7 +17,6 @@
  */
 
 #include "Cochleagram_and_Excitation.h"
-#include "CorpusEditor.h"
 #include "Distributions_and_Strings.h"
 #include "Distributions_and_Transition.h"
 #include "Excitation_to_Formant.h"
@@ -140,31 +139,6 @@ DIRECT (NEW_Cochleagram_to_Matrix) {
 	CONVERT_EACH_TO_ONE (Cochleagram)
 		autoMatrix result = Cochleagram_to_Matrix (me);
 	CONVERT_EACH_TO_ONE_END (my name.get())
-}
-
-// MARK: - CORPUS
-
-// MARK: New
-
-FORM (NEW1_Corpus_create, U"Create Corpus", U"Create Corpus...") {
-	WORD (name, U"Name", U"myCorpus")
-	FOLDER (folderWithSoundFiles, U"Folder with sound files", U"")
-	WORD (soundFileExtension, U"Sound file extension", U"wav")
-	FOLDER (folderWithAnnotationFiles, U"Folder with annotation files", U"")
-	WORD (annotationFileExtension, U"Annotation file extension", U"TextGrid")
-	OK
-DO
-	CREATE_ONE
-		autoCorpus result = Corpus_create (folderWithSoundFiles, soundFileExtension, folderWithAnnotationFiles, annotationFileExtension);
-	CREATE_ONE_END (name)
-}
-
-// MARK: View & Edit
-
-DIRECT (EDITOR_ONE_Corpus_edit) {
-	EDITOR_ONE (a,Corpus)
-		autoCorpusEditor editor = CorpusEditor_create (ID_AND_FULL_NAME, me);
-	EDITOR_ONE_END
 }
 
 // MARK: - DISTRIBUTIONS
@@ -2812,82 +2786,6 @@ DIRECT (NEW_Strings_to_WordList) {
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
-// MARK: - TEXTGRID; the remainder is in praat_TextGrid_init.cpp
-
-FORM (NEW1_TextGrid_create, U"Create TextGrid", U"Create TextGrid...") {
-	COMMENT (U"Hint: to label or segment an existing Sound,")
-	COMMENT (U"select that Sound and choose \"To TextGrid...\".")
-	REAL (startTime, U"Start time (s)", U"0.0")
-	REAL (endTime, U"End time (s)", U"1.0")
-	SENTENCE (allTierNames, U"All tier names", U"Mary John bell")
-	SENTENCE (whichOfTheseArePointTiers, U"Which of these are point tiers?", U"bell")
-	OK
-DO
-	if (endTime <= startTime)
-		Melder_throw (U"The end time should be greater than the start time");
-	CREATE_ONE
-		autoTextGrid result = TextGrid_create (startTime, endTime, allTierNames, whichOfTheseArePointTiers);
-	CREATE_ONE_END (allTierNames)
-}
-
-FORM (READ_ONE__TextGrid_readFromEspsLabelFile, U"Read TextGrid from ESPS label file", U"Read TextGrid from ESPS label file...") {
-	INFILE (soundFilePath, U"Sound file path", U"")
-	BOOLEAN (tiersArePointTiers, U"Tiers are point tiers", false)
-	INTEGER (overrideNumberOfTiers, U"Override number of tiers", U"0 (= don't override)")
-	OK
-DO
-	CREATE_ONE
-		structMelderFile file { };
-		Melder_relativePathToFile (soundFilePath, & file);
-		autoTextGrid result = TextGrid_readFromEspsLabelFile (& file, tiersArePointTiers, overrideNumberOfTiers);
-	CREATE_ONE_END (U"")
-}
-
-FORM (NEW_Sound_readWithAdjacentAnnotationFiles_buckeye, U"Read with adjacent annotations (Buckeye)", U"Read with adjacent annotation files (Buckeye)...") {
-	INFILE (soundFileName, U"Sound file name", U"/Volumes/Buckeye/s01/s0101a/s0101a.wav")
-	OK
-DO
-	CREATE_MULTIPLE
-		autoTextGrid textgrid;
-		autoSound sound = Sound_readWithAdjacentAnnotationFiles_buckeye (soundFileName, & textgrid);
-		praat_new (sound.move());
-		praat_new (textgrid.move());
-	CREATE_MULTIPLE_END
-}
-
-FORM (NEW_Sound_readWithAdjacentAnnotationFiles_timit, U"Read with adjacent annotations (TIMIT)", U"Read with adjacent annotation files (TIMIT)...") {
-	INFILE (soundFileName, U"Sound file name", U"/Volumes/TIMIT/train/dr1/fcjf0/sa1.wav")
-	OK
-DO
-	CREATE_MULTIPLE
-		autoTextGrid textgrid;
-		autoSound sound = Sound_readWithAdjacentAnnotationFiles_timit (soundFileName, & textgrid);
-		praat_newWithFile (sound.move(), nullptr, soundFileName);
-		praat_newWithFile (textgrid.move(), nullptr, soundFileName);
-	CREATE_MULTIPLE_END
-}
-
-FORM (NEW_Sound_readWithAdjacentAnnotationFiles_cgn, U"Read with adjacent annotations (CGN)", U"Read with adjacent annotation files (CGN)...") {
-	INFILE (soundFileName, U"Sound file name", U"/Volumes/CGN/comp-a/vl/fv400061.wav")
-	OK
-DO
-	CREATE_MULTIPLE
-		autoSound sound;
-		autoTextGrid textgrid = TextGrid_Sound_readFromCorpusGesprokenNederlands (soundFileName, & sound);
-		praat_newWithFile (sound.move(), nullptr, soundFileName);
-		praat_newWithFile (textgrid.move(), nullptr, soundFileName);
-	CREATE_MULTIPLE_END
-}
-
-FORM (NEW_Corpus_readFromCGN, U"Read Corpus from CGN", U"Read Corpus from CGN...") {
-	FOLDER (folderName, U"CGN folder name", U"/Volumes/CGN")
-	OK
-DO
-	CREATE_ONE
-		autoCorpus result = Corpus_readFromCGN (folderName);
-	CREATE_ONE_END (U"CGN")
-}
-
 // MARK: - TRANSITION
 
 DIRECT (NEW_Transition_conflate) {
@@ -3066,9 +2964,7 @@ void praat_uvafon_init () {
 		classLabel, classTier, classAutosegment,   // three obsolete classes (pre-1997)
 		classIntensity, classPitch, classHarmonicity,
 		classTransition,
-		classManipulation, classTextPoint, classTextInterval, classTextTier,
-		classIntervalTier, classTextGrid, classWordList, classSpellingChecker,
-		classCorpus
+		classManipulation
 	);
 	Thing_recognizeClassByOtherName (classManipulation, U"Psola");      // obsolete name (pre-1997)
 	Thing_recognizeClassByOtherName (classManipulation, U"Analysis");   // obsolete name (pre-2001)
@@ -3098,15 +2994,8 @@ void praat_uvafon_init () {
 		in which they have to appear in the New menu:
 	*/
 	praat_Sound_init ();
-
-	praat_addMenuCommand (U"Objects", U"New", U"-- new textgrid --",
-			nullptr, 0, nullptr);
-	praat_addMenuCommand (U"Objects", U"New", U"Create TextGrid...",
-			nullptr, 0, NEW1_TextGrid_create);
 	praat_uvafon_TextGrid_init ();
 	praat_Tiers_init ();
-	praat_addMenuCommand (U"Objects", U"New", U"Create Corpus...",
-			nullptr, 0, NEW1_Corpus_create);
 
 	praat_addMenuCommand (U"Objects", U"New", U"-- new stats --",
 			nullptr, 0, nullptr);
@@ -3134,21 +3023,6 @@ void praat_uvafon_init () {
 
 	praat_addMenuCommand (U"Objects", U"Open", U"Read Strings from raw text file...",
 			nullptr, 0, READ_ONE__Strings_readFromRawTextFile);
-
-	praat_addMenuCommand (U"Objects", U"Open", U"-- read tier --", nullptr, 0, nullptr);
-	praat_addMenuCommand (U"Objects", U"Open", U"Read from special annotation file...", nullptr, 0, nullptr);
-		praat_addMenuCommand (U"Objects", U"Open", U"Read TextGrid from Xwaves... || Read TextGrid from ESPS label file...",
-				nullptr, 1, READ_ONE__TextGrid_readFromEspsLabelFile);
-	praat_addMenuCommand (U"Objects", U"Open", U"Read Sound with adjacent annotation files...", nullptr, 0, nullptr);
-		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound with adjacent annotation files (Buckeye)...",
-				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_buckeye);
-		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound with adjacent annotation files (TIMIT)...",
-				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_timit);
-		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound with adjacent annotation files (Corpus Gesproken Nederlands)...",
-				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_cgn);
-	praat_addMenuCommand (U"Objects", U"Open", U"Open Corpus...", nullptr, 0, nullptr);
-		praat_addMenuCommand (U"Objects", U"Open", U"Read Corpus from CGN...",
-				nullptr, 1, NEW_Corpus_readFromCGN);
 
 	praat_addMenuCommand (U"Objects", U"ApplicationHelp", U"Praat Intro", nullptr, '?', HELP_PraatIntro);
 	#ifndef macintosh
@@ -3224,8 +3098,6 @@ praat_addAction1 (classCochleagram, 0, U"Analyse", nullptr, 0, nullptr);
 praat_addAction1 (classCochleagram, 0, U"Hack", nullptr, 0, nullptr);
 	praat_addAction1 (classCochleagram, 0, U"To Matrix",
 			nullptr, 0, NEW_Cochleagram_to_Matrix);
-
-	praat_addAction1 (classCorpus, 1, U"View & Edit", nullptr, GuiMenu_ATTRACTIVE, EDITOR_ONE_Corpus_edit);
 
 praat_addAction1 (classDistributions, 0, U"Learn", nullptr, 0, nullptr);
 	praat_addAction1 (classDistributions, 1, U"To Transition...",
