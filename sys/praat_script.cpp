@@ -426,6 +426,7 @@ bool praat_executeCommand (Interpreter interpreter, char32 *command) {
 		    (str32nequ (command, U"Save ", 5) ||
 			 str32nequ (command, U"Write ", 6) ||
 			 str32nequ (command, U"Append to ", 10) ||
+			 str32nequ (command, U"Export ", 7) ||
 			 str32nequ (command, U"Quit", 4)))
 		{
 			Melder_throw (U"Commands that write files (including Quit) are not available inside manuals.");
