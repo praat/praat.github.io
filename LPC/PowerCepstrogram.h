@@ -57,7 +57,7 @@ autoPowerCepstrogram PowerCepstrogram_smooth (PowerCepstrogram me, double timeAv
 autoTable PowerCepstrogram_to_Table_hillenbrand (PowerCepstrogram me, double pitchFloor, double pitchCeiling);
 
 autoCPP PowerCepstrogram_to_CPP (PowerCepstrogram me, double pitchFloor, double pitchCeiling, 
-	double deltaF0, kVector_peakInterpolation peakInterpolationType, double qstartFit, double qendFit,
+	kVector_peakInterpolation peakInterpolationType, double qstartFit, double qendFit,
 	kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod);
 
 autoTable PowerCepstrogram_to_Table_CPP (PowerCepstrogram me, bool includeFrameNumber, bool includeTime, 
