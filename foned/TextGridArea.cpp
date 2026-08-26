@@ -441,6 +441,7 @@ void structTextGridArea :: v_drawInside () {
 	const enum kGraphics_font oldFont = Graphics_inqFont (our graphics());
 	const double oldFontSize = Graphics_inqFontSize (our graphics());
 	Graphics_setWindow (our graphics(), our startWindow(), our endWindow(), 0.0, 1.0);
+	const double xleft = our functionViewerLeft_WC();
 	const double xright = our functionViewerRight_WC();
 	for (integer itier = 1; itier <= numberOfTiers; itier ++) {
 		const Function anyTier = our textGrid() -> tiers->at [itier];
@@ -455,30 +456,44 @@ void structTextGridArea :: v_drawInside () {
 			Graphics_line (our graphics(), our startWindow(), 1.0, our endWindow(), 1.0);
 
 		/*
-			Show the number and the name of the tier.
+			Show which tier is selected.
+		*/
+		if (tierIsSelected) {
+			MelderColour oldColour = Graphics_inqColour (our graphics());
+			Graphics_setColour (our graphics(), Melder_YELLOW);
+			Graphics_fillRectangle (our graphics(), xleft, our startWindow(), 0.0, 1.0);
+			Graphics_fillRectangle (our graphics(), our endWindow(), xright, 0.0, 1.0);
+			Graphics_setColour (our graphics(), oldColour);
+		}
+		/*
+			Show the name of the tier.
 		*/
 		Graphics_setColour (our graphics(), DataGui_defaultForegroundColour (this, tierIsSelected));
 		Graphics_setFont (our graphics(), oldFont);
 		Graphics_setFontSize (our graphics(), 14);
-		Graphics_setTextAlignment (our graphics(), Graphics_RIGHT, Graphics_HALF);
-		Graphics_text (our graphics(), our startWindow(), 0.5,   tierIsSelected ? U"☞ " : U"", itier);
-		Graphics_setFontSize (our graphics(), oldFontSize);
 		if (anyTier -> name && anyTier -> name [0]) {
 			Graphics_setTextAlignment (our graphics(), Graphics_LEFT, Graphics_HALF);
 			Graphics_rectangleText_maximalFit (our graphics(), our endWindow(), xright, 0.05, 0.5,
-					our instancePref_showNumberOf() == kTextGridArea_showNumberOf::NOTHING ? 0.0 : 0.5, 1.0, 0.01, 0.1, anyTier -> name.get());
+					0.0, 1.0, 0.01, 0.1, anyTier -> name.get());
 		}
-		if (our instancePref_showNumberOf() != kTextGridArea_showNumberOf::NOTHING) {
-			Graphics_setTextAlignment (our graphics(), Graphics_LEFT, Graphics_HALF);
+		/*
+			Show the number of the tier.
+		*/
+		Graphics_setTextAlignment (our graphics(), Graphics_RIGHT, Graphics_HALF);
+		if (our instancePref_showNumberOf() == kTextGridArea_showNumberOf::NOTHING) {
+			Graphics_rectangleText_maximalFit (our graphics(), xleft, our startWindow(), 0.05, 0.5,
+					0.0, 1.0, 0.01, 0.1, Melder_cat (U"##", itier));
+		} else {
+			const conststring32 units = ( isIntervalTier ? U" int" : U" pts" );
 			if (our instancePref_showNumberOf() == kTextGridArea_showNumberOf::INTERVALS_OR_POINTS) {
 				const integer count = ( isIntervalTier ? ((IntervalTier) anyTier) -> intervals.size : ((TextTier) anyTier) -> points.size );
 				const integer position = ( itier == our selectedTier ? ( isIntervalTier ? getSelectedInterval (this) : getSelectedPoint (this) ) : 0 );
 				if (position)
-					Graphics_rectangleText_maximalFit (our graphics(), our endWindow(), xright, 0.05, 0.5,
-							0.0, 0.5, 0.01, 0.1, Melder_cat (U"(", position, U"/", count, U")"));
+					Graphics_rectangleText_maximalFit (our graphics(), xleft, our startWindow(), 0.05, 0.5,
+							0.0, 1.0, 0.01, 0.1, Melder_cat (tierIsSelected ? U"\\s{(" : U"     \\s{(", position, U"/", count, units, U")}  ##", itier));
 				else
-					Graphics_rectangleText_maximalFit (our graphics(), our endWindow(), xright, 0.05, 0.5,
-							0.0, 0.5, 0.01, 0.1, Melder_cat (U"(", count, U")"));
+					Graphics_rectangleText_maximalFit (our graphics(), xleft, our startWindow(), 0.05, 0.5,
+							0.0, 1.0, 0.01, 0.1, Melder_cat (tierIsSelected ? U"\\s{(" : U"     \\s{(", count, units, U")}  ##", itier));
 			} else {
 				Melder_assert (our instancePref_showNumberOf() == kTextGridArea_showNumberOf::NONEMPTY_INTERVALS_OR_POINTS);
 				integer count = 0;
@@ -499,8 +514,8 @@ void structTextGridArea :: v_drawInside () {
 							count ++;
 					}
 				}
-				Graphics_rectangleText_maximalFit (our graphics(), our endWindow(), xright, 0.05, 0.5,
-						0.0, 0.5, 0.01, 0.1, Melder_cat (U"(##", count, U"#)"));
+				Graphics_rectangleText_maximalFit (our graphics(), xleft, our startWindow(), 0.05, 0.5,
+						0.0, 1.0, 0.01, 0.1, Melder_cat (tierIsSelected ? U"\\s{(##" : U"     \\s{(##", count, units, U"#)}  ##", itier));
 			}
 		}
 

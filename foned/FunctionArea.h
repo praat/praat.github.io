@@ -2,11 +2,11 @@
 #define _FunctionArea_h_
 /* FunctionArea.h
  *
- * Copyright (C) 1992-2005,2007-2012,2015-2018,2020-2022 Paul Boersma
+ * Copyright (C) 1992-2005,2007-2012,2015-2018,2020-2022,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
+ * the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
  *
  * This code is distributed in the hope that it will be useful, but
@@ -155,6 +155,9 @@ public:
 	double y_fraction_globalToLocal (double globalY_fraction) const {
 		const double y_pxlt = globalY_fraction_to_pxlt (globalY_fraction);
 		return (y_pxlt - our bottom_pxlt()) / (our top_pxlt() - our bottom_pxlt());
+	}
+	double functionViewerLeft_WC () const {
+		return our functionEditor() -> functionViewerLeft_WC();
 	}
 	double functionViewerRight_WC () const {
 		return our functionEditor() -> functionViewerRight_WC();
