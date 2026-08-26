@@ -1776,6 +1776,167 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", textgridName.get())
 }
 
+FORM (NEW_Corpus_extractSound_number, U"Corpus: Extract Sound (number)", U"Corpus: Extract Sound (number)") {
+	NATURAL (recordingNumber, U"Recording number", U"1")
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Corpus)
+		autoSound result = Corpus_extractSound_number (me, recordingNumber);
+		autostring32 textgridName = Melder_dup (result -> name.get());
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", textgridName.get())
+}
+
+DIRECT (NEW_Corpus_extractSpeakersTable) {
+	CONVERT_EACH_TO_ONE (Corpus)
+		autoTable result = Data_copy (my speakers.get());
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_speakers")
+}
+
+FORM (NEW_Corpus_extractComponents, U"Corpus: Extract components", U"Corpus: Extract components") {
+	BOOLEAN (comp_a, U"comp-a", true)
+	BOOLEAN (comp_b, U"comp-b", true)
+	BOOLEAN (comp_c, U"comp-c", false)
+	BOOLEAN (comp_d, U"comp-d", false)
+	BOOLEAN (comp_e, U"comp-e", false)
+	BOOLEAN (comp_f, U"comp-f", false)
+	BOOLEAN (comp_g, U"comp-g", false)
+	BOOLEAN (comp_h, U"comp-h", false)
+	BOOLEAN (comp_i, U"comp-i", false)
+	BOOLEAN (comp_j, U"comp-j", false)
+	BOOLEAN (comp_k, U"comp-k", false)
+	BOOLEAN (comp_l, U"comp-l", false)
+	BOOLEAN (comp_m, U"comp-m", false)
+	BOOLEAN (comp_n, U"comp-n", false)
+	BOOLEAN (comp_o, U"comp-o", false)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Corpus)
+		autoCorpus result = Corpus_extractComponents (me, comp_a, comp_b, comp_c, comp_d, comp_e, comp_f, comp_g,
+				comp_h, comp_i, comp_j, comp_k, comp_l, comp_m, comp_n, comp_o);
+		autoMelderString componentList;
+		if (comp_a)
+			MelderString_appendCharacter (& componentList, U'a');
+		if (comp_b)
+			MelderString_appendCharacter (& componentList, U'b');
+		if (comp_c)
+			MelderString_appendCharacter (& componentList, U'c');
+		if (comp_d)
+			MelderString_appendCharacter (& componentList, U'd');
+		if (comp_e)
+			MelderString_appendCharacter (& componentList, U'e');
+		if (comp_f)
+			MelderString_appendCharacter (& componentList, U'f');
+		if (comp_g)
+			MelderString_appendCharacter (& componentList, U'g');
+		if (comp_h)
+			MelderString_appendCharacter (& componentList, U'h');
+		if (comp_i)
+			MelderString_appendCharacter (& componentList, U'i');
+		if (comp_j)
+			MelderString_appendCharacter (& componentList, U'j');
+		if (comp_k)
+			MelderString_appendCharacter (& componentList, U'k');
+		if (comp_l)
+			MelderString_appendCharacter (& componentList, U'l');
+		if (comp_m)
+			MelderString_appendCharacter (& componentList, U'm');
+		if (comp_n)
+			MelderString_appendCharacter (& componentList, U'n');
+		if (comp_o)
+			MelderString_appendCharacter (& componentList, U'o');
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", componentList.string)
+}
+
+FORM (NEW_Corpus_extractEducationRegions, U"Corpus: Extract education regions", U"Corpus: Extract education regions") {
+	BOOLEAN (sHolland, Corpus_CGN_regions_short [0], false)
+	BOOLEAN (nHolland, Corpus_CGN_regions_short [1], false)
+	BOOLEAN (wUtrecht, Corpus_CGN_regions_short [2], false)
+	BOOLEAN (zeeland, Corpus_CGN_regions_short [3], false)
+	BOOLEAN (eUtrecht, Corpus_CGN_regions_short [4], false)
+	BOOLEAN (guelders, Corpus_CGN_regions_short [5], true)
+	BOOLEAN (veluwe, Corpus_CGN_regions_short [6], false)
+	BOOLEAN (wFriesland, Corpus_CGN_regions_short [7], false)
+	BOOLEAN (polders, Corpus_CGN_regions_short [8], false)
+	BOOLEAN (achterhoek, Corpus_CGN_regions_short [9], false)
+	BOOLEAN (overijssel, Corpus_CGN_regions_short [10], false)
+	BOOLEAN (drenthe, Corpus_CGN_regions_short [11], false)
+	BOOLEAN (groningen, Corpus_CGN_regions_short [12], false)
+	BOOLEAN (frisia, Corpus_CGN_regions_short [13], true)
+	BOOLEAN (nBrabant, Corpus_CGN_regions_short [14], false)
+	BOOLEAN (eLimburg, Corpus_CGN_regions_short [15], true)
+	BOOLEAN (netherlands, Corpus_CGN_regions_short [16], false)
+	BOOLEAN (sBrabant, Corpus_CGN_regions_short [17], false)
+	BOOLEAN (eFlanders, Corpus_CGN_regions_short [18], false)
+	BOOLEAN (wFlanders, Corpus_CGN_regions_short [19], true)
+	BOOLEAN (wLimburg, Corpus_CGN_regions_short [20], true)
+	BOOLEAN (nBelgium, Corpus_CGN_regions_short [21], false)
+	BOOLEAN (sBelgium, Corpus_CGN_regions_short [22], false)
+	BOOLEAN (reg_other, Corpus_CGN_regions_short [23], false)
+	BOOLEAN (reg_unknown, Corpus_CGN_regions_short [24], false)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Corpus)
+		autoCorpus result = Corpus_extractEducationRegions (me,
+			sHolland, nHolland, wUtrecht, zeeland, eUtrecht,
+			guelders, veluwe, wFriesland, polders, achterhoek,
+			overijssel, drenthe, groningen, frisia, nBrabant,
+			eLimburg, netherlands, sBrabant, eFlanders, wFlanders,
+			wLimburg, nBelgium, sBelgium, reg_other, reg_unknown
+		);
+		autoMelderString regionList;
+		if (sHolland)
+			MelderString_append (& regionList, U"_SH");
+		if (nHolland)
+			MelderString_append (& regionList, U"_NH");
+		if (wUtrecht)
+			MelderString_append (& regionList, U"_WU");
+		if (zeeland)
+			MelderString_append (& regionList, U"_Ze");
+		if (eUtrecht)
+			MelderString_append (& regionList, U"_EU");
+		if (guelders)
+			MelderString_append (& regionList, U"_Ge");
+		if (veluwe)
+			MelderString_append (& regionList, U"_Ve");
+		if (wFriesland)
+			MelderString_append (& regionList, U"_WF");
+		if (polders)
+			MelderString_append (& regionList, U"_Po");
+		if (achterhoek)
+			MelderString_append (& regionList, U"_Ac");
+		if (overijssel)
+			MelderString_append (& regionList, U"_Ov");
+		if (drenthe)
+			MelderString_append (& regionList, U"_Dr");
+		if (groningen)
+			MelderString_append (& regionList, U"_Gr");
+		if (frisia)
+			MelderString_append (& regionList, U"_Fr");
+		if (nBrabant)
+			MelderString_append (& regionList, U"_NB");
+		if (eLimburg)
+			MelderString_append (& regionList, U"_EL");
+		if (netherlands)
+			MelderString_append (& regionList, U"_Nl");
+		if (sBrabant)
+			MelderString_append (& regionList, U"_SB");
+		if (eFlanders)
+			MelderString_append (& regionList, U"_EV");
+		if (wFlanders)
+			MelderString_append (& regionList, U"_WV");
+		if (wLimburg)
+			MelderString_append (& regionList, U"_WL");
+		if (nBelgium)
+			MelderString_append (& regionList, U"_No");
+		if (sBelgium)
+			MelderString_append (& regionList, U"_So");
+		if (reg_other)
+			MelderString_append (& regionList, U"_ot");
+		if (reg_unknown)
+			MelderString_append (& regionList, U"_un");
+	CONVERT_EACH_TO_ONE_END (my name.get(), regionList.string)
+}
+
 
 /***** buttons *****/
 
@@ -1821,6 +1982,15 @@ void praat_uvafon_TextGrid_init () {
 	praat_addAction1 (classCorpus, 0, U"Extract -", nullptr, 0, nullptr);
 		praat_addAction1 (classCorpus, 1, U"Extract TextGrid (number)...",
 				nullptr, 1, NEW_Corpus_extractTextGrid_number);
+		praat_addAction1 (classCorpus, 1, U"Extract Sound (number)...",
+				nullptr, 1, NEW_Corpus_extractSound_number);
+		praat_addAction1 (classCorpus, 1, U"Extract speakers Table",
+				nullptr, 1, NEW_Corpus_extractSpeakersTable);
+		praat_addAction1 (classCorpus, 1, U"-- create subcorpus --", nullptr, 1, nullptr);
+		praat_addAction1 (classCorpus, 1, U"Extract components...",
+				nullptr, 1, NEW_Corpus_extractComponents);
+		praat_addAction1 (classCorpus, 1, U"Extract education regions...",
+				nullptr, 1, NEW_Corpus_extractEducationRegions);
 
 	praat_addAction1 (classIntervalTier, 1, U"Save as Xwaves label file... || Write to Xwaves label file...", nullptr, 0, SAVE_IntervalTier_writeToXwaves);
 			// alternative COMPATIBILITY <= 2011
