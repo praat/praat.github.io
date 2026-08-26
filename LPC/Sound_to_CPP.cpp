@@ -30,7 +30,7 @@ autoCPP Sound_to_CPP (constSound me, double pitchFloor, double pitchCeiling, dou
 		}
 		autoPowerCepstrogram smoothed = PowerCepstrogram_smooth (ps.get(), timeAveragingWindow, quefrencyAveragingWindow);
 		autoCPP cpp = PowerCepstrogram_to_CPP (smoothed.get(), pitchFloor, pitchCeiling,
-			peakInterpolationType,  qstartFit,  qendFit, lineType, fitMethod);
+				peakInterpolationType,  qstartFit,  qendFit, lineType, fitMethod);
 		return cpp;
 	} catch (MelderError) {
 		Melder_throw (me, U": canot create CPP.");

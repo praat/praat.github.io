@@ -29,6 +29,11 @@ R"~~~(
 
 Latest changes in Praat.
 
+##7.0.02# (26 August 2026)
+• Corpus: extract TextGrid, Sound, speakers Table.
+• CGN Corpus: extract components, education regions.
+• Sound: To CPP...
+
 ##7.0.01# (18 August 2026)
 • @CPP.
 • Corpus: read CGN 2.0.3.
