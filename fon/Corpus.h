@@ -72,7 +72,7 @@ static conststring32 Corpus_CGN_regions_long [25] {
 	U"North Brabant (province of Noord-Brabant",
 	U"East Limburg (Dutch province of Limburg)",
 	U"unknown region in the Netherlands",
-	U"South Brabant (provinces of Antwerpen and Brabant (Northern part)",
+	U"South Brabant (provinces of Antwerpen and Brabant (Northern part))",
 	U"East Flanders (province of Oost-Vlaanderen)",
 	U"West Flanders (province of West-Vlaanderen",
 	U"West Limburg (Belgian province of Limburg)",
