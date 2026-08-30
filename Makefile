@@ -374,6 +374,14 @@ endif
 	$(INSTALL) -Dm0644 main/praat-512.png $(DATADIR)/icons/hicolor/512x512/apps/org.praat.Praat.png
 endif
 
+# Use system's or embedded zlib library
+USE_SYS_ZLIB ?= no
+ifeq ($(USE_SYS_ZLIB),no)
+ZLIB = external/zlib/libzlib.a
+else
+ZLIB = -lz
+endif
+
 # Export some variables to the makefiles in the subdirectories.
 export CPPFLAGS   # listing of include files (plus any flags provided by any environment variables also called CPPFLAGS)
 export CC
@@ -406,7 +414,7 @@ all: all-external all-self
 		external/opusfile/libopusfile.a \
 		external/whispercpp/libwhisper.a \
 		external/blake3/libblake3.a \
-		external/zlib/libzlib.a \
+		$(ZLIB) \
                $(NON_PRAAT_LIBRARIES) $(LDFLAGS)
 
 all-external:
@@ -423,7 +431,9 @@ all-external:
 	$(MAKE) -C external/opusfile
 	$(MAKE) -C external/whispercpp
 	$(MAKE) -C external/blake3
+ifeq ($(USE_SYS_ZLIB),no)
 	$(MAKE) -C external/zlib
+endif
 
 all-self:
 	$(MAKE) -C kar
@@ -459,7 +469,9 @@ clean-external:
 	$(MAKE) -C external/opusfile clean
 	$(MAKE) -C external/whispercpp clean
 	$(MAKE) -C external/blake3 clean
+ifeq ($(USE_SYS_ZLIB),no)
 	$(MAKE) -C external/zlib clean
+endif
 
 clean-self:
 	$(MAKE) -C kar clean
