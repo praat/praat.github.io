@@ -1,0 +1,227 @@
+name: Publish praat-wasm
+
+on:
+  push:
+    branches:
+      - main
+      # TODO: remove the `wasm` branch trigger once merged with the original repository.
+      - wasm
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Run without actually publishing'
+        type: boolean
+        default: true
+      force:
+        description: 'Run even if PRAAT_VERSION_STR did not change'
+        type: boolean
+        default: false
+
+concurrency:
+  group: publish-wasm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  detect-version-change:
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.detect.outputs.should_publish }}
+      local_version: ${{ steps.detect.outputs.local_version }}
+      published_version: ${{ steps.detect.outputs.published_version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - id: detect
+        name: Check local wasm version against npm published version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          app_version="$({ sed -nE 's/^#define[[:space:]]+PRAAT_VERSION_STR[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' main/main_Praat.h | head -n1; })"
+          if [[ -z "$app_version" ]]; then
+            echo "ERROR: Could not parse PRAAT_VERSION_STR from main/main_Praat.h" >&2
+            exit 1
+          fi
+
+          js_revision="$({ tr -d '[:space:]' < wasm/JS_REVISION; })"
+          if [[ ! "$js_revision" =~ ^[0-9]+$ ]] || (( js_revision < 0 || js_revision > 99 )); then
+            echo "ERROR: JS_REVISION must be an integer between 0 and 99, got: $js_revision" >&2
+            exit 1
+          fi
+
+          IFS='.' read -r major minor patch <<< "$app_version"
+          if [[ -z "${major:-}" || -z "${minor:-}" || -z "${patch:-}" ]]; then
+            echo "ERROR: Invalid app version format: $app_version" >&2
+            exit 1
+          fi
+
+          npm_patch=$(( patch * 100 + js_revision ))
+          local_version="${major}.${minor}.${npm_patch}"
+
+            published_version="$(npm view praat-wasm version --silent | tr -d '[:space:]')"
+            if [[ -z "$published_version" ]]; then
+            echo "ERROR: Could not determine published npm version for praat-wasm." >&2
+            exit 1
+            fi
+
+          should_publish="false"
+
+          if [[ "$local_version" != "$published_version" ]]; then
+            should_publish="true"
+          fi
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${{ inputs.force }}" == "true" ]]; then
+            should_publish="true"
+          fi
+
+          echo "local_version=$local_version" >> "$GITHUB_OUTPUT"
+          echo "published_version=$published_version" >> "$GITHUB_OUTPUT"
+          echo "should_publish=$should_publish" >> "$GITHUB_OUTPUT"
+
+          echo "App version: $app_version"
+          echo "JS revision: $js_revision"
+          echo "Local target npm version: $local_version"
+          echo "Published npm version: $published_version"
+          echo "Should publish: $should_publish"
+
+      - name: Skip notice
+        if: steps.detect.outputs.should_publish != 'true'
+        run: echo "Local wasm npm version already matches the published npm version; skipping publish flow."
+
+  build:
+    needs: detect-version-change
+    if: needs.detect-version-change.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sync wasm version from app version
+        run: |
+          node wasm/sync-version.mjs
+          node wasm/sync-version.mjs --check
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+
+      - name: Verify emscripten
+        run: emcc --version
+
+      - name: Configure WASM build
+        run: cp makefiles/makefile.defs.wasm makefile.defs
+
+      - name: Build WASM
+        run: make -f Makefile.wasm
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-dist
+          path: |
+            wasm/package.json
+            wasm/README.md
+            wasm/dist/praat.mjs
+            wasm/dist/praat.wasm
+            wasm/js/
+          retention-days: 1
+
+  test:
+    needs: build
+    if: needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-dist
+          path: wasm/
+
+      - name: Run smoke tests
+        run: node wasm/test_smoke.mjs
+
+      - name: Run wrapper tests
+        run: node wasm/test_wrapper.mjs
+
+      - name: Run class API tests
+        run: node wasm/test_classes.mjs
+
+      - name: Run Praat native script tests
+        run: node wasm/test_praat_scripts.mjs
+
+  publish-npm:
+    needs: test
+    if: needs.test.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-dist
+          path: wasm/
+
+      - name: Publish to npm
+        working-directory: wasm
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.dry-run }}" == "true" ]]; then
+            npm publish --provenance --access public --dry-run
+          else
+            npm publish --provenance --access public
+          fi
+
+  publish-gpr:
+    needs: test
+    if: needs.test.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@praat'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-dist
+          path: wasm/
+
+      - name: Scope package for GitHub Packages
+        working-directory: wasm
+        run: npm pkg set name='@praat/praat-wasm'
+
+      - name: Publish to GitHub Packages
+        working-directory: wasm
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.dry-run }}" == "true" ]]; then
+            npm publish --access public --dry-run
+          else
+            npm publish --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

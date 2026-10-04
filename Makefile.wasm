@@ -1,0 +1,124 @@
+# Makefile for praat-wasm
+# Builds the Praat library as a WebAssembly module using Emscripten
+#
+# Usage:
+#   cp makefiles/makefile.defs.wasm makefile.defs
+#   make -f Makefile.wasm
+#
+# Or use the convenience target in the top-level Makefile:
+#   make wasm
+
+include makefile.defs
+
+.PHONY: all clean all-external-wasm all-self-wasm
+
+WASM_OUT_DIR = wasm/dist
+
+# All Praat static libraries (same as main Makefile, minus portaudio)
+PRAAT_LIBS = fon/libfon.a \
+	artsynth/libartsynth.a FFNet/libFFNet.a \
+	gram/libgram.a EEG/libEEG.a \
+	LPC/libLPC.a dwtools/libdwtools.a sensors/libsensors.a \
+	foned/libfoned.a fon/libfon.a stat/libstat.a \
+	dwsys/libdwsys.a sys/libsys.a melder/libmelder.a kar/libkar.a
+
+EXTERNAL_LIBS = \
+	external/flac/libflac.a external/lame/liblame.a external/mp3/libmp3.a \
+	external/glpk/libglpk.a \
+	external/clapack/libclapack.a \
+	external/gsl/libgsl.a \
+	external/num/libnum.a \
+	external/vorbis/libvorbis.a \
+	external/opusfile/libopusfile.a
+
+# WASM binding source
+WASM_BINDING_SRC = wasm/wasm_main.cpp
+WASM_BINDING_OBJ = wasm/wasm_main.o
+
+# PortAudio stubs (audio I/O not available in WASM)
+WASM_PA_STUBS_SRC = wasm/portaudio_stubs.c
+WASM_PA_STUBS_OBJ = wasm/portaudio_stubs.o
+
+# Whisper/eSpeak stubs (speech recognition/synthesis excluded from core; optional add-ons)
+WASM_WE_STUBS_SRC = wasm/whisper_espeak_stubs.cpp
+WASM_WE_STUBS_OBJ = wasm/whisper_espeak_stubs.o
+
+WASM_OBJS = $(WASM_BINDING_OBJ) $(WASM_PA_STUBS_OBJ) $(WASM_WE_STUBS_OBJ)
+
+WASM_CPPFLAGS = -I kar -I melder -I sys -I dwsys -I stat -I fon -I foned -I dwtools \
+	-I LPC -I artsynth -I FFNet -I gram -I EEG -I sensors \
+	-I external/clapack -I external/gsl -I external/glpk \
+	-I external/flac -I external/mp3 -I external/espeak \
+	-I external/vorbis -I external/opusfile -I external/lame -I external/num \
+	-I external/whispercpp
+
+all: all-external-wasm all-self-wasm $(WASM_OBJS) link-wasm
+
+all-external-wasm:
+	$(MAKE) -C external/clapack
+	$(MAKE) -C external/gsl
+	$(MAKE) -C external/glpk
+	$(MAKE) -C external/lame
+	$(MAKE) -C external/mp3
+	$(MAKE) -C external/num
+	$(MAKE) -C external/flac
+	$(MAKE) -C external/vorbis
+	$(MAKE) -C external/opusfile
+
+all-self-wasm:
+	$(MAKE) -C kar
+	$(MAKE) -C melder
+	$(MAKE) -C sys
+	$(MAKE) -C dwsys
+	$(MAKE) -C stat
+	$(MAKE) -C fon
+	$(MAKE) -C foned
+	$(MAKE) -C dwtools
+	$(MAKE) -C LPC
+	$(MAKE) -C EEG
+	$(MAKE) -C sensors
+	$(MAKE) -C gram
+	$(MAKE) -C FFNet
+	$(MAKE) -C artsynth
+
+$(WASM_BINDING_OBJ): $(WASM_BINDING_SRC)
+	$(CXX) $(CXXFLAGS) $(WASM_CPPFLAGS) --bind -c $< -o $@
+
+$(WASM_PA_STUBS_OBJ): $(WASM_PA_STUBS_SRC)
+	$(CC) $(CFLAGS) -I external/portaudio -c $< -o $@
+
+$(WASM_WE_STUBS_OBJ): $(WASM_WE_STUBS_SRC)
+	$(CXX) $(CXXFLAGS) $(WASM_CPPFLAGS) -c $< -o $@
+
+link-wasm: $(PRAAT_LIBS) $(EXTERNAL_LIBS) $(WASM_OBJS)
+	@mkdir -p $(WASM_OUT_DIR)
+	$(LINK) -o $(WASM_OUT_DIR)/praat.mjs $(WASM_OBJS) \
+		$(PRAAT_LIBS) $(EXTERNAL_LIBS) $(LIBS)
+
+clean:
+	$(RM) $(WASM_OBJS)
+	$(RM) -r $(WASM_OUT_DIR)/*
+	$(MAKE) -C external/clapack clean
+	$(MAKE) -C external/gsl clean
+	$(MAKE) -C external/glpk clean
+	$(MAKE) -C external/lame clean
+	$(MAKE) -C external/mp3 clean
+	$(MAKE) -C external/num clean
+	$(MAKE) -C external/flac clean
+	$(MAKE) -C external/vorbis clean
+	$(MAKE) -C external/opusfile clean
+	$(MAKE) -C kar clean
+	$(MAKE) -C melder clean
+	$(MAKE) -C sys clean
+	$(MAKE) -C dwsys clean
+	$(MAKE) -C stat clean
+	$(MAKE) -C fon clean
+	$(MAKE) -C foned clean
+	$(MAKE) -C dwtools clean
+	$(MAKE) -C LPC clean
+	$(MAKE) -C EEG clean
+	$(MAKE) -C sensors clean
+	$(MAKE) -C gram clean
+	$(MAKE) -C FFNet clean
+	$(MAKE) -C artsynth clean
+	$(MAKE) -C main clean
