@@ -18,10 +18,7 @@ clean:
 	$(RM) libartsynth.a
 
 libartsynth.a: $(OBJECTS)
-	touch libartsynth.a
-	rm libartsynth.a
-	$(AR) cq libartsynth.a $(OBJECTS)
-	$(RANLIB) libartsynth.a
+	ar rus libartsynth.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../sys/*.h ../fon/*.h ../stat/*.h
 

@@ -18,9 +18,6 @@ clean:
 	$(RM) libFFNet.a
 
 libFFNet.a: $(OBJECTS)
-	touch libFFNet.a
-	rm libFFNet.a
-	$(AR) cq libFFNet.a $(OBJECTS)
-	$(RANLIB) libFFNet.a
+	ar rus libFFNet.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../sys/*.h ../dwtools/*.h ../fon/*.h ../dwsys/*.h ../stat/*.h ../gram/*.h

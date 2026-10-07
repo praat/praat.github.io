@@ -16,9 +16,6 @@ clean:
 	$(RM) libEEG.a
 
 libEEG.a: $(OBJECTS)
-	touch libEEG.a
-	rm libEEG.a
-	$(AR) cq libEEG.a $(OBJECTS)
-	$(RANLIB) libEEG.a
+	ar rus libEEG.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h ../dwtools/*.h ../fon/*.h ../foned/*.h

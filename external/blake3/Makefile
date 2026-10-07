@@ -14,9 +14,6 @@ clean:
 	$(RM) libblake3.a
 
 libblake3.a: $(OBJECTS)
-	touch libblake3.a
-	rm libblake3.a
-	$(AR) cq libblake3.a $(OBJECTS)
-	$(RANLIB) libblake3.a
+	ar rus libblake3.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h
