@@ -14,10 +14,7 @@ clean:
 	$(RM) libsensors.a
 
 libsensors.a: $(OBJECTS)
-	touch libsensors.a
-	rm libsensors.a
-	$(AR) cq libsensors.a $(OBJECTS)
-	$(RANLIB) libsensors.a
+	ar rus libsensors.a $(OBJECTS)
 
 $(OBJECTS): *.h ../melder/*.h ../stat/*.h ../sys/*.h ../fon/*.h ../external/gsl/*.h ../dwsys/*.h ../kar/*.h
 

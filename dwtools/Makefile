@@ -68,10 +68,7 @@ clean:
 	$(RM) libdwtools.a
 
 libdwtools.a: $(OBJECTS)
-	touch libdwtools.a
-	rm libdwtools.a
-	$(AR) cq libdwtools.a $(OBJECTS)
-	$(RANLIB) libdwtools.a
+	ar rus libdwtools.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h ../fon/*.h ../foned/*.h ../LPC/*.h ../EEG/*.h \
 	../external/clapack/*.h ../external/vorbis/*.h ../external/opusfile/*.h ../external/portaudio/*.h ../external/espeak/*.h

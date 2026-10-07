@@ -48,9 +48,6 @@ clean:
 	$(RM) libfon.a
 
 libfon.a: $(OBJECTS)
-	touch libfon.a
-	rm libfon.a
-	$(AR) cq libfon.a $(OBJECTS)
-	$(RANLIB) libfon.a
+	ar rus libfon.a $(OBJECTS)
 
 $(OBJECTS): *.h ../external/portaudio/*.h ../kar/*.h ../melder/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h ../dwtools/*.h ../LPC/*.h ../foned/*.h ../external/flac/*.h ../external/mp3/mp3.h

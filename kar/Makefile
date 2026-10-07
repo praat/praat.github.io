@@ -14,9 +14,6 @@ clean:
 	$(RM) libkar.a
 
 libkar.a: $(OBJECTS)
-	touch libkar.a
-	rm libkar.a
-	$(AR) cq libkar.a $(OBJECTS)
-	$(RANLIB) libkar.a
+	ar rus libkar.a $(OBJECTS)
 
 $(OBJECTS): *.h ../melder/*.h
