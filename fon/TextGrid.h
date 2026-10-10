@@ -215,6 +215,10 @@ autoDaata TextGrid_TIMITLabelFileRecognizer (integer nread, const char *header, 
 		A valid word is a string with contains the lowercase characters [a-z] and ['].
 */
 
+autoDaata TextGrid_KielLabelFileRecognizer (integer nread, const char *header, MelderFile file);
+autoIntervalTier IntervalTier_readFromKielLabelFile (MelderFile file);
+autoTextGrid TextGrid_readFromKielLabelFile (MelderFile file);
+
 void TextGrid_checkInvariants_e (const constTextGrid me, const bool includeWeakInvariants);
 
 void TextGrid_scaleTimes_e (mutableTextGrid me, double xminfrom, double xmaxfrom, double xminto, double xmaxto);

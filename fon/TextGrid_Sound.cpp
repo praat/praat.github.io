@@ -1449,4 +1449,61 @@ autoTextGrid TextGrid_Sound_readFromCorpusGesprokenNederlands (conststring32 sou
 	}
 }
 
+autoTextGrid TextGrid_Sound_readFromKielCorpus (conststring32 soundFileName, autoSound *out_sound) {
+	try {
+		structMelderFile file { };
+		Melder_pathToFile (soundFileName, & file);
+		if (out_sound)
+			*out_sound = Sound_readFromSoundFile (& file);
+		OrderedOf <structTextGrid> textgrids;
+
+		/*
+			The sound file resides in a folder like "~/Dropbox/Corpora/Kiel/Vol4_DVD1/l01/chan_cje.
+			We extract the name of the sound file and of the enclosing folders.
+		*/
+
+		conststring32 soundName = MelderFile_name (& file);
+		const integer soundNamelength = Melder_length (soundName);
+		Melder_require (soundNamelength == 10,
+			U"Sound file name should be 10 characters long, but “", soundName, U"” is ", soundNamelength, U" characters long.");
+		Melder_require (Melder_stringMatchesCriterion (soundName, kMelder_string::ENDS_WITH, U".wav", true),
+			U"Sound file name should end in “.wav”, but it is “", soundName, U"”.");
+
+		autostring32 baseName = Melder_dup (soundName);
+		baseName [soundNamelength - 4] = U'\0';   // remove extension ".wav"
+
+		/*
+			Travel up to the speaker folder.
+		*/
+
+		structMelderFolder speakerFolder { };
+		MelderFile_getParentFolder (& file, & speakerFolder);
+		conststring32 speakerName = MelderFolder_name (& speakerFolder);
+
+		/*
+			Read the .s1h file.
+		*/
+		structMelderFile annotationFile { };
+		MelderFolder_getFile (& speakerFolder, Melder_cat (baseName.get(), U".s1h"), & annotationFile);
+		autoDaata annotationData = Data_readFromFile (& annotationFile);
+		Melder_require (Thing_isa (annotationData.get(), classTextGrid),
+			U"The file ", MelderFile_messageName (& annotationFile), U" contains a ", Thing_className (annotationData.get()), U" instead of a TextGrid.");
+		autoTextGrid ort = annotationData.static_cast_move <structTextGrid>();
+		for (integer itier = 1; itier <= ort -> tiers->size; itier ++)
+			TextGrid_setTierName (ort.get(), itier, Melder_dup (Melder_cat (U"ort/", ort -> tiers->at [itier] -> name.get())).get());
+		textgrids. addItem_ref (ort.get());
+
+		autoTextGrid me = TextGrids_merge (& textgrids, true);
+		for (integer itier = 1; itier <= my tiers->size; itier ++)
+			TextGrid_setTierName (me.get(), itier, replace_STR (my tiers->at [itier] -> name.get(), U"_", U"/", 0).get());
+
+		if (out_sound)
+			Thing_setName (out_sound->get(), baseName.get());
+		Thing_setName (me.get(), baseName.get());
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Sound “", soundFileName, U"” not read with adjacent Kiel annotation files.");
+	}
+}
+
 /* End of file TextGrid_Sound.cpp */

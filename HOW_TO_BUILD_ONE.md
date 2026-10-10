@@ -39,14 +39,12 @@ Make sure you have installed at least `make`, `gcc`, `g++` and `pkg-config` to m
 To also install a `clangarm64` toolchain (for Praat’s ARM64 edition),
 run `clangarm64.exe` to get a `clangarm64` shell. In that shell, run `pacman -Syu` to update and
 `pacman -S mingw-w64-clang-aarch64-clang` to install the build tools package.
-In the same way you can create a `clang64` toolchain and a `clang32` toolchain
-(`pacman -S mingw-w64-clang-x86_64-clang`),
-which is a good alternative to `mingw64`
-(in 2025, MSYS2 ended support for Intel32, so you can only use `mingw32` for that).
+In the same way you can create a `clang64` toolchain (`pacman -S mingw-w64-clang-x86_64-clang`).
+For Intel32, so you can only use the `mingw32` toolchain.
 
 Move the Praat sources folders somewhere in your `/home/yourname` tree,
-perhaps even in three places, e.g. as `/home/yourname/praats-arm64`,
-`/home/yourname/praats-x64` and `/home/yourname/praats-intel32`;
+perhaps even in four places, e.g. as `/home/yourname/praats-clangarm64`,
+`/home/yourname/praats-clang64v3`, `/home/yourname/praats-clang64v1` and `/home/yourname/praats-mingw32`;
 the folders `fon` and `sys` should be visible within each of these folders.
 
 If you now want to build Praat’s ARM64 edition, start the shell `clangarm64` and type
@@ -80,7 +78,7 @@ even if your computer is an ARM64 computer). You can also just set
 
     export PRAAT_ARCH=native
 
-in you `.bashrc` file or so. See the `Makefile` for details.
+in your `.bashrc` file or so. See the `Makefile` for details.
 
 **Code-signing.** From version 6.4.25 on, we have signed the three Praat executables
 with an “open-source code-signing certificate” (by Certum)
@@ -95,13 +93,12 @@ on an Intel64/AMD64 Windows 10 or 11 machine.
 
 Thorough **testing**, including of the GUI, should ultimately be done on a Windows computer,
 though `runAllTests` will successfully run on a virtual machine on an Intel64 Mac with Parallels Desktop
-(for 64-bit Windows 7, Windows 8.1, Windows 10 and Windows 11),
-or on an ARM64 Mac with Parallels Desktop (for Windows 11 only).
+(for 64-bit Windows 10 and Windows 11) or on an ARM64 Mac with Parallels Desktop (for Windows 11 only).
 Here are a couple of issues we observed, though:
 
 - For the Intel32 edition, `runAllTests.praat` doesn’t succeed on (macOS) ARM64 hardware,
   because of floating-point imprecisions; to test the Intel32 edition, use Intel64 hardware instead.
-- In December 2025, two-finger horizontal scrolling in the Sound window worked correctly in Parallels Desktop
+- Until January 2026, two-finger horizontal scrolling in the Sound window worked correctly in Parallels Desktop
   but not on a Windows computer; to reliably test the GUI, use a Windows computer instead.
 
 ## 2. Compiling for Macintosh
@@ -109,13 +106,13 @@ Here are a couple of issues we observed, though:
 To **build** Praat on the Mac, extract the *praatXXXX_xcodeproj.zip* file
 from [Praat’s latest release](https://github.com/praat/praat.github.io/releases)
 into the folder that contains `sys`, `fon`, `dwtools` and so on (e.g. `~/Dropbox/Praats/src`).
-Then open the project `praat.xcodeproj` in Xcode 26.1.1 (or later),
+Then open the project `praat.xcodeproj` in Xcode 26.6 (or later),
 and edit the Intermediate and Product build paths to something that suits you
 (Xcode -> Settings... -> Locations -> Derived Data -> Advanced... -> Custom -> Absolute,
 then type something after Products, e.g. `~/Dropbox/Praats/bin/macos`,
 as well as something after Intermediates, e.g. `~/builds/mac_intermediates`, then click Done).
 After this preliminary work, choose Build or Run for the target `praat_mac`.
-You can compile with the 14.2 SDK, which will work as far back as macOS 10.11 El Capitan,
+You can compile with the 26.5 SDK, which will work as far back as macOS 10.15 Catalina,
 which is our deployment target, and will look good even on macOS 26 Tahoe.
 
 If you get an error message like “Code Signing Identity xxx does not match any valid, non-expired,
@@ -147,10 +144,8 @@ and or go (or log in) to App Store Connect, then Business (or Agreements, Tax, a
 -> Paid Apps Agreement -> View and Agree to Terms (even if you have no paid apps).
 
 **Testing** on multiple Intel64/AMD64 platform versions can be done on older Intel64 Macs,
-using virtual machines with Parallels Desktop. For instance, a 2013 Macbook Pro can handle
-OS X 10.11 El Capitan, 10.12 Sierra, 10.13 High Sierra, macOS 10.14 Mojave, 10.15 Catalina,
-and macOS 11 Big Sur, while a 2018 Macbook Pro can handle macOS 10.14 Mojave, 10.15 Catalina,
-macOS 11 Big Sur, macOS 12 Monterey, and macOS 14 Sonoma natively.
+using virtual machines with Parallels Desktop. For instance, a 2018 Macbook Pro can handle
+macOS 10.15 Catalina, macOS 11 Big Sur, macOS 12 Monterey, and macOS 14 Sonoma natively.
 Testing on multiple ARM64 platform versions can be done on an older ARM64 Mac,
 using virtual machines with Parallels Desktop. For instance, a 2020 Mac Mini could handle
 macOS 11 Big Sur, and macOS 12 Monterey, and macOS 13 Ventura (and macOS 14 Sonoma natively),

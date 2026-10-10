@@ -1050,4 +1050,99 @@ autoTextGrid TextGrid_readFromTimitLabelFile (
 	}
 }
 
+autoDaata TextGrid_KielLabelFileRecognizer (integer nread, const char *header, MelderFile file) {
+	conststring32 fileName = MelderFile_name (file);
+	if (nread < 512 || ! Melder_endsWith_caseAware (fileName, U".s1h"))
+		return autoDaata ();
+	autoTextGrid thee = TextGrid_readFromKielLabelFile (file);
+	return thee.move();
+}
+
+autoIntervalTier IntervalTier_readFromKielLabelFile (
+	const MelderFile file
+) {
+	try {
+		autoMelderReadText text = MelderReadText_createFromFile (file);   // going to be UTF-8-compatible
+		constexpr double fixedTimitSamplingFrequency = 16000.0;   // Hz
+		constexpr double fixedSamplingPeriod = 1.0 / fixedTimitSamplingFrequency;
+		autoMelderString label;
+		autoIntervalTier me = IntervalTier_create_raw (+1e308, -1e308);
+		Melder_assert (my intervals.size == 0);
+
+		/* mutable step */ integer previousStartingSample = -2;
+		/* mutable found */ bool annotationLinesFound = false;
+		/* mutable step */ double previousStartingTime = undefined;
+		for (;;) {
+			/* mutable scan */ conststring32 line = MelderReadText_readLine (text.get());
+			if (! line)
+				break;
+			if (! annotationLinesFound) {
+				if (Melder_equ (line, U"hend"))
+					annotationLinesFound = true;
+				continue;
+			}
+
+			/*
+				Read and check starting sample.
+			*/
+			Melder_skipHorizontalSpace (& line);
+			const integer startingSample = Melder_readInteger (& line);
+			Melder_require (startingSample > 0,
+				U"The annotation should not start at a negative sample number.");
+			Melder_assert (startingSample > 0);
+			if (previousStartingSample == -2) {
+				previousStartingSample = startingSample;
+				previousStartingTime = previousStartingSample * fixedSamplingPeriod;
+				continue;
+			}
+			Melder_require (startingSample >= previousStartingSample,
+				U"The starting sample in line ", MelderReadText_getLineNumber (text.get()) - 1,
+				U" should be at least the starting sample of the previous line, but ",
+				startingSample, U" is less than ", previousStartingSample, U"."
+			);
+			{// scope
+				const char32 shouldBeHorizontalSpace = * line ++;
+				Melder_require (Melder_isHorizontalSpace (shouldBeHorizontalSpace),
+					U"There should be a space after the starting sample in line ", MelderReadText_getLineNumber (text.get()) - 1, U".");
+			}
+
+			/*
+				Read and check label text.
+			*/
+			const double startingTime = startingSample * fixedSamplingPeriod;
+			if (startingTime != previousStartingTime) {
+				//Melder_casual (previousStartingTime, U" ", startingTime, U" ", label.string);
+				char32* space = str32chr (label.string, U' ');
+				if (space)
+					*space = U'\0';
+				(void) IntervalTier_addInterval_raw (me.get(), previousStartingTime, startingTime, label.string);
+			}
+			Melder_skipHorizontalSpace (& line);
+			MelderString_copy (& label, line);
+
+			previousStartingSample = startingSample;
+			previousStartingTime = startingTime;
+		}
+		Melder_require (my intervals.size >= 1,
+			U"The file should contain at least one interval, but none were found.");
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Interval tier not read from file ", file, U".");
+	}
+}
+
+autoTextGrid TextGrid_readFromKielLabelFile (
+	const MelderFile file
+) {
+	try {
+		autoTextGrid result = TextGrid_createWithoutTiers (+1e308, -1e308);
+		autoIntervalTier tier = IntervalTier_readFromKielLabelFile (file);
+		TextGrid_addTier_move (result.get(), tier.move());
+		return result;
+	} catch (MelderError) {
+		Melder_throw (U"TextGrid not read from file ", file, U".");
+	}
+}
+
+
 /* End of file TextGrid_files.cpp */
