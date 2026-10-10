@@ -1727,6 +1727,18 @@ DO
 	CREATE_MULTIPLE_END
 }
 
+FORM (NEW_Sound_readWithAdjacentAnnotationFiles_kiel, U"Read with adjacent annotations (Kiel)", U"Read with adjacent annotation files (Kiel)...") {
+	INFILE (soundFileName, U"Sound file name", U"~/Dropbox/Corpora/Kiel/Vol4_DVD1/l01/chan_cje/l01cje.wav")
+	OK
+DO
+	CREATE_MULTIPLE
+		autoSound sound;
+		autoTextGrid textgrid = TextGrid_Sound_readFromKielCorpus (soundFileName, & sound);
+		praat_newWithFile (sound.move(), nullptr, soundFileName);
+		praat_newWithFile (textgrid.move(), nullptr, soundFileName);
+	CREATE_MULTIPLE_END
+}
+
 FORM (NEW_Corpus_importFromCGN, U"Import Corpus from CGN", U"Import Corpus from CGN...") {
 	FOLDER (folderName, U"CGN folder name", U"/Volumes/CGN_2.0.3")
 	OK
@@ -1784,6 +1796,12 @@ DO
 		autoSound result = Corpus_extractSound_number (me, recordingNumber);
 		autostring32 textgridName = Melder_dup (result -> name.get());
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", textgridName.get())
+}
+
+DIRECT (NEW_Corpus_extractRecordingsTable) {
+	CONVERT_EACH_TO_ONE (Corpus)
+		autoTable result = Data_copy (my recordings.get());
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_recordings")
 }
 
 DIRECT (NEW_Corpus_extractSpeakersTable) {
@@ -1847,7 +1865,7 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", componentList.string)
 }
 
-FORM (NEW_Corpus_extractEducationRegions, U"Corpus: Extract education regions", U"Corpus: Extract education regions") {
+FORM (NEW_Corpus_extractSpeakerEducationRegions, U"Corpus: Extract speaker education regions", U"Corpus: Extract speaker education regions") {
 	BOOLEAN (sHolland, Corpus_CGN_regions_short [0], false)
 	BOOLEAN (nHolland, Corpus_CGN_regions_short [1], false)
 	BOOLEAN (wUtrecht, Corpus_CGN_regions_short [2], false)
@@ -1876,7 +1894,7 @@ FORM (NEW_Corpus_extractEducationRegions, U"Corpus: Extract education regions", 
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Corpus)
-		autoCorpus result = Corpus_extractEducationRegions (me,
+		autoCorpus result = Corpus_extractSpeakerEducationRegions (me,
 			sHolland, nHolland, wUtrecht, zeeland, eUtrecht,
 			guelders, veluwe, wFriesland, polders, achterhoek,
 			overijssel, drenthe, groningen, frisia, nBrabant,
@@ -1946,6 +1964,9 @@ void praat_uvafon_TextGrid_init () {
 		classCorpus);
 	Thing_recognizeClassByOtherName (classTextTier, U"MarkTier");
 
+	Data_recognizeFileType (TextGrid_TIMITLabelFileRecognizer);
+	Data_recognizeFileType (TextGrid_KielLabelFileRecognizer);
+
 	structTextGridArea :: f_preferences ();
 
 	structTextGridEditor :: f_preferences ();
@@ -1968,6 +1989,8 @@ void praat_uvafon_TextGrid_init () {
 				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_timit);
 		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound with adjacent annotation files (Corpus Gesproken Nederlands)...",
 				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_cgn);
+		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound with adjacent annotation files (Kiel)...",
+				nullptr, 1, NEW_Sound_readWithAdjacentAnnotationFiles_kiel);
 	praat_addMenuCommand (U"Objects", U"Open", U"Import Corpus...", nullptr, 0, nullptr);
 		praat_addMenuCommand (U"Objects", U"Open", U"Import Corpus from CGN...",
 				nullptr, 1, NEW_Corpus_importFromCGN);
@@ -1984,13 +2007,15 @@ void praat_uvafon_TextGrid_init () {
 				nullptr, 1, NEW_Corpus_extractTextGrid_number);
 		praat_addAction1 (classCorpus, 1, U"Extract Sound (number)...",
 				nullptr, 1, NEW_Corpus_extractSound_number);
+		praat_addAction1 (classCorpus, 1, U"Extract recordings Table",
+				nullptr, 1, NEW_Corpus_extractRecordingsTable);
 		praat_addAction1 (classCorpus, 1, U"Extract speakers Table",
 				nullptr, 1, NEW_Corpus_extractSpeakersTable);
 		praat_addAction1 (classCorpus, 1, U"-- create subcorpus --", nullptr, 1, nullptr);
 		praat_addAction1 (classCorpus, 1, U"Extract components...",
 				nullptr, 1, NEW_Corpus_extractComponents);
-		praat_addAction1 (classCorpus, 1, U"Extract education regions...",
-				nullptr, 1, NEW_Corpus_extractEducationRegions);
+		praat_addAction1 (classCorpus, 1, U"Extract speaker education regions...",
+				nullptr, 1, NEW_Corpus_extractSpeakerEducationRegions);
 
 	praat_addAction1 (classIntervalTier, 1, U"Save as Xwaves label file... || Write to Xwaves label file...", nullptr, 0, SAVE_IntervalTier_writeToXwaves);
 			// alternative COMPATIBILITY <= 2011

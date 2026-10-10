@@ -204,7 +204,7 @@ autoCorpus Corpus_extractComponents (Corpus me,
 	return thee;
 }
 
-autoCorpus Corpus_extractEducationRegions (Corpus me,
+autoCorpus Corpus_extractSpeakerEducationRegions (Corpus me,
 	bool sHolland, bool nHolland, bool wUtrecht, bool zeeland, bool eUtrecht,
 	bool guelders, bool veluwe, bool wFriesland, bool polders, bool achterhoek,
 	bool overijssel, bool drenthe, bool groningen, bool frisia, bool nBrabant,
@@ -226,14 +226,15 @@ autoCorpus Corpus_extractEducationRegions (Corpus me,
 			IntervalTier tier = (IntervalTier) textgrid -> tiers->at [itier];   // TODO: check cast
 			conststring32 tierName = tier -> name.get();
 			if (Melder_stringMatchesCriterion (tierName, kMelder_string::STARTS_WITH, U"ort/", true)) {
-				const conststring32 speakerName = & tier -> name [4];
-				integer speakerRow = Table_searchColumn (thy speakers.get(), 5, speakerName);
+				static MelderString speakerName;
+				MelderString_copy (& speakerName, & tier -> name [4]);
+				integer speakerRow = Table_searchColumn (thy speakers.get(), 5, speakerName.string);
 				if (speakerRow == 0) {
-					if (! str32equ (speakerName, U"BACKGROUND") &&
-						! str32equ (speakerName, U"COMMENT") &&
-						! str32equ (speakerName, U"UNKNOWN") &&
-						! str32equ (speakerName, U"N00383"))
-						Melder_crash (U"<<", speakerName, U">> <<", tierName, U">>");
+					if (! str32equ (speakerName.string, U"BACKGROUND") &&
+						! str32equ (speakerName.string, U"COMMENT") &&
+						! str32equ (speakerName.string, U"UNKNOWN") &&
+						! str32equ (speakerName.string, U"N00383"))
+						Melder_crash (U"<<", speakerName.string, U">> <<", tierName, U">>");
 				} else {
 					conststring32 speakerRegionCode = Table_getStringValue_a (thy speakers.get(), speakerRow, 17);
 					integer icode = 0;
@@ -241,13 +242,18 @@ autoCorpus Corpus_extractEducationRegions (Corpus me,
 						if (str32equ (speakerRegionCode, Corpus_CGN_regionCodes [icode]))
 							break;
 					if (icode >= 25) {
-						if (str32equ (speakerRegionCode, U"regB"))
+						if (str32equ (speakerRegionCode, U"regB"))   // this fixes a mistake in the CGN_2.0.3 speakers table; turn into "other"
 							icode = 24;
 					}
 					if (icode >= 25)
 						Melder_crash (icode, U" <<", speakerRegionCode, U">>");
 					if (regions [icode]) {
 						foundMatch = true;
+						for (integer jtier = 1; jtier <= textgrid -> tiers->size; jtier ++) {
+							IntervalTier tierj = (IntervalTier) textgrid -> tiers->at [jtier];   // TODO: check cast
+							if (str32str (tierj -> name.get(), speakerName.string))
+								Thing_setName (tierj, Melder_cat (tierj -> name.get(), U"(", Corpus_CGN_regions_abbreviated [icode], U")"));
+						}
 						break;
 					}
 				}

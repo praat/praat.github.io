@@ -54,6 +54,14 @@ static conststring32 Corpus_CGN_regions_short [25] {
 	U"W-Limburg", U"N-Belgium", U"S-Belgium", U"reg_other", U"reg_unknown"
 };
 
+static conststring32 Corpus_CGN_regions_abbreviated [25] {
+	U"SH", U"NH", U"WU", U"Ze", U"EU",
+	U"Ge", U"Ve", U"WF", U"Po", U"Ac",
+	U"Ov", U"Dr", U"Gr", U"Fr", U"NB",
+	U"EL", U"N", U"SB", U"EV", U"WV",
+	U"WL", U"No", U"So", U"ot", U"un"
+};
+
 static conststring32 Corpus_CGN_regions_long [25] {
 	U"South Holland (province of Zuid-Holland excl. Goeree-Overflakkee)",
 	U"North Holland (province of Noord-Holland excl. West-Friesland)",
@@ -82,7 +90,7 @@ static conststring32 Corpus_CGN_regions_long [25] {
 	U"unknown region"
 };
 
-autoCorpus Corpus_extractEducationRegions (Corpus me,
+autoCorpus Corpus_extractSpeakerEducationRegions (Corpus me,
 	bool sHolland, bool nHolland, bool wUtrecht, bool zeeland, bool eUtrecht,
 	bool guelders, bool veluwe, bool wFriesland, bool polders, bool achterhoek,
 	bool overijssel, bool drenthe, bool groningen, bool frisia, bool nBrabant,
