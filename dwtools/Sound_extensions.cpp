@@ -1743,6 +1743,7 @@ autoSound Sound_trimSilences (Sound me, double trimDuration, bool onlyAtStartAnd
 				conststring32 label = trimLabel;
 				if (tier -> intervals.size == 1) {   // current interval is both the first and the last: very special
 					// all of the sound is silent: do nothing
+					label = copyLabel; // preserve audio
 				} else if (iint == 1) {   // first is special
 					const double trim_t = ti -> xmax - trimDuration;
 					IntervalTier_moveRightBoundary (itg.get(), iint, trim_t);
