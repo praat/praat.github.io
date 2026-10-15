@@ -32,9 +32,6 @@ clean:
 	$(RM) libsys.a
 
 libsys.a: $(OBJECTS)
-	touch libsys.a
-	rm libsys.a
-	$(AR) cq libsys.a $(OBJECTS)
-	$(RANLIB) libsys.a
+	ar rus libsys.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../dwsys/*.h

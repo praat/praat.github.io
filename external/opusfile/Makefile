@@ -63,9 +63,6 @@ clean:
 	$(RM) libopusfile.a
 
 libopusfile.a: $(OBJECTS)
-	touch libopusfile.a
-	rm libopusfile.a
-	$(AR) cq libopusfile.a $(OBJECTS)
-	$(RANLIB) libopusfile.a
+	ar rus libopusfile.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h

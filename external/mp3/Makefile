@@ -25,9 +25,6 @@ clean:
 	$(RM) libmp3.a
 
 libmp3.a: $(OBJECTS)
-	touch libmp3.a
-	rm libmp3.a
-	$(AR) cq libmp3.a $(OBJECTS)
-	$(RANLIB) libmp3.a
+	ar rus libmp3.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h

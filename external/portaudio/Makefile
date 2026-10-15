@@ -17,9 +17,6 @@ clean:
 	$(RM) libportaudio.a
 
 libportaudio.a: $(OBJECTS)
-	touch libportaudio.a
-	rm libportaudio.a
-	$(AR) cq libportaudio.a $(OBJECTS)
-	$(RANLIB) libportaudio.a
+	ar rus libportaudio.a $(OBJECTS)
 
 $(OBJECTS): *.h

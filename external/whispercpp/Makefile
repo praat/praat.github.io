@@ -41,9 +41,6 @@ clean:
 	$(RM) libwhisper.a
 
 libwhisper.a: $(WHISPER_OBJECTS)
-	touch libwhisper.a
-	rm libwhisper.a
-	$(AR) cq libwhisper.a $(WHISPER_OBJECTS)
-	$(RANLIB) libwhisper.a
+	ar rus libwhisper.a $(WHISPER_OBJECTS)
 
 $(WHISPER_OBJECTS): *.h

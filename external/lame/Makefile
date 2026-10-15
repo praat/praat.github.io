@@ -17,10 +17,7 @@ clean:
 	$(RM) liblame.a
 
 liblame.a: $(OBJECTS)
-	touch liblame.a
-	rm liblame.a
-	$(AR) cq liblame.a $(OBJECTS)
-	$(RANLIB) liblame.a
+	ar rus liblame.a $(OBJECTS)
 
 $(OBJECTS): *.h
 

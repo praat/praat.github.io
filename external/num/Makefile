@@ -14,9 +14,6 @@ clean:
 	$(RM) libnum.a
 
 libnum.a: $(OBJECTS)
-	touch libnum.a
-	rm libnum.a
-	$(AR) cq libnum.a $(OBJECTS)
-	$(RANLIB) libnum.a
+	ar rus libnum.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h
