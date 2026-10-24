@@ -1702,30 +1702,32 @@ integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, doubl
 
 	for (integer i = 1; i <= 4; i ++) {
 		const double denom = (x [i + 1] - x [i]) * (y2 - y1) - (y [i + 1] - y [i]) * (x2 - x1);
-		if (denom == 0.0)
+		if (! (denom != 0.0))   // NaN-safe
 			continue;
 		
-		// We have an intersection.
-		
+		/*
+			We have an intersection.
+		*/
 		const double t = ((y [i] - y1) * (x2 - x1) - (x [i] - x1) * (y2 - y1)) / denom;
-		if (t < 0.0 || t >= 1.0)
+		if (! (t >= 0.0 && t < 1.0))   // NaN-safe
 			continue;
 		
-		// Intersection is within rectangle side.
-		
+		/*
+			The intersection is within rectangle side.
+		*/
 		const double x3 = x [i] + t * (x [i + 1] - x [i]);
 		const double y3 = y [i] + t * (y [i + 1] - y [i]);
 		
-		// s must also be valid
-		
+		/*
+			s must also be valid
+		*/
 		const double s = ( x1 != x2 ? (x3 - x1) / (x2 - x1) : (y3 - y1) / (y2 - y1) );
-		if (s < 0.0 || s >= 1.0)
+		if (! (s >= 0.0 && s < 1.0))   // NaN-safe
 			continue;
 
 		ni ++;
 		Melder_require (ni <= 3,
-			U"Too many intersections.");
-		
+			U"Too many intersections.");   // TODO: explain why `ni` can ever be 3
 		xi [ni] = x3;
 		yi [ni] = y3;
 	}
