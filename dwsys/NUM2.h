@@ -833,9 +833,14 @@ bool NUMdoLineSegmentsIntersect (double x1, double y1, double x2, double y2, dou
 
 integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2,
 	double xmin, double ymin, double xmax, double ymax, double *xi, double *yi);
-/* Get the intersection points of the line through the points (x1,y1) and (x2,y2) with the
-	rectangle with corners (xmin, ymin) and (xmax,ymax).
-	The returned value is the number of intersections found and is either 0 or 1 or 2.
+/*
+	Get the intersections of the line from (x1,y1) to (x2,y2) with the rectangle with corners
+		(xmin, ymin) and (xmax,ymax).
+	The return value is the number of intersections found and is either 0, 1 or 2.
+	The x and y coordinates of the intersections are in the arrays xi and yi (of dimension >= 3).
+	If there are no intersections, the xi and yi are not touched.
+	If only 1 intersection, the coordinates are xi[1] and yi[1].
+	If 2 intersections: the returned in intersection points are (xi[1], yi[1]), and (xi[2], yi[2]).
 */
 
 void NUMgetEllipseBoundingBox (double a, double b, double cospsi,
