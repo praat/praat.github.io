@@ -1,0 +1,73 @@
+{
+  "name": "praat-wasm",
+  "version": "6.4.6201",
+  "description": "Praat phonetic analysis library compiled to WebAssembly. Full-featured JS API modeled after Parselmouth.",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "main": "./js/praat-wasm.mjs",
+  "browser": "./js/praat-wasm.mjs",
+  "types": "./js/praat-wasm.d.ts",
+  "exports": {
+    ".": {
+      "import": "./js/praat-wasm.mjs",
+      "types": "./js/praat-wasm.d.ts"
+    },
+    "./classes": {
+      "import": "./js/classes.mjs"
+    },
+    "./worker": {
+      "import": "./js/worker.mjs"
+    },
+    "./worker-client": {
+      "import": "./js/worker-client.mjs",
+      "types": "./js/praat-wasm.d.ts"
+    }
+  },
+  "files": [
+    "README.md",
+    "js/praat-wasm.mjs",
+    "js/praat-wasm.d.ts",
+    "js/classes.mjs",
+    "js/worker.mjs",
+    "js/worker-client.mjs",
+    "dist/praat.mjs",
+    "dist/praat.wasm"
+  ],
+  "keywords": [
+    "praat",
+    "phonetics",
+    "speech",
+    "audio",
+    "analysis",
+    "pitch",
+    "formant",
+    "spectrogram",
+    "textgrid",
+    "wasm",
+    "webassembly",
+    "linguistics",
+    "parselmouth"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reynoldsnlp/praat.github.io.git"
+  },
+  "homepage": "https://github.com/reynoldsnlp/praat.github.io#praat-wasm",
+  "scripts": {
+    "build": "make -f ../Makefile.wasm -C ..",
+    "clean": "make -f ../Makefile.wasm -C .. clean",
+    "test": "node ../wasm/test_smoke.mjs && node ../wasm/test_wrapper.mjs && node ../wasm/test_classes.mjs",
+    "test:praat": "node ../wasm/test_praat_scripts.mjs",
+    "test:browser": "node ../docs/wasm-test/run-browser-test.mjs",
+    "version:sync": "node sync-version.mjs",
+    "version:bump": "node sync-version.mjs --bump",
+    "version:check": "node sync-version.mjs --check"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
