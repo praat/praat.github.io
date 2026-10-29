@@ -212,9 +212,6 @@ clean:
 	$(RM) libgsl.a
 
 libgsl.a: $(OBJECTS)
-	touch libgsl.a
-	rm libgsl.a
-	$(AR) cq libgsl.a $(OBJECTS)
-	$(RANLIB) libgsl.a
+	ar rus libgsl.a $(OBJECTS)
 
 $(OBJECTS): *.h

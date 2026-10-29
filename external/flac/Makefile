@@ -32,9 +32,6 @@ clean:
 	$(RM) libflac.a
 
 libflac.a: $(OBJECTS)
-	touch libflac.a
-	rm libflac.a
-	$(AR) cq libflac.a $(OBJECTS)
-	$(RANLIB) libflac.a
+	ar rus libflac.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h
