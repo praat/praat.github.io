@@ -36,6 +36,8 @@
 #include "NUM2.h"
 #include "Sound_and_Spectrum.h"
 
+#include <set>
+
 #define AC_HANNING  0
 #define AC_GAUSS  1
 #define FCC_NORMAL  2
@@ -362,17 +364,28 @@ autoPitch Sound_to_Pitch_any (Sound me,
 		/*
 			Compute the global absolute peak for determination of silence threshold.
 		*/
+		std::set<double> maximums;
+		size_t nmaximums = (my nx * my ny) / 100; // 99th percentile
+
 		globalPeak = 0.0;
 		for (integer ichan = 1; ichan <= my ny; ichan ++) {
 			const double mean = NUMmean (my z.row (ichan));
 			for (integer i = 1; i <= my nx; i ++) {
 				double value = fabs (my z [ichan] [i] - mean);
-				if (value > globalPeak)
+
+				if (maximums.size() == 0 || value >= *maximums.begin()) {
+					if (maximums.size() == nmaximums) {
+						maximums.erase(maximums.begin());
+					}
+					maximums.insert(value);
 					globalPeak = value;
+				}
 			}
 		}
-		if (globalPeak == 0.0)
+		if (maximums.size() == 0)
 			return thee;
+
+        globalPeak = *maximums.begin();
 
 		autoVEC window, windowR;
 		if (method >= FCC_NORMAL) {   // for cross-correlation analysis
