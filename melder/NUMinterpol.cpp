@@ -365,7 +365,8 @@ double NUMimproveExtremum (constVEC const& y, integer ixmid, integer interpolati
 	}
 	if (interpolationDepth == NUM_PEAK_INTERPOLATE_PARABOLIC) {
 		const double dy = 0.5 * (y [ixmid + 1] - y [ixmid - 1]);
-		const double d2y = 2 * y [ixmid] - y [ixmid - 1] - y [ixmid + 1];
+		const double d2y = (y [ixmid] - y [ixmid - 1]) + (y [ixmid] - y [ixmid + 1]);   // beware of rounding errors
+		Melder_assert (d2y > 0.0);
 		*ixmid_real = ixmid + dy / d2y;
 		return y [ixmid] + 0.5 * dy * dy / d2y;
 	}
