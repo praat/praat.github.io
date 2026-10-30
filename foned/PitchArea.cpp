@@ -209,8 +209,8 @@ void structPitchArea :: v_drawInside () {
 			for (integer icand = 1; icand <= frame -> nCandidates; icand ++) {
 				frequency = frame -> candidates [icand]. frequency;
 				if (Pitch_util_frequencyIsVoiced (frequency, our pitch() -> ceiling)) {
-					const integer strength = Melder_clippedRight (Melder_iround (10.0 * frame -> candidates [icand]. strength),
-							9_integer);   // map 0.0-1.0 to 0-9
+					const double strength = Melder_clippedRight (Melder_round_tieUp (10.0 * frame -> candidates [icand]. strength),
+							9.0);   // map 0.0-1.0 to 0-9   ; this is a double because the occasional `undefined` should be shown as "--undefined--"
 					Graphics_text (our graphics(), time, frequency,   strength);
 				}
 			}

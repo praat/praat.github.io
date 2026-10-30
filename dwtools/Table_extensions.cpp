@@ -1270,7 +1270,7 @@ static bool Graphics_getConnectingLine (Graphics g, conststring32 text1, double 
 	const double width2 = Graphics_textWidth (g, text2);
 	const double h = Graphics_dyMMtoWC (g, 1.5 * fontSize * 25.4 / 72.0) / 1.5;
 	const double xleft = x1 < x2 ? x1 : x2, xright = x2 > x1 ? x2 : x1;
-	double xi [3], yi [3];
+	double xi [4], yi [4];
 	int numberOfIntersections = NUMgetIntersectionsWithRectangle (x1, y1, x2, y2, xleft - width1 / 2.0, y1 - h/2, xleft + width1 / 2.0, y1 + h/2, xi, yi);
 	if (numberOfIntersections == 1) {
 		*x3 = xi [1];
@@ -1329,7 +1329,7 @@ void Table_lineGraph (Table me, Graphics g, integer xcolumn, double xmin, double
 				if (irow > 1) {
 					double x3, y3, x4, y4;
 					if (Graphics_getConnectingLine (g, symbol, symbolFontSize, x1, y1, symbol, x2, y2, & x3, & y3, & x4, & y4) && 
-						clipper -> clip (x3, y3, x4, y4))
+							clipper -> clip (x3, y3, x4, y4))
 						Graphics_line (g, x3, y3, x4, y4);
 				}
 			} else {
