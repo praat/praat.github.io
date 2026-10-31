@@ -832,7 +832,7 @@ bool NUMdoLineSegmentsIntersect (double x1, double y1, double x2, double y2, dou
 /* Does the line segment from (x1,y1) to (x2,y2) intersect with the line segment from (x3,y3) to (x4,y4)? */
 
 integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2,
-	double xmin, double ymin, double xmax, double ymax, double *xi, double *yi);
+	double xmin, double ymin, double xmax, double ymax, double xi [1+3], double yi [1+3]);
 /* Get the intersection points of the line through the points (x1,y1) and (x2,y2) with the
 	rectangle with corners (xmin, ymin) and (xmax,ymax).
 	The returned value is the number of intersections found and is either 0 or 1 or 2.
