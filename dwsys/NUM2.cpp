@@ -1666,7 +1666,6 @@ integer NUMgetOrientationOfPoints (double x1, double y1, double x2, double y2, d
 
 integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2, double xmin, double ymin, double xmax, double ymax, double xi [1+3], double yi [1+3]) {
 	double x [6], y [6];
-	integer ni = 0;
 
 	x [1] = x [4] = x [5] = xmin;
 	x [2] = x [3] = xmax;
@@ -1700,6 +1699,7 @@ integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, doubl
 			To count intersections in a corner only once we have t < 0 instead of t <= 0!
 	*/
 
+	integer ni = 0;
 	for (integer i = 1; i <= 4; i ++) {
 		const double denom = (x [i + 1] - x [i]) * (y2 - y1) - (y [i + 1] - y [i]) * (x2 - x1);
 		if (! (denom != 0.0))   // NaN-safe
@@ -1726,8 +1726,8 @@ integer NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, doubl
 			continue;
 
 		ni ++;
-		Melder_require (ni <= 3,
-			U"Too many intersections.");   // TODO: explain why `ni` can ever be 3
+		Melder_require (ni < 3,
+			U"Too many intersections.");
 		xi [ni] = x3;
 		yi [ni] = y3;
 	}
