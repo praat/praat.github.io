@@ -1,6 +1,6 @@
 /* PitchArea.cpp
  *
- * Copyright (C) 1992-2012,2014-2022 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2022,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -210,7 +210,7 @@ void structPitchArea :: v_drawInside () {
 				frequency = frame -> candidates [icand]. frequency;
 				if (Pitch_util_frequencyIsVoiced (frequency, our pitch() -> ceiling)) {
 					const double strength = Melder_clippedRight (Melder_round_tieUp (10.0 * frame -> candidates [icand]. strength),
-							9.0);   // map 0.0-1.0 to 0-9   ; this is a double because the occasional `undefined` should be shown as "--undefined--"
+							9.0);   // map 0.0-1.0 to 0-9   ; NaN-safe: this is a double because the occasional `undefined` should be shown as "--undefined--"
 					Graphics_text (our graphics(), time, frequency,   strength);
 				}
 			}

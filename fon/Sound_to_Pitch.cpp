@@ -194,13 +194,14 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 		*/
 		const double dr = 0.5 * (r [i+1] - r [i-1]);
 		const double d2r = (r [i] - r [i-1]) + (r [i] - r [i+1]);
-				// not 2.0 * r [i] - r [i-1] - r [i+1] because of rounhding errors! (bug removed 2025-04-18)
+				// not 2.0 * r [i] - r [i-1] - r [i+1] because of rounding errors! (bug removed 2025-04-18)
 		Melder_assert (d2r > 0);
 		const double frequencyOfMaximum = 1.0 / my dx / (i + dr / d2r);
 		const integer offset = - brent_ixmax - 1;
 		double strengthOfMaximum = /* method & 1 ? */
 			NUM_interpolate_sinc (constVEC (& r [offset + 1], brent_ixmax - offset), 1.0 / my dx / frequencyOfMaximum - offset, 30)
 			/* : r [i] + 0.5 * dr * dr / d2r */;
+		Melder_assert (isdefined (strengthOfMaximum));
 		/*
 			High values due to short windows are to be reflected around 1.
 		*/
@@ -239,6 +240,7 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 		if (place) {   // have we found a place for this candidate?
 			pitchFrame -> candidates [place]. frequency = frequencyOfMaximum;
 			pitchFrame -> candidates [place]. strength = strengthOfMaximum;
+			Melder_assert (isdefined (pitchFrame -> candidates [place]. strength));
 			imax [place] = i;
 		}
 	}
@@ -252,11 +254,14 @@ static void Sound_into_PitchFrame (Sound me, Pitch_Frame pitchFrame, double t,
 			const integer offset = - brent_ixmax - 1;
 			ymid = NUMimproveMaximum (constVEC (& r [offset + 1], brent_ixmax - offset), imax [i] - offset,
 					pitchFrame -> candidates [i]. frequency > 0.3 / my dx ? NUM_PEAK_INTERPOLATE_SINC700 : brent_depth, & xmid);
-			xmid += offset;
-			pitchFrame -> candidates [i]. frequency = 1.0 / my dx / xmid;
-			if (ymid > 1.0)
-				ymid = 1.0 / ymid;
-			pitchFrame -> candidates [i]. strength = ymid;
+			if (isdefined (ymid)) {
+				xmid += offset;
+				pitchFrame -> candidates [i]. frequency = 1.0 / my dx / xmid;
+				if (ymid > 1.0)
+					ymid = 1.0 / ymid;
+				pitchFrame -> candidates [i]. strength = ymid;
+				Melder_assert (isdefined (pitchFrame -> candidates [i]. strength));
+			}
 		}
 	}
 }

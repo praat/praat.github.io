@@ -1270,8 +1270,8 @@ static bool Graphics_getConnectingLine (Graphics g, conststring32 text1, double 
 	const double width2 = Graphics_textWidth (g, text2);
 	const double h = Graphics_dyMMtoWC (g, 1.5 * fontSize * 25.4 / 72.0) / 1.5;
 	const double xleft = x1 < x2 ? x1 : x2, xright = x2 > x1 ? x2 : x1;
-	double xi [4], yi [4];
-	int numberOfIntersections = NUMgetIntersectionsWithRectangle (x1, y1, x2, y2, xleft - width1 / 2.0, y1 - h/2, xleft + width1 / 2.0, y1 + h/2, xi, yi);
+	double xi [1+3], yi [1+3];   // TODO: explain in `NUMgetIntersectionsWithRectangle` why the maximum number of intersections can be 3
+	integer numberOfIntersections = NUMgetIntersectionsWithRectangle (x1, y1, x2, y2, xleft - width1 / 2.0, y1 - h/2, xleft + width1 / 2.0, y1 + h/2, xi, yi);
 	if (numberOfIntersections == 1) {
 		*x3 = xi [1];
 		*y3 = yi [1];
