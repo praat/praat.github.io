@@ -72,6 +72,18 @@ SPDX-License-Identifier: MIT
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="7.0.03" date="2026-11-08">
+      <url type="details">https://github.com/praat/praat.github.io/releases/tag/v7.0.03</url>
+      <description>
+        <ul>
+          <li>Allow concurrent use of Praat 6 and Praat 7.</li>
+          <li>Prevent potential division by zero in **Sound: To Pitch...** (this could cause incomplete drawing in the Pitch window).</li>
+          <li>Windows: repaired a bug by which PNG files could show IPA symbols incorrectly if the IPA fonts were not available.</li>
+          <li>Made **Table: Line graph...** resistant against undefined values.</li>
+          <li>Corpus: read Kiel corpus files.</li>
+        </ul>
+      </description>
+    </release>
     <release version="7.0.02" date="2026-08-27">
       <url type="details">https://github.com/praat/praat.github.io/releases/tag/v7.0.02</url>
       <description>
