@@ -273,7 +273,7 @@ procedure testGeneral_3by3
 	.eigenvectors = selected ("Matrix", 1)
 	.eigenvalues = selected ("Matrix", 2)
 
-	removeObject: .mat, .eigenvectors, .eigenvalues
+	removeObject: .mat, .eigenvectors, .eigenvalues, "Eigen 3x3square"
 	appendInfoLine: .test$, " OK"
 endproc
 

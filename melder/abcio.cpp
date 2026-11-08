@@ -1474,7 +1474,7 @@ void binputr32 (double x, FILE *f) {
 						exponent = 0;
 					}
 					exponent |= sign;
-					fMantissa = ldexp (fMantissa, 24);          
+					fMantissa = ldexp (fMantissa, 24);
 					fsMantissa = floor (fMantissa); 
 					mantissa = (uint32) fsMantissa & 0x007FFFFF;
 				}
@@ -1521,7 +1521,7 @@ void binputr32LE (double x, FILE *f) {
 						exponent = 0;
 					}
 					exponent |= sign;
-					fMantissa = ldexp (fMantissa, 24);          
+					fMantissa = ldexp (fMantissa, 24);
 					fsMantissa = floor (fMantissa);
 					mantissa = (uint32) fsMantissa & 0x007F'FFFF;
 				}
@@ -1580,8 +1580,8 @@ void binputr64 (double x, FILE *f) {
 					fMantissa = ldexp (fMantissa, 21);
 					fsMantissa = floor (fMantissa);
 					highMantissa = (uint32) fsMantissa & 0x000F'FFFF;
-					fMantissa = ldexp (fMantissa - fsMantissa, 32); 
-					fsMantissa = floor (fMantissa); 
+					fMantissa = ldexp (fMantissa - fsMantissa, 32);
+					fsMantissa = floor (fMantissa);
 					lowMantissa = (uint32) fsMantissa;
 				}
 			}
@@ -1691,7 +1691,7 @@ void binputr80 (double x, FILE *f) {
 					exponent = 0;
 				}
 				exponent |= sign;
-				fMantissa = ldexp (fMantissa, 32);          
+				fMantissa = ldexp (fMantissa, 32);
 				fsMantissa = floor (fMantissa);
 				highMantissa = (uint32) fsMantissa;
 				fMantissa = ldexp (fMantissa - fsMantissa, 32); 
@@ -1971,7 +1971,7 @@ void binputs32 (const char *s, FILE *f) {
 }
 
 static inline void binpututf16 (char32 kar, FILE *f) {
-	if (kar <= 0x00FFFF) {
+	if (kar <= 0x00'FFFF) {
 		binputu16 ((uint16) kar, f);   // truncate to lower 16 bits
 	} else if (kar <= 0x10'FFFF) {
 		kar -= 0x01'0000;

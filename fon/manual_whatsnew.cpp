@@ -29,6 +29,13 @@ R"~~~(
 
 Latest changes in Praat.
 
+##7.0.03# (8 November 2026)
+• Allow concurrent use of Praat 6 and Praat 7.
+• Prevent potential division by zero in ##Sound: To Pitch...# (this could cause incomplete drawing in the Pitch window).
+• Windows: repaired a bug by which PNG files could show IPA symbols incorrectly if the IPA fonts were not available.
+• Made ##Table: Line graph...# resistant against undefined values.
+• Corpus: read Kiel corpus files.
+
 ##7.0.02# (26 August 2026)
 • Corpus: extract TextGrid, Sound, speakers Table.
 • CGN Corpus: extract components, education regions.
