@@ -26,6 +26,7 @@
 #include "TextGridEditor.h"
 #include "TextGrid_extensions.h"
 #include "TextGrid_Sound.h"
+#include "TIMITCorpus.h"
 #include "WordList.h"
 
 #include "praat_TimeTier.h"
@@ -1753,7 +1754,7 @@ FORM (NEW_Corpus_importFromTIMIT, U"Import Corpus from TIMIT", U"Import Corpus f
 	OK
 DO
 	CREATE_ONE
-		autoCorpus result = Corpus_importFromTIMIT (folderName);
+		autoTIMITCorpus result = TIMITCorpus_import (folderName);
 	CREATE_ONE_END (U"TIMIT")
 }
 
@@ -1819,7 +1820,7 @@ DIRECT (NEW_Corpus_extractSpeakersTable) {
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_speakers")
 }
 
-FORM (NEW_Corpus_extractComponents, U"Corpus: Extract components", U"Corpus: Extract components") {
+FORM (NEW_CGNCorpus_extractComponents, U"CGNCorpus: Extract components", U"CGNCorpus: Extract components") {
 	BOOLEAN (comp_a, U"comp-a", true)
 	BOOLEAN (comp_b, U"comp-b", true)
 	BOOLEAN (comp_c, U"comp-c", false)
@@ -1837,8 +1838,8 @@ FORM (NEW_Corpus_extractComponents, U"Corpus: Extract components", U"Corpus: Ext
 	BOOLEAN (comp_o, U"comp-o", false)
 	OK
 DO
-	CONVERT_EACH_TO_ONE (Corpus)
-		autoCorpus result = Corpus_extractComponents (me, comp_a, comp_b, comp_c, comp_d, comp_e, comp_f, comp_g,
+	CONVERT_EACH_TO_ONE (CGNCorpus)
+		autoCGNCorpus result = CGNCorpus_extractComponents (me, comp_a, comp_b, comp_c, comp_d, comp_e, comp_f, comp_g,
 				comp_h, comp_i, comp_j, comp_k, comp_l, comp_m, comp_n, comp_o);
 		autoMelderString componentList;
 		if (comp_a)
@@ -1874,7 +1875,7 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", componentList.string)
 }
 
-FORM (NEW_Corpus_extractSpeakerEducationRegions, U"Corpus: Extract speaker education regions", U"Corpus: Extract speaker education regions") {
+FORM (NEW_CGNCorpus_extractSpeakerEducationRegions, U"CGNCorpus: Extract speaker education regions", U"CGNCorpus: Extract speaker education regions") {
 	BOOLEAN (sHolland, Corpus_CGN_regions_short [0], false)
 	BOOLEAN (nHolland, Corpus_CGN_regions_short [1], false)
 	BOOLEAN (wUtrecht, Corpus_CGN_regions_short [2], false)
@@ -1902,8 +1903,8 @@ FORM (NEW_Corpus_extractSpeakerEducationRegions, U"Corpus: Extract speaker educa
 	BOOLEAN (reg_unknown, Corpus_CGN_regions_short [24], false)
 	OK
 DO
-	CONVERT_EACH_TO_ONE (Corpus)
-		autoCorpus result = Corpus_extractSpeakerEducationRegions (me,
+	CONVERT_EACH_TO_ONE (CGNCorpus)
+		autoCGNCorpus result = CGNCorpus_extractSpeakerEducationRegions (me,
 			sHolland, nHolland, wUtrecht, zeeland, eUtrecht,
 			guelders, veluwe, wFriesland, polders, achterhoek,
 			overijssel, drenthe, groningen, frisia, nBrabant,
@@ -1967,10 +1968,29 @@ DO
 
 /***** buttons *****/
 
+void praat_init_Corpus (ClassInfo klas) {
+	praat_addAction1 (klas, 1, U"View & Edit", nullptr, GuiMenu_ATTRACTIVE, EDITOR_ONE_Corpus_edit);
+	praat_addAction1 (klas, 1, U"View & Edit speakers", nullptr, 0, EDITOR_ONE_Corpus_editSpeakers);
+	praat_addAction1 (klas, 0, U"Query -", nullptr, 0, nullptr);
+		praat_addAction1 (klas, 1, U"Get number of recordings",
+				nullptr, 1, QUERY_ONE_FOR_INTEGER__Corpus_getNumberOfRecordings);
+		praat_addAction1 (klas, 1, U"Get number of speakers",
+				nullptr, 1, QUERY_ONE_FOR_INTEGER__Corpus_getNumberOfSpeakers);
+	praat_addAction1 (klas, 0, U"Extract -", nullptr, 0, nullptr);
+		praat_addAction1 (klas, 1, U"Extract TextGrid (number)...",
+				nullptr, 1, NEW_Corpus_extractTextGrid_number);
+		praat_addAction1 (klas, 1, U"Extract Sound (number)...",
+				nullptr, 1, NEW_Corpus_extractSound_number);
+		praat_addAction1 (klas, 1, U"Extract recordings Table",
+				nullptr, 1, NEW_Corpus_extractRecordingsTable);
+		praat_addAction1 (klas, 1, U"Extract speakers Table",
+				nullptr, 1, NEW_Corpus_extractSpeakersTable);
+}
+
 void praat_uvafon_TextGrid_init () {
 	Thing_recognizeClassesByName (classTextPoint, classTextInterval, classTextTier,
 		classIntervalTier, classTextGrid, classWordList, classSpellingChecker,
-		classCorpus);
+		classCorpus, classCGNCorpus);
 	Thing_recognizeClassByOtherName (classTextTier, U"MarkTier");
 
 	Data_recognizeFileType (TextGrid_TIMITLabelFileRecognizer);
@@ -2006,27 +2026,13 @@ void praat_uvafon_TextGrid_init () {
 		praat_addMenuCommand (U"Objects", U"Open", U"Import Corpus from TIMIT...",
 				nullptr, 1, NEW_Corpus_importFromTIMIT);
 
-	praat_addAction1 (classCorpus, 1, U"View & Edit", nullptr, GuiMenu_ATTRACTIVE, EDITOR_ONE_Corpus_edit);
-	praat_addAction1 (classCorpus, 1, U"View & Edit speakers", nullptr, 0, EDITOR_ONE_Corpus_editSpeakers);
-	praat_addAction1 (classCorpus, 0, U"Query -", nullptr, 0, nullptr);
-		praat_addAction1 (classCorpus, 1, U"Get number of recordings",
-				nullptr, 1, QUERY_ONE_FOR_INTEGER__Corpus_getNumberOfRecordings);
-		praat_addAction1 (classCorpus, 1, U"Get number of speakers",
-				nullptr, 1, QUERY_ONE_FOR_INTEGER__Corpus_getNumberOfSpeakers);
-	praat_addAction1 (classCorpus, 0, U"Extract -", nullptr, 0, nullptr);
-		praat_addAction1 (classCorpus, 1, U"Extract TextGrid (number)...",
-				nullptr, 1, NEW_Corpus_extractTextGrid_number);
-		praat_addAction1 (classCorpus, 1, U"Extract Sound (number)...",
-				nullptr, 1, NEW_Corpus_extractSound_number);
-		praat_addAction1 (classCorpus, 1, U"Extract recordings Table",
-				nullptr, 1, NEW_Corpus_extractRecordingsTable);
-		praat_addAction1 (classCorpus, 1, U"Extract speakers Table",
-				nullptr, 1, NEW_Corpus_extractSpeakersTable);
+	praat_init_Corpus (classCorpus);
+	praat_init_Corpus (classCGNCorpus);
 		praat_addAction1 (classCorpus, 1, U"-- create subcorpus --", nullptr, 1, nullptr);
 		praat_addAction1 (classCorpus, 1, U"Extract components...",
-				nullptr, 1, NEW_Corpus_extractComponents);
+				nullptr, 1, NEW_CGNCorpus_extractComponents);
 		praat_addAction1 (classCorpus, 1, U"Extract speaker education regions...",
-				nullptr, 1, NEW_Corpus_extractSpeakerEducationRegions);
+				nullptr, 1, NEW_CGNCorpus_extractSpeakerEducationRegions);
 
 	praat_addAction1 (classIntervalTier, 1, U"Save as Xwaves label file... || Write to Xwaves label file...", nullptr, 0, SAVE_IntervalTier_writeToXwaves);
 			// alternative COMPATIBILITY <= 2011
