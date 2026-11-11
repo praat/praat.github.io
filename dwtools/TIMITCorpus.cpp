@@ -48,9 +48,10 @@ autoSound structTIMITCorpus :: extractSound (integer number) {
 	MelderString_append (& fileName, folderWithSoundFiles.get());
 	/* 2: use, dr, speaker, sound */
 	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 2_integer));
-	MelderString_append (& fileName, U"/", U"dr", Table_getStringValue_a (recordings.get(), number, 3_integer));
+	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 3_integer));
 	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 4_integer));
 	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 5_integer));
+	MelderString_append (& fileName, U".wav");
 	structMelderFile file;
 	Melder_pathToFile (fileName.string, & file);
 	autoSound me = Data_readFromFile (& file).static_cast_move <structSound>();
