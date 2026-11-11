@@ -2028,10 +2028,10 @@ void praat_uvafon_TextGrid_init () {
 
 	praat_init_Corpus (classCorpus);
 	praat_init_Corpus (classCGNCorpus);
-		praat_addAction1 (classCorpus, 1, U"-- create subcorpus --", nullptr, 1, nullptr);
-		praat_addAction1 (classCorpus, 1, U"Extract components...",
+		praat_addAction1 (classCGNCorpus, 1, U"-- create subcorpus --", nullptr, 1, nullptr);
+		praat_addAction1 (classCGNCorpus, 1, U"Extract components...",
 				nullptr, 1, NEW_CGNCorpus_extractComponents);
-		praat_addAction1 (classCorpus, 1, U"Extract speaker education regions...",
+		praat_addAction1 (classCGNCorpus, 1, U"Extract speaker education regions...",
 				nullptr, 1, NEW_CGNCorpus_extractSpeakerEducationRegions);
 
 	praat_addAction1 (classIntervalTier, 1, U"Save as Xwaves label file... || Write to Xwaves label file...", nullptr, 0, SAVE_IntervalTier_writeToXwaves);

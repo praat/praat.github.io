@@ -19,10 +19,10 @@
  */
 
 /*
-	Interface functions for subclasses of TextGrid_init.
+	Interface functions for subclasses of TextGrid and Corpus.
 */
 
-#include "TextGrid_init.h"
+#include "TextGrid.h"
 #include "praatM.h"
 
 extern "C" Graphics Movie_create (conststring32 title, int width, int height);
@@ -30,9 +30,9 @@ extern "C" Graphics Movie_create (conststring32 title, int width, int height);
 /*
 	Action buttons.
 */
-void praat_TextGrid_init_init ();
+void praat_TextGrid_init ();
 
-void praat_Corpus_init ();
+void praat_init_Corpus (ClassInfo klas);
 
 /* End of file praat_TextGrid_init.h */
 #endif
