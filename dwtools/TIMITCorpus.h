@@ -27,10 +27,10 @@ Thing_define (TIMITCorpus, Corpus) {
 	
 	/*
 		Get the Sound that belongs to item 'number' in the ordered textgrid collection
-		TODO: This method should be in the Corpus data type
+		TODO: This method should be in the Corpus_def.h
 	*/
-	autoSound extractSound (integer number);
-	
+	autoSound extractSound (integer number)
+		override;
 };
 
 autoTIMITCorpus TIMITCorpus_create (conststring32 folderWithSoundFiles,

@@ -41,6 +41,8 @@ static conststring32 TIMITCorpus_education_long [6] {
 	U"Master's Degree (MS or MA)", U"Doctorate Degree (PhD, JD, or MD)", U"Unknown" 
 };
 
+Thing_implement (TIMITCorpus, Corpus, 0);
+
 autoSound structTIMITCorpus :: extractSound (integer number) {
 	autoMelderString fileName;
 	MelderString_append (& fileName, folderWithSoundFiles.get());
