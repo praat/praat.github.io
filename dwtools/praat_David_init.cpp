@@ -125,6 +125,7 @@
 #include "TextGrid_extensions.h"
 #include "TextGridTierNavigator.h"
 #include "TextGridNavigator.h"
+#include "TIMITCorpus.h"
 #include "Vector_extensions.h"
 
 #include "Categories_and_Strings.h"
@@ -142,11 +143,13 @@
 #include "TableOfReal_and_SVD.h"
 #include "TextGrid_and_DurationTier.h"
 #include "TextGrid_and_PitchTier.h"
+#include "TIMITCorpus.h"
 #include "VowelEditor.h"
 
 #include "praat_TimeFrameSampled.h"
 #include "praat_Matrix.h"
 #include "praat_TableOfReal.h"
+#include "praat_TextGrid_init.h"
 #include "praat_uvafon_init.h"
 
 void praat_TableOfReal_init2 (ClassInfo klas);
@@ -9028,7 +9031,7 @@ void praat_David_init () {
 		classMelFilter, classMelSpectrogram, classNavigationContext,
 		classPatternList, classPCA, classRoots,
 		classSimpleString, classStringsIndex, classSpeechSynthesizer, classSPINET, classSSCP,
-		classSVD, classTextGridNavigator, classTextGridTierNavigator
+		classSVD, classTextGridNavigator, classTextGridTierNavigator, classTIMITCorpus
 	);
 
 	Thing_recognizeClassByOtherName (classExcitationList, U"Excitations");
@@ -9226,6 +9229,8 @@ void praat_David_init () {
 	praat_FunctionSeries_init (classChebyshevSeries);
 	praat_addAction1 (classChebyshevSeries, 0, U"To Polynomial", U"Analyse", 0,
 			CONVERT_EACH_TO_ONE__ChebyshevSeries_to_Polynomial);
+	
+	praat_init_Corpus (classTIMITCorpus);
 
 	praat_addAction1 (classCCA, 1, U"CCA help", nullptr, 0,
 			HELP__CCA_help);

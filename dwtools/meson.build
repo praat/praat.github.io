@@ -1,5 +1,5 @@
 # meson.build of the library "dwtools"
-# David Weenink, 5 October 2026
+# David Weenink, 9 Nobember 2026
 
 sources = '''
 	ActivationList.cpp AffineTransform.cpp AnalyticSound.cpp
@@ -10,7 +10,7 @@ sources = '''
 	ComplexSpectrogram.cpp Configuration.cpp ContingencyTable.cpp
 	Configuration_AffineTransform.cpp
 	Configuration_and_Procrustes.cpp ConstantQSpectrograms.cpp
-	Corpus_extensions.cpp
+	TIMITCorpus.cpp
 	DataModeler.cpp Distance.cpp
 	DTW.cpp DTW_and_TextGrid.cpp
 	Discriminant.cpp  Discriminant_PatternList_Categories.cpp

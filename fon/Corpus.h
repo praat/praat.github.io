@@ -27,13 +27,17 @@
 autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soundFileExtension,
 	conststring32 folderWithAnnotationFiles, conststring32 annotationFileExtension);
 
-autoCorpus Corpus_importFromCGN (conststring32 rootFolderPath);
-autoCorpus Corpus_importFromTIMIT(conststring32 rootFolderPath);
-
 autoTextGrid Corpus_extractTextGrid_number (Corpus me, integer recordingNumber);
 autoSound Corpus_extractSound_number (Corpus me, integer recordingNumber);
 
-autoCorpus Corpus_extractComponents (Corpus me,
+Thing_define (CGNCorpus, Corpus) {
+	autoSound extractSound (integer number)
+		override;
+};
+
+autoCGNCorpus Corpus_importFromCGN (conststring32 rootFolderPath);
+
+autoCGNCorpus CGNCorpus_extractComponents (CGNCorpus me,
 	bool comp_a, bool comp_b, bool comp_c, bool comp_d, bool comp_e,
 	bool comp_f, bool comp_g, bool comp_h, bool comp_i, bool comp_j,
 	bool comp_k, bool comp_l, bool comp_m, bool comp_n, bool comp_o
@@ -91,7 +95,7 @@ static conststring32 Corpus_CGN_regions_long [25] {
 	U"unknown region"
 };
 
-autoCorpus Corpus_extractSpeakerEducationRegions (Corpus me,
+autoCGNCorpus CGNCorpus_extractSpeakerEducationRegions (CGNCorpus me,
 	bool sHolland, bool nHolland, bool wUtrecht, bool zeeland, bool eUtrecht,
 	bool guelders, bool veluwe, bool wFriesland, bool polders, bool achterhoek,
 	bool overijssel, bool drenthe, bool groningen, bool frisia, bool nBrabant,

@@ -40,6 +40,11 @@
 
 Thing_implement (Corpus, Daata, 0);
 
+autoSound structCorpus :: extractSound (integer recordingNumber) {
+	autoSound sound;
+	return sound;
+}
+
 autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soundFileExtension,
 	conststring32 folderWithAnnotationFiles, conststring32 annotationFileExtension)
 {
@@ -65,11 +70,31 @@ autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soun
 		if (MelderFile_exists (& annotationFile))
 			Table_setStringValue (my recordings.get(), ifile, 2, annotationFileName.string);
 	}
+	my speakers = Thing_new (Table);
+	
+	Table_initWithColumnNames (my speakers.get(), 0,
+			autoSTRVEC ({ U"ID"}).get());
 	return me;
 }
 
-autoCorpus Corpus_importFromCGN (conststring32 rootFolderPath) {
-	autoCorpus me = Thing_new (Corpus);
+Thing_implement (CGNCorpus, Daata, 0);
+
+autoSound structCGNCorpus :: extractSound (integer recordingNumber) {
+	structMelderFolder wavFolder { };
+	Melder_relativePathToFolder (folderWithSoundFiles.get(), & wavFolder);
+	structMelderFolder compFolder { };
+	MelderFolder_getSubfolder (& wavFolder, Table_getStringValue_a (recordings.get(), recordingNumber, 1), & compFolder);
+	structMelderFolder countryFolder { };
+	MelderFolder_getSubfolder (& compFolder, Table_getStringValue_a (recordings.get(), recordingNumber, 2), & countryFolder);
+	structMelderFile soundFile { };
+	MelderFolder_getFile (& countryFolder, Table_getStringValue_a (recordings.get(), recordingNumber, 3), & soundFile);
+	autoSound thee = Sound_readFromSoundFile (& soundFile);
+	Thing_setName (thee.get(), Table_getStringValue_a (recordings.get(), recordingNumber, 3));
+	return thee;
+}
+
+autoCGNCorpus Corpus_importFromCGN (conststring32 rootFolderPath) {
+	autoCGNCorpus me = Thing_new (CGNCorpus);
 	const conststring32 columnNames_array [] = { U"component", U"region", U"recording" };
 	my recordings = Table_createWithColumnNames (0, ARRAY_TO_STRVEC (columnNames_array));
 
@@ -166,20 +191,10 @@ autoSound Corpus_extractSound_number (Corpus me, integer recordingNumber) {
 		U"The recording number (", recordingNumber, U") should be at least 1.");
 	Melder_require (recordingNumber <= my recordings -> rows.size,
 		U"The recording number (", recordingNumber, U") should be at most the number of recordings (", my recordings -> rows.size, U").");
-	structMelderFolder wavFolder { };
-	Melder_relativePathToFolder (my folderWithSoundFiles.get(), & wavFolder);
-	structMelderFolder compFolder { };
-	MelderFolder_getSubfolder (& wavFolder, Table_getStringValue_a (my recordings.get(), recordingNumber, 1), & compFolder);
-	structMelderFolder countryFolder { };
-	MelderFolder_getSubfolder (& compFolder, Table_getStringValue_a (my recordings.get(), recordingNumber, 2), & countryFolder);
-	structMelderFile soundFile { };
-	MelderFolder_getFile (& countryFolder, Table_getStringValue_a (my recordings.get(), recordingNumber, 3), & soundFile);
-	autoSound thee = Sound_readFromSoundFile (& soundFile);
-	Thing_setName (thee.get(), Table_getStringValue_a (my recordings.get(), recordingNumber, 3));
-	return thee;
+	return my extractSound (recordingNumber);
 }
 
-autoCorpus Corpus_extractComponents (Corpus me,
+autoCGNCorpus CGNCorpus_extractComponents (CGNCorpus me,
 	bool comp_a, bool comp_b, bool comp_c, bool comp_d, bool comp_e,
 	bool comp_f, bool comp_g, bool comp_h, bool comp_i, bool comp_j,
 	bool comp_k, bool comp_l, bool comp_m, bool comp_n, bool comp_o
@@ -189,7 +204,7 @@ autoCorpus Corpus_extractComponents (Corpus me,
 		comp_f, comp_g, comp_h, comp_i, comp_j,
 		comp_k, comp_l, comp_m, comp_n, comp_o
 	};
-	autoCorpus thee = Data_copy (me);
+	autoCGNCorpus thee = Data_copy (me);
 	for (integer row = thy recordings -> rows.size; row >= 1; row --) {
 		conststring32 component = Table_getStringValue_a (thy recordings.get(), row, 1);
 		Melder_require (Melder_stringMatchesCriterion (component, kMelder_string::STARTS_WITH, U"comp-", true),
@@ -205,7 +220,7 @@ autoCorpus Corpus_extractComponents (Corpus me,
 	return thee;
 }
 
-autoCorpus Corpus_extractSpeakerEducationRegions (Corpus me,
+autoCGNCorpus CGNCorpus_extractSpeakerEducationRegions (CGNCorpus me,
 	bool sHolland, bool nHolland, bool wUtrecht, bool zeeland, bool eUtrecht,
 	bool guelders, bool veluwe, bool wFriesland, bool polders, bool achterhoek,
 	bool overijssel, bool drenthe, bool groningen, bool frisia, bool nBrabant,
@@ -219,7 +234,7 @@ autoCorpus Corpus_extractSpeakerEducationRegions (Corpus me,
 		eLimburg, netherlands, sBrabant, eFlanders, wFlanders,
 		wLimburg, nBelgium, sBelgium, reg_other, reg_unknown
 	};
-	autoCorpus thee = Data_copy (me);
+	autoCGNCorpus thee = Data_copy (me);
 	for (integer row = thy recordings -> rows.size; row >= 1; row --) {
 		TextGrid textgrid = thy textGrids.at [row];
 		bool foundMatch = false;
