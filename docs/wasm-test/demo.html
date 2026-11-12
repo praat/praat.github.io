@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>praat-wasm Demo Gallery</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap');
+
+    :root {
+      --ink: #1f2933;
+      --ink-soft: #4b5968;
+      --card: #fffef7;
+      --card-edge: rgba(31, 41, 51, 0.14);
+      --bg-1: #fdf3d5;
+      --bg-2: #dff4eb;
+      --bg-3: #f8d9cf;
+      --accent: #005a88;
+      --accent-2: #cd4f28;
+      --ok: #0a7d2f;
+      --bad: #b51f00;
+      --mono: 'IBM Plex Mono', Menlo, Consolas, monospace;
+      --sans: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+      --shadow: 0 16px 34px rgba(0, 0, 0, 0.1);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 10% 15%, var(--bg-3) 0, transparent 36%),
+        radial-gradient(circle at 82% 24%, var(--bg-2) 0, transparent 38%),
+        radial-gradient(circle at 40% 85%, #fbe8c7 0, transparent 40%),
+        var(--bg-1);
+    }
+
+    main {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .heroPanel {
+      border: 1px solid var(--card-edge);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: 1.2rem;
+      animation: rise 420ms ease both;
+    }
+
+    h1 {
+      margin: 0;
+      line-height: 1.05;
+      font-size: clamp(1.8rem, 4vw, 2.9rem);
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin-top: 0.7rem;
+      color: var(--ink-soft);
+      max-width: 58ch;
+    }
+
+    .statusTag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-radius: 999px;
+      padding: 0.45rem 0.8rem;
+      border: 1px solid transparent;
+      margin-bottom: 0.9rem;
+    }
+
+    .statusTag::before {
+      content: '';
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .statusTag.pending { background: #f1f3f6; color: #5f6c7a; border-color: #d9dee4; }
+    .statusTag.loading { background: #e6f3fb; color: #005a88; border-color: #b6d6e6; }
+    .statusTag.ready { background: #e7f8ec; color: #0a7d2f; border-color: #bde6c9; }
+    .statusTag.error { background: #fbe7e1; color: #b51f00; border-color: #f0c0b2; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: 700;
+      padding: 0.6rem 0.9rem;
+      background: linear-gradient(150deg, #0a6ea5, var(--accent));
+      color: white;
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 140ms ease;
+      box-shadow: 0 7px 18px rgba(0, 90, 136, 0.24);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 11px 20px rgba(0, 90, 136, 0.28);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: linear-gradient(150deg, #d96b3a, var(--accent-2));
+      box-shadow: 0 7px 18px rgba(205, 79, 40, 0.24);
+    }
+
+    button.ghost {
+      background: white;
+      color: var(--ink);
+      border: 1px solid #cad1d8;
+      box-shadow: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 0.95rem;
+    }
+
+    .card {
+      border: 1px solid var(--card-edge);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      animation: rise 500ms ease both;
+    }
+
+    .card:nth-child(1) { animation-delay: 40ms; }
+    .card:nth-child(2) { animation-delay: 70ms; }
+    .card:nth-child(3) { animation-delay: 100ms; }
+    .card:nth-child(4) { animation-delay: 130ms; }
+    .card:nth-child(5) { animation-delay: 160ms; }
+    .card:nth-child(6) { animation-delay: 190ms; }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.94rem;
+      line-height: 1.42;
+    }
+
+    .output {
+      margin: 0;
+      min-height: 7.1rem;
+      border-radius: 12px;
+      border: 1px solid #d7dce3;
+      background: #f7f9fb;
+      color: #253241;
+      padding: 0.7rem;
+      font-family: var(--mono);
+      font-size: 0.79rem;
+      white-space: pre-wrap;
+      line-height: 1.48;
+      overflow: auto;
+    }
+
+    .output.ok {
+      border-color: #a8d9b8;
+      background: #edf8f1;
+      color: #184d2a;
+    }
+
+    .output.fail {
+      border-color: #efbaa9;
+      background: #fcefeb;
+      color: #77210d;
+    }
+
+    .fileInput {
+      border: 1px dashed #b8c2ce;
+      border-radius: 11px;
+      padding: 0.55rem;
+      font-size: 0.85rem;
+      background: white;
+    }
+
+    .downloadLink {
+      color: #005a88;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .downloadLink:hover {
+      text-decoration: underline;
+    }
+
+    .controlGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+    }
+
+    .controlGrid label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.22rem;
+      font-size: 0.76rem;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    .controlGrid input,
+    .controlGrid textarea {
+      border: 1px solid #c8d1db;
+      border-radius: 10px;
+      padding: 0.45rem 0.55rem;
+      font-size: 0.84rem;
+      color: var(--ink);
+      background: white;
+      font-family: var(--sans);
+    }
+
+    .controlGrid textarea {
+      min-height: 2.4rem;
+      resize: vertical;
+    }
+
+    .fullSpan {
+      grid-column: 1 / -1;
+    }
+
+    .localPreview {
+      border: 1px solid #d7dce3;
+      border-radius: 12px;
+      background: #f7f9fb;
+      padding: 0.55rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .miniWave {
+      width: 100%;
+      height: 110px;
+      display: block;
+      border-radius: 8px;
+      background: #eef2f6;
+    }
+
+    .miniMeta {
+      font-size: 0.87rem;
+      color: var(--ink-soft);
+      line-height: 1.4;
+    }
+
+    .miniPlayer {
+      width: 100%;
+    }
+
+    .textgridViewport {
+      border: 1px solid #d7dce3;
+      border-radius: 12px;
+      background: #f7f9fb;
+      min-height: 120px;
+      max-height: 220px;
+      overflow: auto;
+      padding: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .tierRow {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .tierName {
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      line-height: 1.25;
+      color: #384555;
+    }
+
+    .tierTrack {
+      position: relative;
+      min-height: 44px;
+      border: 1px solid #c7d0db;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.03) 0,
+        rgba(0, 0, 0, 0.03) 1px,
+        transparent 1px,
+        transparent 28px
+      ),
+      white;
+    }
+
+    .intervalBlock {
+      border-right: 1px solid #b6c0cc;
+      padding: 0.5rem 0.4rem;
+      font-size: 0.74rem;
+      line-height: 1.2;
+      color: #1f2933;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      background: linear-gradient(160deg, rgba(0, 90, 136, 0.16), rgba(0, 90, 136, 0.08));
+    }
+
+    .intervalBlock:nth-child(even) {
+      background: linear-gradient(160deg, rgba(205, 79, 40, 0.2), rgba(205, 79, 40, 0.09));
+    }
+
+    .intervalBlock:hover {
+      filter: brightness(0.96);
+    }
+
+    .pointMark {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #cd4f28;
+    }
+
+    .pointLabel {
+      position: absolute;
+      top: 4px;
+      transform: translateX(4px);
+      font-size: 0.7rem;
+      color: #2f3f52;
+      background: rgba(255, 255, 255, 0.88);
+      padding: 0.05rem 0.25rem;
+      border-radius: 8px;
+      max-width: 40%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .emptyState {
+      border: 1px dashed #c3ccd7;
+      border-radius: 10px;
+      background: white;
+      color: var(--ink-soft);
+      font-size: 0.87rem;
+      padding: 0.85rem;
+      line-height: 1.35;
+    }
+
+    .consoleBlock {
+      margin-top: 1rem;
+      border: 1px solid #d2d8de;
+      border-radius: var(--radius);
+      background: #16222e;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      animation: rise 520ms ease both;
+    }
+
+    .consoleHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+      padding: 0.8rem 1rem;
+      color: #d6e8f7;
+      border-bottom: 1px solid rgba(214, 232, 247, 0.18);
+      font-weight: 700;
+    }
+
+    #console {
+      margin: 0;
+      min-height: 8rem;
+      max-height: 40vh;
+      overflow: auto;
+      padding: 0.95rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: #d6e8f7;
+      white-space: pre-wrap;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .controlGrid {
+        grid-template-columns: 1fr;
+      }
+
+      .tierRow {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding: 1.1rem 0.65rem 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <article class="heroPanel">
+        <h1>praat-wasm demo gallery</h1>
+        <p class="subtitle">
+          A practical tour of common Praat tasks: sound generation, acoustic analysis, TextGrid authoring,
+          batch scripting, worker execution, and real audio inspection.
+        </p>
+      </article>
+      <article class="heroPanel">
+        <div id="moduleStatus" class="statusTag pending">Not initialized</div>
+        <div class="toolbar">
+          <button id="initBtn">Initialize module</button>
+          <button id="runAllBtn" class="secondary">Run all demos</button>
+          <button id="clearBtn" class="ghost">Clear outputs</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>1) Synthesize and inspect a sound</h2>
+        <p>Generate a configurable pure tone, inspect metadata, and listen immediately.</p>
+        <div class="controlGrid">
+          <label>
+            Frequency (Hz)
+            <input id="cfg-basics-freq" type="number" value="440" min="20" max="5000" step="1">
+          </label>
+          <label>
+            Duration (s)
+            <input id="cfg-basics-dur" type="number" value="0.75" min="0.05" max="10" step="0.05">
+          </label>
+          <label class="fullSpan">
+            Sample rate (Hz)
+            <input id="cfg-basics-sr" type="number" value="44100" min="8000" max="96000" step="100">
+          </label>
+        </div>
+        <button data-demo="basics">Run demo</button>
+        <div class="localPreview">
+          <div id="meta-basics" class="miniMeta">Run this demo to generate audio.</div>
+          <div id="time-basics" class="miniMeta">0:00 / --:--</div>
+          <canvas id="wave-basics" class="miniWave" width="520" height="110"></canvas>
+          <audio id="audio-basics" class="miniPlayer" controls preload="metadata"></audio>
+        </div>
+        <pre id="out-basics" class="output">Ready.</pre>
+      </article>
+
+      <article class="card">
+        <h2>2) Acoustic analysis pipeline</h2>
+        <p>Tune analysis parameters and inspect generated Praat analysis objects.</p>
+        <div class="controlGrid">
+          <label>
+            Source freq (Hz)
+            <input id="cfg-analysis-freq" type="number" value="220" min="20" max="5000" step="1">
+          </label>
+          <label>
+            Duration (s)
+            <input id="cfg-analysis-dur" type="number" value="1.0" min="0.1" max="10" step="0.05">
+          </label>
+          <label>
+            Sample rate (Hz)
+            <input id="cfg-analysis-sr" type="number" value="44100" min="8000" max="96000" step="100">
+          </label>
+          <label>
+            Pitch floor/ceiling
+            <input id="cfg-analysis-pitch" type="text" value="75,600">
+          </label>
+        </div>
+        <button data-demo="analysis">Run demo</button>
+        <div class="localPreview">
+          <div id="meta-analysis" class="miniMeta">Run this demo to generate audio.</div>
+          <div id="time-analysis" class="miniMeta">0:00 / --:--</div>
+          <canvas id="wave-analysis" class="miniWave" width="520" height="110"></canvas>
+          <audio id="audio-analysis" class="miniPlayer" controls preload="metadata"></audio>
+        </div>
+        <pre id="out-analysis" class="output">Ready.</pre>
+      </article>
+
+      <article class="card">
+        <h2>3) Load generated WAV data</h2>
+        <p>Configure the sweep generator instead of relying on hard-coded values.</p>
+        <div class="controlGrid">
+          <label>
+            Start freq (Hz)
+            <input id="cfg-sweep-start" type="number" value="130" min="20" max="10000" step="1">
+          </label>
+          <label>
+            End freq (Hz)
+            <input id="cfg-sweep-end" type="number" value="420" min="20" max="10000" step="1">
+          </label>
+          <label>
+            Duration (s)
+            <input id="cfg-sweep-dur" type="number" value="0.9" min="0.05" max="10" step="0.05">
+          </label>
+          <label>
+            Sample rate (Hz)
+            <input id="cfg-sweep-sr" type="number" value="22050" min="8000" max="96000" step="50">
+          </label>
+        </div>
+        <button data-demo="generatedAudio">Run demo</button>
+        <div class="localPreview">
+          <div id="meta-generatedAudio" class="miniMeta">Run this demo to generate audio.</div>
+          <div id="time-generatedAudio" class="miniMeta">0:00 / --:--</div>
+          <canvas id="wave-generatedAudio" class="miniWave" width="520" height="110"></canvas>
+          <audio id="audio-generatedAudio" class="miniPlayer" controls preload="metadata"></audio>
+        </div>
+        <pre id="out-generatedAudio" class="output">Ready.</pre>
+      </article>
+
+      <article class="card">
+        <h2>4) Build and export a TextGrid</h2>
+        <p>Edit timeline duration, boundaries, and labels; render and audition locally.</p>
+        <div class="controlGrid">
+          <label>
+            Timeline duration (s)
+            <input id="cfg-textgrid-dur" type="number" value="1.2" min="0.2" max="20" step="0.05">
+          </label>
+          <label>
+            Reference freq (Hz)
+            <input id="cfg-textgrid-freq" type="number" value="220" min="20" max="5000" step="1">
+          </label>
+          <label class="fullSpan">
+            Boundaries CSV (seconds)
+            <input id="cfg-textgrid-boundaries" type="text" value="0.4,0.8">
+          </label>
+          <label class="fullSpan">
+            Interval labels CSV
+            <input id="cfg-textgrid-labels" type="text" value="this,is,praat">
+          </label>
+        </div>
+        <button data-demo="textgrid">Run demo</button>
+        <div class="localPreview">
+          <div id="meta-textgrid" class="miniMeta">Run this demo to generate reference audio.</div>
+          <div id="time-textgrid" class="miniMeta">0:00 / --:--</div>
+          <canvas id="wave-textgrid" class="miniWave" width="520" height="110"></canvas>
+          <audio id="audio-textgrid" class="miniPlayer" controls preload="metadata"></audio>
+        </div>
+        <div id="textgridMetaLocal" class="miniMeta">No TextGrid loaded yet.</div>
+        <div id="textgridViewportLocal" class="textgridViewport">
+          <div class="emptyState">Run this module to populate the TextGrid viewer.</div>
+        </div>
+        <a id="textgridDownloadLocal" class="downloadLink" hidden>Download exported TextGrid</a>
+        <pre id="out-textgrid" class="output">Ready.</pre>
+      </article>
+
+      <article class="card">
+        <h2>5) Batch style processing</h2>
+        <p>Provide your own frequency list to generate and summarize batches.</p>
+        <div class="controlGrid">
+          <label class="fullSpan">
+            Frequencies CSV (Hz)
+            <input id="cfg-batch-freqs" type="text" value="120,180,260,340">
+          </label>
+          <label>
+            Duration per sound (s)
+            <input id="cfg-batch-dur" type="number" value="0.3" min="0.05" max="10" step="0.05">
+          </label>
+          <label>
+            Sample rate (Hz)
+            <input id="cfg-batch-sr" type="number" value="16000" min="8000" max="96000" step="50">
+          </label>
+        </div>
+        <button data-demo="batch">Run demo</button>
+        <div class="localPreview">
+          <div id="meta-batch" class="miniMeta">Run this demo to generate audio.</div>
+          <div id="time-batch" class="miniMeta">0:00 / --:--</div>
+          <canvas id="wave-batch" class="miniWave" width="520" height="110"></canvas>
+          <audio id="audio-batch" class="miniPlayer" controls preload="metadata"></audio>
+        </div>
+        <pre id="out-batch" class="output">Ready.</pre>
+      </article>
+
+      <article class="card">
+        <h2>6) Analyze user audio + worker mode</h2>
+        <p>Upload audio, inspect it locally in this card, and configure worker-side synthesis.</p>
+        <input id="uploadInput" class="fileInput" type="file" accept="audio/*">
+        <div class="controlGrid">
+          <label>
+            Worker tone freq (Hz)
+            <input id="cfg-worker-freq" type="number" value="330" min="20" max="5000" step="1">
+          </label>
+          <label>
+            Worker tone duration (s)
+            <input id="cfg-worker-dur" type="number" value="0.4" min="0.05" max="10" step="0.05">
+          </label>
+          <label class="fullSpan">
+            Worker sample rate (Hz)
+            <input id="cfg-worker-sr" type="number" value="44100" min="8000" max="96000" step="100">
+          </label>
+        </div>
+        <button data-demo="uploadWorker">Run demo</button>
+        <div class="localPreview">
+          <div id="meta-uploadWorker" class="miniMeta">Upload a file and run this module.</div>
+          <div id="time-uploadWorker" class="miniMeta">0:00 / --:--</div>
+          <canvas id="wave-uploadWorker" class="miniWave" width="520" height="110"></canvas>
+          <audio id="audio-uploadWorker" class="miniPlayer" controls preload="metadata"></audio>
+        </div>
+        <pre id="out-uploadWorker" class="output">Choose a file first, then run.</pre>
+      </article>
+    </section>
+
+    <section class="consoleBlock">
+      <div class="consoleHead">
+        <span>Session log</span>
+        <span id="stamp">No actions yet</span>
+      </div>
+      <pre id="console"></pre>
+    </section>
+  </main>
+
+  <script type="module">
+    const PRAAT_WASM_VERSION = '6.4.6200'
+    const PRAAT_WASM_BASE = `https://cdn.jsdelivr.net/npm/praat-wasm@${PRAAT_WASM_VERSION}/js`
+
+    const AUDIO_DEMO_IDS = ['basics', 'analysis', 'generatedAudio', 'textgrid', 'batch', 'uploadWorker']
+
+    const moduleStatus = document.getElementById('moduleStatus')
+    const initBtn = document.getElementById('initBtn')
+    const runAllBtn = document.getElementById('runAllBtn')
+    const clearBtn = document.getElementById('clearBtn')
+    const consoleEl = document.getElementById('console')
+    const stampEl = document.getElementById('stamp')
+    const uploadInput = document.getElementById('uploadInput')
+    const textgridDownload = document.getElementById('textgridDownloadLocal')
+    const textgridMeta = document.getElementById('textgridMetaLocal')
+    const textgridViewport = document.getElementById('textgridViewportLocal')
+
+    let praat = null
+    let createPraatWorkerFn = null
+    let worker = null
+    let textGridDownloadUrl = ''
+    let audioDecodeContext = null
+    const previewStates = new Map()
+
+    function nowLabel () {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    }
+
+    function setStatus (state, message) {
+      moduleStatus.className = `statusTag ${state}`
+      moduleStatus.textContent = message
+    }
+
+    function appendConsole (message, level) {
+      const prefix = level === 'error' ? 'ERR' : level === 'ok' ? 'OK ' : 'INF'
+      const line = `[${nowLabel()}] ${prefix}  ${message}`
+      consoleEl.textContent += line + '\n'
+      consoleEl.scrollTop = consoleEl.scrollHeight
+      stampEl.textContent = 'Last action: ' + nowLabel()
+    }
+
+    function setOutput (id, text, ok) {
+      const el = document.getElementById('out-' + id)
+      el.textContent = text
+      el.classList.remove('ok', 'fail')
+      if (ok === true) el.classList.add('ok')
+      if (ok === false) el.classList.add('fail')
+    }
+
+    function readNumberInput (id, fallback, min, max) {
+      const el = document.getElementById(id)
+      if (!el) return fallback
+      const raw = Number(el.value)
+      if (!Number.isFinite(raw)) return fallback
+      let value = raw
+      if (Number.isFinite(min)) value = Math.max(min, value)
+      if (Number.isFinite(max)) value = Math.min(max, value)
+      return value
+    }
+
+    function readCsvNumbers (id, fallback) {
+      const el = document.getElementById(id)
+      if (!el) return [...fallback]
+      const raw = el.value.trim()
+      if (!raw) return [...fallback]
+      const parsed = raw.split(',').map(piece => Number(piece.trim())).filter(Number.isFinite)
+      return parsed.length > 0 ? parsed : [...fallback]
+    }
+
+    function readCsvTexts (id, fallback) {
+      const el = document.getElementById(id)
+      if (!el) return [...fallback]
+      const raw = el.value.trim()
+      if (!raw) return [...fallback]
+      const parsed = raw.split(',').map(piece => piece.trim()).filter(Boolean)
+      return parsed.length > 0 ? parsed : [...fallback]
+    }
+
+    function formatSeconds (seconds) {
+      if (!Number.isFinite(seconds) || seconds < 0) return '0:00.0'
+      const mins = Math.floor(seconds / 60)
+      const secs = seconds - mins * 60
+      return mins + ':' + secs.toFixed(1).padStart(4, '0')
+    }
+
+    function ensureAudioDecodeContext () {
+      if (!audioDecodeContext) {
+        const Context = window.AudioContext || window.webkitAudioContext
+        if (!Context) throw new Error('Web Audio API is not available in this browser.')
+        audioDecodeContext = new Context()
+      }
+      return audioDecodeContext
+    }
+
+    function initializePreviewState (id) {
+      const state = {
+        id,
+        audio: document.getElementById('audio-' + id),
+        canvas: document.getElementById('wave-' + id),
+        meta: document.getElementById('meta-' + id),
+        time: document.getElementById('time-' + id),
+        url: '',
+        waveform: null
+      }
+
+      if (!state.audio || !state.canvas || !state.meta || !state.time) return
+
+      const refresh = () => {
+        updatePreviewClock(id)
+        drawPreviewWaveform(id, state.audio.currentTime || 0)
+      }
+
+      state.audio.addEventListener('loadedmetadata', refresh)
+      state.audio.addEventListener('timeupdate', refresh)
+      state.audio.addEventListener('seeked', refresh)
+      state.audio.addEventListener('ended', refresh)
+
+      previewStates.set(id, state)
+      drawPreviewEmpty(id, 'Run this module to generate audio.')
+      state.time.textContent = '0:00.0 / --:--'
+    }
+
+    function drawPreviewEmpty (id, message) {
+      const state = previewStates.get(id)
+      if (!state) return
+
+      const rect = state.canvas.getBoundingClientRect()
+      const width = Math.max(1, Math.floor(rect.width || 520))
+      const height = Math.max(1, Math.floor(rect.height || 110))
+      const dpr = window.devicePixelRatio || 1
+
+      state.canvas.width = Math.floor(width * dpr)
+      state.canvas.height = Math.floor(height * dpr)
+
+      const ctx = state.canvas.getContext('2d')
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, width, height)
+      ctx.fillStyle = '#eef2f6'
+      ctx.fillRect(0, 0, width, height)
+
+      ctx.strokeStyle = '#ccd5df'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, height / 2)
+      ctx.lineTo(width, height / 2)
+      ctx.stroke()
+
+      ctx.fillStyle = '#5d6a78'
+      ctx.font = '12px "IBM Plex Mono", Menlo, monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText(message, width / 2, height / 2 + 14)
+    }
+
+    function drawPreviewWaveform (id, cursorSeconds) {
+      const state = previewStates.get(id)
+      if (!state) return
+      if (!state.waveform || !state.waveform.samples || state.waveform.samples.length === 0) {
+        drawPreviewEmpty(id, 'Run this module to generate audio.')
+        return
+      }
+
+      const rect = state.canvas.getBoundingClientRect()
+      const width = Math.max(1, Math.floor(rect.width || 520))
+      const height = Math.max(1, Math.floor(rect.height || 110))
+      const dpr = window.devicePixelRatio || 1
+
+      state.canvas.width = Math.floor(width * dpr)
+      state.canvas.height = Math.floor(height * dpr)
+
+      const ctx = state.canvas.getContext('2d')
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, width, height)
+      ctx.fillStyle = '#f0f4f8'
+      ctx.fillRect(0, 0, width, height)
+
+      const samples = state.waveform.samples
+      const step = Math.max(1, Math.floor(samples.length / width))
+      const middle = height / 2
+
+      ctx.strokeStyle = '#005a88'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+
+      for (let x = 0; x < width; x++) {
+        const start = x * step
+        const end = Math.min(samples.length, start + step)
+        let min = 1
+        let max = -1
+        for (let i = start; i < end; i++) {
+          const value = samples[i]
+          if (value < min) min = value
+          if (value > max) max = value
+        }
+        const yTop = (1 - max) * middle
+        const yBottom = (1 - min) * middle
+        ctx.moveTo(x + 0.5, yTop)
+        ctx.lineTo(x + 0.5, yBottom)
+      }
+      ctx.stroke()
+
+      ctx.strokeStyle = '#2f3f52'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, middle)
+      ctx.lineTo(width, middle)
+      ctx.stroke()
+
+      if (state.waveform.duration > 0) {
+        const cursor = Math.max(0, Math.min(width, (cursorSeconds / state.waveform.duration) * width))
+        ctx.strokeStyle = '#cd4f28'
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.moveTo(cursor, 0)
+        ctx.lineTo(cursor, height)
+        ctx.stroke()
+      }
+    }
+
+    function updatePreviewClock (id) {
+      const state = previewStates.get(id)
+      if (!state) return
+      const current = formatSeconds(state.audio.currentTime || 0)
+      const total = Number.isFinite(state.audio.duration) ? formatSeconds(state.audio.duration) : '--:--'
+      state.time.textContent = current + ' / ' + total
+    }
+
+    async function setPreviewAudio (id, arrayBuffer, options = {}) {
+      const state = previewStates.get(id)
+      if (!state) return
+
+      const copiedBuffer = arrayBuffer instanceof ArrayBuffer
+        ? arrayBuffer.slice(0)
+        : arrayBuffer.buffer.slice(arrayBuffer.byteOffset, arrayBuffer.byteOffset + arrayBuffer.byteLength)
+
+      if (state.url) {
+        URL.revokeObjectURL(state.url)
+        state.url = ''
+      }
+
+      state.audio.pause()
+      state.waveform = null
+
+      const mimeType = options.mimeType || 'audio/wav'
+      state.url = URL.createObjectURL(new Blob([copiedBuffer], { type: mimeType }))
+      state.audio.src = state.url
+      state.audio.currentTime = 0
+      state.meta.textContent = options.label || 'Audio preview updated.'
+      state.time.textContent = '0:00.0 / --:--'
+
+      try {
+        const context = ensureAudioDecodeContext()
+        const decoded = await context.decodeAudioData(copiedBuffer.slice(0))
+        state.waveform = {
+          samples: new Float32Array(decoded.getChannelData(0)),
+          sampleRate: decoded.sampleRate,
+          duration: decoded.duration,
+          channels: decoded.numberOfChannels
+        }
+        drawPreviewWaveform(id, 0)
+        state.meta.textContent = (options.label || 'Audio preview ready.') +
+          ` ${decoded.sampleRate} Hz, ${decoded.numberOfChannels} channel(s), ${decoded.duration.toFixed(2)} s.`
+        state.time.textContent = '0:00.0 / ' + formatSeconds(decoded.duration)
+      } catch (e) {
+        state.waveform = null
+        drawPreviewEmpty(id, 'Waveform unavailable for this format.')
+        state.meta.textContent = (options.label || 'Audio preview ready.') + ' Waveform unavailable.'
+        appendConsole('Audio decode warning (' + id + '): ' + (e.message || e))
+      }
+    }
+
+    function seekPreview (id, seconds) {
+      const state = previewStates.get(id)
+      if (!state || !state.audio.src) return
+      const clamped = Math.max(0, Math.min(Number.isFinite(state.audio.duration) ? state.audio.duration : seconds, seconds))
+      state.audio.currentTime = clamped
+      updatePreviewClock(id)
+      drawPreviewWaveform(id, clamped)
+    }
+
+    function clearPreview (id) {
+      const state = previewStates.get(id)
+      if (!state) return
+      if (state.url) {
+        URL.revokeObjectURL(state.url)
+        state.url = ''
+      }
+      state.audio.pause()
+      state.audio.removeAttribute('src')
+      state.audio.load()
+      state.waveform = null
+      state.meta.textContent = 'Run this module to generate audio.'
+      state.time.textContent = '0:00.0 / --:--'
+      drawPreviewEmpty(id, 'Run this module to generate audio.')
+    }
+
+    function clearAllPreviews () {
+      for (const id of AUDIO_DEMO_IDS) clearPreview(id)
+    }
+
+    function parseTextGrid (content) {
+      const globalXmin = Number((content.match(/\bxmin\s*=\s*([-+\deE.]+)/) || [0, 0])[1])
+      const globalXmax = Number((content.match(/\bxmax\s*=\s*([-+\deE.]+)/) || [0, 1])[1])
+      const tiers = []
+      const tierSections = content.split(/(?:^|\n)\s*item \[\d+\]:\s*\n/g).slice(1)
+
+      for (const section of tierSections) {
+        const classMatch = section.match(/\bclass\s*=\s*"([^"]+)"/)
+        const nameMatch = section.match(/\bname\s*=\s*"((?:[^"]|"")*)"/)
+        const tierXminMatch = section.match(/\bxmin\s*=\s*([-+\deE.]+)/)
+        const tierXmaxMatch = section.match(/\bxmax\s*=\s*([-+\deE.]+)/)
+        const className = classMatch ? classMatch[1] : 'UnknownTier'
+        const name = nameMatch ? nameMatch[1].replace(/""/g, '"') : ''
+        const tier = {
+          className,
+          name,
+          xmin: tierXminMatch ? Number(tierXminMatch[1]) : globalXmin,
+          xmax: tierXmaxMatch ? Number(tierXmaxMatch[1]) : globalXmax,
+          intervals: [],
+          points: []
+        }
+
+        const intervalSections = section.split(/(?:^|\n)\s*intervals \[\d+\]:\s*\n/g).slice(1)
+        for (const intervalSection of intervalSections) {
+          const ixmin = Number((intervalSection.match(/\bxmin\s*=\s*([-+\deE.]+)/) || [0, NaN])[1])
+          const ixmax = Number((intervalSection.match(/\bxmax\s*=\s*([-+\deE.]+)/) || [0, NaN])[1])
+          const textMatch = intervalSection.match(/\btext\s*=\s*"((?:[^"]|"")*)"/)
+          if (Number.isFinite(ixmin) && Number.isFinite(ixmax)) {
+            tier.intervals.push({
+              xmin: ixmin,
+              xmax: ixmax,
+              text: textMatch ? textMatch[1].replace(/""/g, '"') : ''
+            })
+          }
+        }
+
+        const pointSections = section.split(/(?:^|\n)\s*points \[\d+\]:\s*\n/g).slice(1)
+        for (const pointSection of pointSections) {
+          const number = Number((pointSection.match(/\bnumber\s*=\s*([-+\deE.]+)/) || [0, NaN])[1])
+          const markMatch = pointSection.match(/\bmark\s*=\s*"((?:[^"]|"")*)"/)
+          if (Number.isFinite(number)) {
+            tier.points.push({
+              number,
+              mark: markMatch ? markMatch[1].replace(/""/g, '"') : ''
+            })
+          }
+        }
+
+        tiers.push(tier)
+      }
+
+      return {
+        xmin: Number.isFinite(globalXmin) ? globalXmin : 0,
+        xmax: Number.isFinite(globalXmax) ? globalXmax : 1,
+        tiers
+      }
+    }
+
+    function resetTextGridViewer () {
+      textgridMeta.textContent = 'No TextGrid loaded yet.'
+      textgridViewport.innerHTML = '<div class="emptyState">Run this module to populate the TextGrid viewer.</div>'
+    }
+
+    function updateTextGridViewer (content, label, onSeek) {
+      const grid = parseTextGrid(content)
+      const span = Math.max(0.001, grid.xmax - grid.xmin)
+      textgridMeta.textContent = `${label} | ${span.toFixed(3)} s | ${grid.tiers.length} tier(s)`
+      textgridViewport.innerHTML = ''
+
+      if (grid.tiers.length === 0) {
+        textgridViewport.innerHTML = '<div class="emptyState">Could not parse tiers from TextGrid.</div>'
+        return
+      }
+
+      for (const tier of grid.tiers) {
+        const row = document.createElement('div')
+        row.className = 'tierRow'
+
+        const name = document.createElement('div')
+        name.className = 'tierName'
+        name.textContent = (tier.name || '(unnamed)') + ' [' + tier.className + ']'
+
+        const track = document.createElement('div')
+        track.className = 'tierTrack'
+
+        if (tier.intervals.length > 0) {
+          for (const interval of tier.intervals) {
+            const block = document.createElement('div')
+            block.className = 'intervalBlock'
+            block.style.width = Math.max(1, ((interval.xmax - interval.xmin) / span) * 100) + '%'
+            block.textContent = interval.text || '(empty)'
+            block.title = `${interval.xmin.toFixed(3)}s - ${interval.xmax.toFixed(3)}s | ${interval.text || '(empty)'}`
+            block.addEventListener('click', () => {
+              if (onSeek) onSeek(Math.max(0, interval.xmin - grid.xmin))
+            })
+            track.appendChild(block)
+          }
+        } else if (tier.points.length > 0) {
+          for (const point of tier.points) {
+            const left = ((point.number - grid.xmin) / span) * 100
+            const marker = document.createElement('div')
+            marker.className = 'pointMark'
+            marker.style.left = Math.max(0, Math.min(100, left)) + '%'
+            marker.title = point.number.toFixed(3) + 's | ' + (point.mark || '(mark)')
+            track.appendChild(marker)
+
+            const text = document.createElement('div')
+            text.className = 'pointLabel'
+            text.style.left = Math.max(0, Math.min(100, left)) + '%'
+            text.textContent = point.mark || '(mark)'
+            track.appendChild(text)
+          }
+        } else {
+          track.innerHTML = '<div class="emptyState" style="margin:0.35rem;width:100%;">Empty tier</div>'
+        }
+
+        row.appendChild(name)
+        row.appendChild(track)
+        textgridViewport.appendChild(row)
+      }
+    }
+
+    function clearOutputs () {
+      const blocks = document.querySelectorAll('.output')
+      for (const block of blocks) {
+        block.textContent = 'Ready.'
+        block.classList.remove('ok', 'fail')
+      }
+      setOutput('uploadWorker', 'Choose a file first, then run.', undefined)
+      textgridDownload.hidden = true
+      if (textGridDownloadUrl) {
+        URL.revokeObjectURL(textGridDownloadUrl)
+        textGridDownloadUrl = ''
+      }
+      clearAllPreviews()
+      resetTextGridViewer()
+      appendConsole('Outputs cleared')
+    }
+
+    function createWorkerBootstrapUrl (workerModuleUrl) {
+      /* Worker() must start from a same-origin URL. */
+      const source = `import ${JSON.stringify(workerModuleUrl)}\n`
+      const blob = new Blob([source], { type: 'text/javascript' })
+      return URL.createObjectURL(blob)
+    }
+
+    async function ensurePraat () {
+      if (praat) return praat
+
+      setStatus('loading', 'Loading praat-wasm ...')
+      appendConsole('Loading module from npm CDN: v' + PRAAT_WASM_VERSION)
+
+      try {
+        const { createPraatWasm } = await import(`${PRAAT_WASM_BASE}/praat-wasm.mjs`)
+        praat = await createPraatWasm()
+        setStatus('ready', 'Ready (v' + PRAAT_WASM_VERSION + ')')
+        appendConsole('Praat module initialized', 'ok')
+        return praat
+      } catch (e) {
+        setStatus('error', 'Initialization failed')
+        appendConsole('Failed to initialize module: ' + (e.message || e), 'error')
+        throw e
+      }
+    }
+
+    async function ensureWorker () {
+      if (worker) return worker
+
+      if (!createPraatWorkerFn) {
+        const mod = await import(`${PRAAT_WASM_BASE}/worker-client.mjs`)
+        createPraatWorkerFn = mod.createPraatWorker
+      }
+
+      const bootstrapUrl = createWorkerBootstrapUrl(`${PRAAT_WASM_BASE}/worker.mjs`)
+      try {
+        worker = await createPraatWorkerFn(bootstrapUrl)
+        appendConsole('Worker initialized', 'ok')
+        return worker
+      } finally {
+        URL.revokeObjectURL(bootstrapUrl)
+      }
+    }
+
+    function getFirstSound (instance) {
+      const sounds = instance.list().filter(o => o.type === 'Sound' || o.className === 'Sound')
+      if (sounds.length === 0) throw new Error('No Sound object is selected or available.')
+      return sounds[0]
+    }
+
+    function generateSineWav (freq, dur, sr) {
+      const numSamples = Math.floor(sr * dur)
+      const buf = new ArrayBuffer(44 + numSamples * 2)
+      const view = new DataView(buf)
+      const write = (offset, str) => {
+        for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i))
+      }
+
+      write(0, 'RIFF')
+      view.setUint32(4, 36 + numSamples * 2, true)
+      write(8, 'WAVE')
+      write(12, 'fmt ')
+      view.setUint32(16, 16, true)
+      view.setUint16(20, 1, true)
+      view.setUint16(22, 1, true)
+      view.setUint32(24, sr, true)
+      view.setUint32(28, sr * 2, true)
+      view.setUint16(32, 2, true)
+      view.setUint16(34, 16, true)
+      write(36, 'data')
+      view.setUint32(40, numSamples * 2, true)
+
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sr
+        const amp = 0.82 * Math.sin(2 * Math.PI * freq * t)
+        view.setInt16(44 + i * 2, Math.round(amp * 32767), true)
+      }
+      return buf
+    }
+
+    function generateSweepWav (startFreq, endFreq, dur, sr) {
+      const numSamples = Math.floor(sr * dur)
+      const buf = new ArrayBuffer(44 + numSamples * 2)
+      const view = new DataView(buf)
+      const write = (offset, str) => {
+        for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i))
+      }
+
+      write(0, 'RIFF')
+      view.setUint32(4, 36 + numSamples * 2, true)
+      write(8, 'WAVE')
+      write(12, 'fmt ')
+      view.setUint32(16, 16, true)
+      view.setUint16(20, 1, true)
+      view.setUint16(22, 1, true)
+      view.setUint32(24, sr, true)
+      view.setUint32(28, sr * 2, true)
+      view.setUint16(32, 2, true)
+      view.setUint16(34, 16, true)
+      write(36, 'data')
+      view.setUint32(40, numSamples * 2, true)
+
+      let phase = 0
+      for (let i = 0; i < numSamples; i++) {
+        const ratio = i / Math.max(1, numSamples - 1)
+        const f = startFreq + (endFreq - startFreq) * ratio
+        phase += (2 * Math.PI * f) / sr
+        const amp = 0.75 * Math.sin(phase)
+        view.setInt16(44 + i * 2, Math.round(amp * 32767), true)
+      }
+      return buf
+    }
+
+    async function demoBasics () {
+      const p = await ensurePraat()
+      p.removeAll()
+
+      const freq = readNumberInput('cfg-basics-freq', 440, 20, 5000)
+      const dur = readNumberInput('cfg-basics-dur', 0.75, 0.05, 10)
+      const sr = Math.round(readNumberInput('cfg-basics-sr', 44100, 8000, 96000))
+
+      p.run(`Create Sound as pure tone: "toneA", 1, 0, ${dur}, ${sr}, ${freq}, 0.2, 0.01, 0.01`)
+      const sound = getFirstSound(p)
+      const duration = Number(p.call(sound, 'Get total duration'))
+      const sampleRate = Number(p.call(sound, 'Get sampling frequency'))
+
+      await setPreviewAudio('basics', generateSineWav(freq, dur, sr), {
+        mimeType: 'audio/wav',
+        label: `Tone preview (${freq} Hz).`
+      })
+
+      return [
+        'Created configurable pure tone in Praat.',
+        'Object ID: ' + sound.id,
+        'Duration: ' + duration.toFixed(3) + ' s',
+        'Sampling frequency: ' + Math.round(sampleRate) + ' Hz'
+      ].join('\n')
+    }
+
+    async function demoAnalysis () {
+      const p = await ensurePraat()
+      p.removeAll()
+
+      const freq = readNumberInput('cfg-analysis-freq', 220, 20, 5000)
+      const dur = readNumberInput('cfg-analysis-dur', 1.0, 0.1, 10)
+      const sr = Math.round(readNumberInput('cfg-analysis-sr', 44100, 8000, 96000))
+      const pitchRange = readCsvNumbers('cfg-analysis-pitch', [75, 600])
+      const pitchFloor = Math.max(20, pitchRange[0] || 75)
+      const pitchCeiling = Math.max(pitchFloor + 10, pitchRange[1] || 600)
+
+      const wav = generateSineWav(freq, dur, sr)
+      const sound = p.readAudio(wav, '/tmp/analysis.wav')
+      const pitch = p.call(sound, 'To Pitch...', 0, pitchFloor, pitchCeiling)
+      const formant = p.call(sound, 'To Formant (burg)...', 0, 5, 5500, 0.025, 50)
+      const intensity = p.call(sound, 'To Intensity...', 75, 0, 'yes')
+      const spectrum = p.call(sound, 'To Spectrum', 'yes')
+      const spectrogram = p.call(sound, 'To Spectrogram...', 0.005, 5000, 0.002, 20, 'Gaussian')
+
+      await setPreviewAudio('analysis', wav, {
+        mimeType: 'audio/wav',
+        label: `Analysis source (${freq} Hz tone).`
+      })
+
+      return [pitch, formant, intensity, spectrum, spectrogram]
+        .map(obj => '- ' + (obj.type || obj.className) + ' #' + obj.id)
+        .join('\n')
+    }
+
+    async function demoGeneratedAudio () {
+      const p = await ensurePraat()
+      p.removeAll()
+
+      const startFreq = readNumberInput('cfg-sweep-start', 130, 20, 10000)
+      let endFreq = readNumberInput('cfg-sweep-end', 420, 20, 10000)
+      const dur = readNumberInput('cfg-sweep-dur', 0.9, 0.05, 10)
+      const sr = Math.round(readNumberInput('cfg-sweep-sr', 22050, 8000, 96000))
+      if (Math.abs(endFreq - startFreq) < 1) endFreq = startFreq + 50
+
+      const sweep = generateSweepWav(startFreq, endFreq, dur, sr)
+      const sound = p.readAudio(sweep, '/tmp/sweep.wav')
+      const duration = Number(p.call(sound, 'Get total duration'))
+      const sampleRate = Number(p.call(sound, 'Get sampling frequency'))
+
+      await setPreviewAudio('generatedAudio', sweep, {
+        mimeType: 'audio/wav',
+        label: `Sweep preview (${startFreq} Hz -> ${endFreq} Hz).`
+      })
+
+      return [
+        'Loaded configurable sweep into Praat.',
+        'Sound ID: ' + sound.id,
+        'Duration: ' + duration.toFixed(3) + ' s',
+        'Sampling frequency: ' + Math.round(sampleRate) + ' Hz'
+      ].join('\n')
+    }
+
+    async function demoTextGrid () {
+      const p = await ensurePraat()
+      p.removeAll()
+
+      const duration = readNumberInput('cfg-textgrid-dur', 1.2, 0.2, 20)
+      const refFreq = readNumberInput('cfg-textgrid-freq', 220, 20, 5000)
+      const labels = readCsvTexts('cfg-textgrid-labels', ['this', 'is', 'praat'])
+      const boundaries = readCsvNumbers('cfg-textgrid-boundaries', [0.4, 0.8])
+        .filter(value => value > 0 && value < duration)
+        .sort((a, b) => a - b)
+        .filter((value, index, arr) => index === 0 || Math.abs(value - arr[index - 1]) > 1e-6)
+
+      const tg = p.createTextGrid(0, duration, 'words phones', 'phones')
+      if (!tg) throw new Error('TextGrid creation failed.')
+
+      for (const boundary of boundaries) {
+        p.call(tg, 'Insert boundary...', 1, boundary)
+      }
+
+      const intervalCount = boundaries.length + 1
+      for (let i = 0; i < intervalCount; i++) {
+        p.call(tg, 'Set interval text...', 1, i + 1, labels[i] || '')
+      }
+
+      const middleIndex = Math.min(intervalCount, Math.max(1, Math.ceil(intervalCount / 2)))
+      const middleLabel = p.call(tg, 'Get label of interval...', 1, middleIndex)
+
+      p.select(tg.id)
+      p.saveAsText('/tmp/demo.TextGrid')
+      const bytes = p.getFile('/tmp/demo.TextGrid')
+
+      if (textGridDownloadUrl) URL.revokeObjectURL(textGridDownloadUrl)
+      textGridDownloadUrl = URL.createObjectURL(new Blob([bytes], { type: 'text/plain' }))
+      textgridDownload.href = textGridDownloadUrl
+      textgridDownload.download = 'demo.TextGrid'
+      textgridDownload.hidden = false
+
+      const fullText = new TextDecoder().decode(bytes)
+      updateTextGridViewer(fullText, 'demo.TextGrid', (seekTime) => {
+        seekPreview('textgrid', seekTime)
+      })
+
+      await setPreviewAudio('textgrid', generateSineWav(refFreq, duration, 22050), {
+        mimeType: 'audio/wav',
+        label: 'TextGrid reference audio (click intervals to seek).'
+      })
+
+      const preview = fullText.slice(0, 160).replace(/\s+/g, ' ').trim()
+      return [
+        'Created configurable TextGrid.',
+        'Boundaries: ' + (boundaries.length ? boundaries.map(v => v.toFixed(3)).join(', ') : '(none)'),
+        'Middle interval label: ' + middleLabel,
+        'Export size: ' + bytes.length + ' bytes',
+        'Preview: ' + preview
+      ].join('\n')
+    }
+
+    async function demoBatch () {
+      const p = await ensurePraat()
+      p.removeAll()
+
+      const freqs = readCsvNumbers('cfg-batch-freqs', [120, 180, 260, 340])
+        .map(value => Math.max(20, value))
+        .slice(0, 16)
+      const dur = readNumberInput('cfg-batch-dur', 0.3, 0.05, 10)
+      const sr = Math.round(readNumberInput('cfg-batch-sr', 16000, 8000, 96000))
+
+      for (const freq of freqs) {
+        p.run(`Create Sound as pure tone: "batch_${freq}", 1, 0, ${dur}, ${sr}, ${freq}, 0.2, 0.01, 0.01`)
+      }
+
+      const sounds = p.list().filter(o => o.type === 'Sound' || o.className === 'Sound')
+      let totalDuration = 0
+      for (const sound of sounds) {
+        totalDuration += Number(p.call(sound, 'Get total duration'))
+      }
+
+      await setPreviewAudio('batch', generateSineWav(freqs[0] || 220, dur, sr), {
+        mimeType: 'audio/wav',
+        label: `Batch preview (${(freqs[0] || 220)} Hz first item).`
+      })
+
+      return [
+        'Generated batch of ' + sounds.length + ' sounds.',
+        'Frequencies: ' + freqs.join(', ') + ' Hz',
+        'Total duration across all sounds: ' + totalDuration.toFixed(3) + ' s'
+      ].join('\n')
+    }
+
+    async function demoUploadWorker () {
+      const file = uploadInput.files && uploadInput.files[0]
+      if (!file) throw new Error('Choose an audio file before running this demo.')
+
+      const p = await ensurePraat()
+      p.removeAll()
+
+      const bytes = await file.arrayBuffer()
+      const safeName = '/tmp/' + file.name.replace(/[^A-Za-z0-9._-]/g, '_')
+      const uploaded = p.readAudio(bytes, safeName)
+      const duration = Number(p.call(uploaded, 'Get total duration'))
+      const sampleRate = Number(p.call(uploaded, 'Get sampling frequency'))
+
+      await setPreviewAudio('uploadWorker', bytes, {
+        mimeType: file.type || 'audio/*',
+        label: 'Uploaded audio preview: ' + file.name
+      })
+
+      const workerFreq = readNumberInput('cfg-worker-freq', 330, 20, 5000)
+      const workerDur = readNumberInput('cfg-worker-dur', 0.4, 0.05, 10)
+      const workerSr = Math.round(readNumberInput('cfg-worker-sr', 44100, 8000, 96000))
+
+      const w = await ensureWorker()
+      await w.removeAll()
+      await w.run(
+        `Create Sound as pure tone: "workerTone", 1, 0, ${workerDur}, ${workerSr}, ${workerFreq}, 0.2, 0.01, 0.01`
+      )
+      const workerList = await w.list()
+      const workerDuration = Number(await w.call('Get total duration'))
+
+      return [
+        'User audio analyzed from upload.',
+        'Filename: ' + file.name,
+        'Duration: ' + duration.toFixed(3) + ' s',
+        'Sampling frequency: ' + Math.round(sampleRate) + ' Hz',
+        '',
+        'Worker check:',
+        'Objects in worker: ' + workerList.length,
+        'Worker tone duration: ' + workerDuration.toFixed(3) + ' s'
+      ].join('\n')
+    }
+
+    const demoMap = {
+      basics: demoBasics,
+      analysis: demoAnalysis,
+      generatedAudio: demoGeneratedAudio,
+      textgrid: demoTextGrid,
+      batch: demoBatch,
+      uploadWorker: demoUploadWorker
+    }
+
+    async function runDemo (id) {
+      const fn = demoMap[id]
+      if (!fn) return
+
+      const button = document.querySelector(`button[data-demo="${id}"]`)
+      button.disabled = true
+      setOutput(id, 'Running...', undefined)
+      appendConsole('Running demo: ' + id)
+
+      try {
+        const result = await fn()
+        setOutput(id, result, true)
+        appendConsole('Completed demo: ' + id, 'ok')
+      } catch (e) {
+        setOutput(id, e.message || String(e), false)
+        appendConsole('Demo failed (' + id + '): ' + (e.message || e), 'error')
+      } finally {
+        button.disabled = false
+      }
+    }
+
+    async function runAll () {
+      const order = ['basics', 'analysis', 'generatedAudio', 'textgrid', 'batch']
+      runAllBtn.disabled = true
+      appendConsole('Running all non-upload demos...')
+      try {
+        await ensurePraat()
+        for (const id of order) {
+          await runDemo(id)
+        }
+      } finally {
+        runAllBtn.disabled = false
+      }
+    }
+
+    initBtn.addEventListener('click', async () => {
+      initBtn.disabled = true
+      try {
+        await ensurePraat()
+      } finally {
+        initBtn.disabled = false
+      }
+    })
+
+    runAllBtn.addEventListener('click', runAll)
+    clearBtn.addEventListener('click', clearOutputs)
+
+    for (const button of document.querySelectorAll('button[data-demo]')) {
+      button.addEventListener('click', () => runDemo(button.dataset.demo))
+    }
+
+    window.addEventListener('resize', () => {
+      for (const id of AUDIO_DEMO_IDS) {
+        const state = previewStates.get(id)
+        if (!state) continue
+        if (state.waveform) {
+          drawPreviewWaveform(id, state.audio.currentTime || 0)
+        } else {
+          drawPreviewEmpty(id, 'Run this module to generate audio.')
+        }
+      }
+    })
+
+    window.addEventListener('beforeunload', () => {
+      try {
+        if (worker) worker.destroy()
+      } catch (_e) {
+        /* Ignore cleanup errors. */
+      }
+
+      if (textGridDownloadUrl) URL.revokeObjectURL(textGridDownloadUrl)
+      for (const state of previewStates.values()) {
+        if (state.url) URL.revokeObjectURL(state.url)
+      }
+
+      if (audioDecodeContext && audioDecodeContext.state !== 'closed') {
+        audioDecodeContext.close().catch(() => {})
+      }
+    })
+
+    for (const id of AUDIO_DEMO_IDS) initializePreviewState(id)
+    resetTextGridViewer()
+    appendConsole('Demo page ready. Configure any module and run it.')
+  </script>
+</body>
+</html>
