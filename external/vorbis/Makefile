@@ -18,9 +18,6 @@ clean:
 	$(RM) libvorbis.a
 
 libvorbis.a: $(OBJECTS)
-	touch libvorbis.a
-	rm libvorbis.a
-	$(AR) cq libvorbis.a $(OBJECTS)
-	$(RANLIB) libvorbis.a
+	ar rus libvorbis.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h

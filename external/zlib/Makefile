@@ -15,9 +15,6 @@ clean:
 	$(RM) libzlib.a
 
 libzlib.a: $(OBJECTS)
-	touch libzlib.a
-	rm libzlib.a
-	$(AR) cq libzlib.a $(OBJECTS)
-	$(RANLIB) libzlib.a
+	ar rus libzlib.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h

@@ -16,9 +16,6 @@ clean:
 	$(RM) libclapack.a
 
 libclapack.a: $(OBJECTS)
-	touch libclapack.a
-	rm libclapack.a
-	$(AR) cq libclapack.a $(OBJECTS)
-	$(RANLIB) libclapack.a
+	ar rus libclapack.a $(OBJECTS)
 
 $(OBJECTS): *.h ../../melder/*.h

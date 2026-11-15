@@ -13,10 +13,7 @@ OBJECTS = Table.o TableEditor.o Regression.o manual_statistics.o \
 all: libstat.a
 
 libstat.a: $(OBJECTS)
-	touch libstat.a
-	rm libstat.a
-	$(AR) cq libstat.a $(OBJECTS)
-	$(RANLIB) libstat.a
+	ar rus libstat.a $(OBJECTS)
 
 clean:
 	$(RM) $(OBJECTS)

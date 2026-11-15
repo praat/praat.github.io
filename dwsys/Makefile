@@ -29,10 +29,7 @@ clean:
 	$(RM) libdwsys.a
 
 libdwsys.a: $(OBJECTS) NUMmachar.o
-	touch libdwsys.a
-	rm libdwsys.a
-	$(AR) cq libdwsys.a $(OBJECTS)
-	$(RANLIB) libdwsys.a
+	ar rus libdwsys.a $(OBJECTS)
 
 $(OBJECTS): *.h ../melder/*.h ../stat/*.h ../sys/*.h ../fon/*.h ../external/gsl/*.h ../external/num/*.h ../dwsys/*.h ../kar/*.h
 

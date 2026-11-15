@@ -33,9 +33,6 @@ clean:
 	$(RM) libLPC.a
 
 libLPC.a: $(OBJECTS)
-	touch libLPC.a
-	rm libLPC.a
-	$(AR) cq libLPC.a $(OBJECTS)
-	$(RANLIB) libLPC.a
+	ar rus libLPC.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../dwtools/*.h ../fon/*.h ../foned/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h

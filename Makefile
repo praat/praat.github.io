@@ -187,8 +187,6 @@ ifeq ($(OS_IS_FREEBSD),1)
 
   NON_PRAAT_LIBRARIES := $(GRAPHICS_LINKER_FLAGS) -L$(LOCALBASE)/lib $(AUDIO_LINKER_FLAGS) -lm -lpthread -ltinfow
 
-  AR = ar
-  RANLIB = ls
   RM = rm -f
   ICON =
   MAIN_ICON =
@@ -253,8 +251,6 @@ else ifeq ($(OS_IS_WINDOWS),1)
 
   EXECUTABLE_FILE = Praat.exe
 
-  AR = ar
-  RANLIB = ranlib
   WINDRES = windres
   ICON = praat_win.o
   MAIN_ICON = main/praat_win.o
@@ -348,8 +344,6 @@ else ifeq ($(OS_IS_LINUX),1)
     endif
   endif
 
-  AR = ar
-  RANLIB = ls
   ICON =
   MAIN_ICON =
 
@@ -380,8 +374,6 @@ export CC
 export CXX
 export CFLAGS
 export CXXFLAGS
-export AR         # for creating the archive of object files in a subfolder
-export RANLIB     # for creating the archive of object files in a subfolder
 export RM         # for `make clean`
 export WINDRES    # for compiling `main/praat_win.rc`
 

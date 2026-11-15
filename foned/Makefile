@@ -24,9 +24,6 @@ clean:
 	$(RM) libfoned.a
 
 libfoned.a: $(OBJECTS)
-	touch libfoned.a
-	rm libfoned.a
-	$(AR) cq libfoned.a $(OBJECTS)
-	$(RANLIB) libfoned.a
+	ar rus libfoned.a $(OBJECTS)
 
 $(OBJECTS): *.h ../external/portaudio/*.h ../kar/*.h ../melder/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h ../dwtools/*.h ../LPC/*.h ../fon/*.h ../external/flac/*.h ../external/mp3/mp3.h

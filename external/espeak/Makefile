@@ -24,10 +24,7 @@ clean:
 	$(RM) libespeak.a
 
 libespeak.a: $(OBJECTS)
-	touch libespeak.a
-	rm libespeak.a
-	$(AR) cq libespeak.a $(OBJECTS)
-	$(RANLIB) libespeak.a
+	ar rus libespeak.a $(OBJECTS)
 
 $(OBJECTS):  *.h ../../kar/*.h ../../melder/*.h ../../sys/*.h ../../dwsys/*.h ../../stat/*.h
 

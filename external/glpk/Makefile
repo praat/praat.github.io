@@ -33,9 +33,6 @@ clean:
 	$(RM) libglpk.a
 
 libglpk.a: $(OBJECTS)
-	touch libglpk.a
-	rm libglpk.a
-	$(AR) cq libglpk.a $(OBJECTS)
-	$(RANLIB) libglpk.a
+	ar rus libglpk.a $(OBJECTS)
 
 $(OBJECTS): *.h

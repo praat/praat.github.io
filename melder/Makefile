@@ -24,9 +24,6 @@ clean:
 	$(RM) libmelder.a
 
 libmelder.a: $(OBJECTS)
-	touch libmelder.a
-	rm libmelder.a
-	$(AR) cq libmelder.a $(OBJECTS)
-	$(RANLIB) libmelder.a
+	ar rus libmelder.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../sys/*.h ../dwsys/*.h

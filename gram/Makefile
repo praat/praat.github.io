@@ -18,9 +18,6 @@ clean:
 	$(RM) libgram.a
 
 libgram.a: $(OBJECTS)
-	touch libgram.a
-	rm libgram.a
-	$(AR) cq libgram.a $(OBJECTS)
-	$(RANLIB) libgram.a
+	ar rus libgram.a $(OBJECTS)
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h ../dwtools/*.h ../fon/*.h ../foned/*.h
