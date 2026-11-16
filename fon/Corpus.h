@@ -33,6 +33,8 @@ autoSound Corpus_extractSound_number (Corpus me, integer recordingNumber);
 Thing_define (CGNCorpus, Corpus) {
 	autoSound extractSound (integer number)
 		override;
+	autoTextGrid extractTextGrid (integer number)
+		override;
 };
 
 autoCGNCorpus Corpus_importFromCGN (conststring32 rootFolderPath);

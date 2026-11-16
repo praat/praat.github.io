@@ -29,7 +29,7 @@ oo_DEFINE_CLASS (Corpus, Daata)
 	#if oo_DECLARING
 	
 		virtual autoSound extractSound (integer number);
-		
+		virtual autoTextGrid extractTextGrid (integer number);
 	#endif
 			
 oo_END_CLASS (Corpus)
