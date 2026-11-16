@@ -56,6 +56,29 @@ autoSpectrogram Spectrogram_create (double tmin, double tmax, integer nt, double
 	}
 }
 
+/*
+	Resample the rows of a frequency-linear partition of a spectrogram, such that the
+	new rows are linear in Mel. Row centres are interpolated linearly in Hz.
+*/
+static autoMAT Spectrogram_resampleToMel (constSpectrogram me, const constMATVU part,
+	integer ifmin, double fmin, double fmax
+) {
+	const integer nf = part.nrow, nt = part.ncol;
+	autoMAT result = zero_MAT (nf, nt);
+	const double melMin = NUMhertzToMel (fmin), melMax = NUMhertzToMel (fmax);
+	for (integer inew = 1; inew <= nf; inew ++) {
+		const double frequency = NUMmelToHertz (melMin + (inew - 0.5) * (melMax - melMin) / nf);
+		const double row = (frequency - Matrix_rowToY (me, ifmin)) / my dy + 1.0;
+		const integer row1 = Melder_clipped (1_integer, (integer) floor (row), nf);
+		const integer row2 = Melder_clipped (1_integer, row1 + 1, nf);
+		const double fraction = Melder_clipped (0.0, row - row1, 1.0);
+		for (integer itime = 1; itime <= nt; itime ++)
+			result [inew] [itime] = (1.0 - fraction) * part [row1] [itime] +
+					fraction * part [row2] [itime];
+	}
+	return result;
+}
+
 void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 	/* mutable autowindow */ double tmin, /* mutable autowindow */ double tmax,
 	/* mutable autowindow */ double fmin, /* mutable autowindow */ double fmax,
@@ -64,6 +87,7 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 	const double dynamic,
 	const double preemphasis_dbPerOctave,
 	const double dynamicCompression,
+	const kSpectrogram_unit unit,
 	kSpectrogram_colourMap colourMap,
 	bool invertColours
 ) {
@@ -146,16 +170,38 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 		range_val = 1.0;
 	}
 	/*
+		For a Mel axis, resample the rows and convert the frequency limits of the drawing.
+	*/
+	autoMAT melPart;
+	double drawingFmin = Matrix_rowToY (me, ifmin - 0.5);
+	double drawingFmax = Matrix_rowToY (me, ifmax + 0.5);
+	if (unit == kSpectrogram_unit::MEL) {
+		melPart = Spectrogram_resampleToMel (me, part.all(), ifmin, fmin, fmax);
+		drawingFmin = NUMhertzToMel (fmin);
+		drawingFmax = NUMhertzToMel (fmax);
+		Graphics_setWindow (g, tmin, tmax, drawingFmin, drawingFmax);
+	}
+	/*
 		Select different drawing methods based on the type of color mapping
 	*/
 	if (colourMap == kSpectrogram_colourMap::GREY) {
-		Graphics_image (g, part.all(),
-			Matrix_columnToX (me, itmin - 0.5),
-			Matrix_columnToX (me, itmax + 0.5),
-			Matrix_rowToY (me, ifmin - 0.5),
-			Matrix_rowToY (me, ifmax + 0.5),
-			min_val, max_val
-		);
+		if (unit == kSpectrogram_unit::MEL) {
+			Graphics_image (g, melPart.all(),
+				Matrix_columnToX (me, itmin - 0.5),
+				Matrix_columnToX (me, itmax + 0.5),
+				drawingFmin,
+				drawingFmax,
+				min_val, max_val
+			);
+		} else {
+			Graphics_image (g, part.all(),
+				Matrix_columnToX (me, itmin - 0.5),
+				Matrix_columnToX (me, itmax + 0.5),
+				drawingFmin,
+				drawingFmax,
+				min_val, max_val
+			);
+		}
 	} else {
 		auto colourMatrix = automatrix<MelderColour>(nf, nt, MelderArray::kInitializationType::RAW);
 		
@@ -1234,13 +1280,15 @@ void Spectrogram_paintInside (const constSpectrogram me, const Graphics g,
 
 		for (integer ifreq = 1; ifreq <= nf; ifreq ++)
 			for (integer itime = 1; itime <= nt; itime ++)
-				colourMatrix [ifreq] [itime] = getColour (part [ifreq] [itime]);
+				colourMatrix [ifreq] [itime] = getColour (
+					unit == kSpectrogram_unit::MEL ? melPart [ifreq] [itime] : part [ifreq] [itime]
+				);
 
 		Graphics_image_colour (g, colourMatrix.get(),
 			Matrix_columnToX (me, itmin - 0.5),
 			Matrix_columnToX (me, itmax + 0.5),
-			Matrix_rowToY (me, ifmin - 0.5),
-			Matrix_rowToY (me, ifmax + 0.5),
+			drawingFmin,
+			drawingFmax,
 			min_val, max_val
 		);
 	}
@@ -1254,6 +1302,7 @@ void SpectrogramList_paintInside (const constSpectrogramList me, const Graphics 
 	const double dynamic,
 	const double preemphasis_dbPerOctave,
 	const double dynamicCompression,
+	const kSpectrogram_unit unit,
 	kSpectrogram_colourMap colourMap,
 	bool invertColours
 ) {
@@ -1261,7 +1310,7 @@ void SpectrogramList_paintInside (const constSpectrogramList me, const Graphics 
 	Melder_assert (thee);
 	if (my size != 3) {
 		Spectrogram_paintInside (thee, g, tmin, tmax, fmin, fmax, maximum, autoscaling,
-				dynamic, preemphasis_dbPerOctave, dynamicCompression, colourMap, invertColours);
+				dynamic, preemphasis_dbPerOctave, dynamicCompression, unit, colourMap, invertColours);
 		return;
 	}
 	Function_unidirectionalAutowindow (thee, & tmin, & tmax);
@@ -1341,20 +1390,33 @@ void SpectrogramList_paintInside (const constSpectrogramList me, const Graphics 
 		for (integer itime = 1; itime <= nt; itime ++)
 			for (integer ifreq = 1; ifreq <= nf; ifreq ++)
 				part [ichan] [ifreq] [itime] += dynamicFactors [itime];
+	/*
+		For a Mel axis, resample the rows of all channels and convert the frequency limits.
+	*/
+	autoMAT melPart [1+3];
+	double drawingFmin = Matrix_rowToY (thee, ifmin - 0.5);
+	double drawingFmax = Matrix_rowToY (thee, ifmax + 0.5);
+	if (unit == kSpectrogram_unit::MEL) {
+		for (integer ichan = 1; ichan <= 3; ichan ++)
+			melPart [ichan] = Spectrogram_resampleToMel (thee, part [ichan].all(), ifmin, fmin, fmax);
+		drawingFmin = NUMhertzToMel (fmin);
+		drawingFmax = NUMhertzToMel (fmax);
+		Graphics_setWindow (g, tmin, tmax, drawingFmin, drawingFmax);
+	}
 
 	automatrix <MelderColour> colourMatrix (nf, nt, MelderArray::kInitializationType::ZERO);
 	for (integer irow = 1; irow <= nf; irow ++) {
 		for (integer icol = 1; icol <= nt; icol ++) {
-			colourMatrix [irow] [icol]. red   = 1.0 - (part [1] [irow] [icol] - (maximum - dynamic)) / dynamic;
-			colourMatrix [irow] [icol]. green = 1.0 - (part [2] [irow] [icol] - (maximum - dynamic)) / dynamic;
-			colourMatrix [irow] [icol]. blue  = 1.0 - (part [3] [irow] [icol] - (maximum - dynamic)) / dynamic;
+			colourMatrix [irow] [icol]. red   = 1.0 - (( unit == kSpectrogram_unit::MEL ? melPart [1] [irow] [icol] : part [1] [irow] [icol] ) - (maximum - dynamic)) / dynamic;
+			colourMatrix [irow] [icol]. green = 1.0 - (( unit == kSpectrogram_unit::MEL ? melPart [2] [irow] [icol] : part [2] [irow] [icol] ) - (maximum - dynamic)) / dynamic;
+			colourMatrix [irow] [icol]. blue  = 1.0 - (( unit == kSpectrogram_unit::MEL ? melPart [3] [irow] [icol] : part [3] [irow] [icol] ) - (maximum - dynamic)) / dynamic;
 		}
 	}
 	Graphics_image_colour (g, colourMatrix.all(),
 		Matrix_columnToX (thee, itmin - 0.5),
 		Matrix_columnToX (thee, itmax + 0.5),
-		Matrix_rowToY (thee, ifmin - 0.5),
-		Matrix_rowToY (thee, ifmax + 0.5),
+		drawingFmin,
+		drawingFmax,
 		maximum - dynamic /* ignored */, maximum /* ignored */
 	);
 }
@@ -1363,11 +1425,11 @@ void Spectrogram_paint (const constSpectrogram me, const Graphics g,
 	const double tmin, const double tmax, const double fmin, const double fmax,
 	const double maximum, const bool autoscaling,
 	const double dynamic, const double preemphasis, const double dynamicCompression,
-	kSpectrogram_colourMap colourMap, bool invertColours,
+	const kSpectrogram_unit unit, kSpectrogram_colourMap colourMap, bool invertColours,
 	const bool garnish)
 {
 	Graphics_setInner (g);
-	Spectrogram_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, colourMap, invertColours);
+	Spectrogram_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, unit, colourMap, invertColours);
 	Graphics_unsetInner (g);
 	if (garnish) {
 		Graphics_drawInnerBox (g);
@@ -1382,11 +1444,11 @@ void SpectrogramList_paint (const constSpectrogramList me, const Graphics g,
 	const double tmin, const double tmax, const double fmin, const double fmax,
 	const double maximum, const bool autoscaling,
 	const double dynamic, const double preemphasis, const double dynamicCompression,
-	kSpectrogram_colourMap colourMap, bool invertColours,
+	const kSpectrogram_unit unit, kSpectrogram_colourMap colourMap, bool invertColours,
 	const bool garnish)
 {
 	Graphics_setInner (g);
-	SpectrogramList_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, colourMap, invertColours);
+	SpectrogramList_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression, unit, colourMap, invertColours);
 	Graphics_unsetInner (g);
 	if (garnish) {
 		Graphics_drawInnerBox (g);

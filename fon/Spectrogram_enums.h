@@ -33,4 +33,9 @@ enums_begin (kSpectrogram_colourMap, 0)
 	enums_add (kSpectrogram_colourMap, 13, TURBO, U"Turbo")
 enums_end (kSpectrogram_colourMap, 13, GREY)
 
+enums_begin (kSpectrogram_unit, 0)
+	enums_add (kSpectrogram_unit, 0, HERTZ, U"Hertz (linear)")
+	enums_add (kSpectrogram_unit, 1, MEL, U"Mel")
+enums_end (kSpectrogram_unit, 1, HERTZ)
+
 /* End of file Spectrogram_enums.h */

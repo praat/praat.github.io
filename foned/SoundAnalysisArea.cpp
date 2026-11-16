@@ -42,6 +42,14 @@ Thing_implement (SoundAnalysisArea, FunctionArea, 0);
 #include "Prefs_copyToInstance.h"
 #include "SoundAnalysisArea_prefs.h"
 
+/*
+	Convert a frequency in Hz to the vertical coordinate of the drawing,
+	given the unit of the frequency axis.
+*/
+static double frequencyToDrawingY (double hertz, kSpectrogram_unit unit) {
+	return unit == kSpectrogram_unit::MEL ? NUMhertzToMel (hertz) : hertz;
+}
+
 void structSoundAnalysisArea :: v_reset_analysis () {
 	our d_spectrogramList. reset();
 	our d_pitch. reset();
@@ -394,9 +402,13 @@ bool structSoundAnalysisArea :: v_mouse (GuiDrawingArea_MouseEvent event, double
 		}
 	}
 	#endif
-	if (x_world > our startWindow() && x_world < our endWindow())
-		our d_spectrogram_cursor = localY_fraction * our instancePref_spectrogram_viewTo()
-				+ (1.0 - localY_fraction) * our instancePref_spectrogram_viewFrom();
+	if (x_world > our startWindow() && x_world < our endWindow()) {
+		const kSpectrogram_unit unit = our instancePref_spectrogram_unit();
+		const double drawingViewFrom = frequencyToDrawingY (our instancePref_spectrogram_viewFrom(), unit);
+		const double drawingViewTo = frequencyToDrawingY (our instancePref_spectrogram_viewTo(), unit);
+		const double drawingCursor = localY_fraction * drawingViewTo + (1.0 - localY_fraction) * drawingViewFrom;
+		our d_spectrogram_cursor = ( unit == kSpectrogram_unit::MEL ? NUMmelToHertz (drawingCursor) : drawingCursor );
+	}
 	return FunctionEditor_defaultMouseInWideDataView (our functionEditor(), event, x_world);
 }
 
@@ -950,6 +962,7 @@ static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 		POSITIVE (viewTo,       U"right View range (Hz)", my default_spectrogram_viewTo())
 		POSITIVE (windowLength, U"Window length (s)",     my default_spectrogram_windowLength())
 		POSITIVE (dynamicRange, U"Dynamic range (dB)",    my default_spectrogram_dynamicRange())
+		OPTIONMENU_ENUM (kSpectrogram_unit, unit, U"Unit", my default_spectrogram_unit())
 		MUTABLE_COMMENT (note1, U"")
 		MUTABLE_COMMENT (note2, U"")
 	EDITOR_OK
@@ -957,6 +970,7 @@ static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 		SET_REAL (viewTo,       my instancePref_spectrogram_viewTo())
 		SET_REAL (windowLength, my instancePref_spectrogram_windowLength())
 		SET_REAL (dynamicRange, my instancePref_spectrogram_dynamicRange())
+		SET_ENUM (unit, kSpectrogram_unit, my instancePref_spectrogram_unit())
 		if (my instancePref_spectrogram_timeSteps()          != Melder_atof (my default_spectrogram_timeSteps()) ||
 			my instancePref_spectrogram_frequencySteps()     != Melder_atof (my default_spectrogram_frequencySteps()) ||
 			my instancePref_spectrogram_method()             != my default_spectrogram_method() ||
@@ -982,6 +996,7 @@ static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 		my setInstancePref_spectrogram_viewTo (viewTo);
 		my setInstancePref_spectrogram_windowLength (windowLength);
 		my setInstancePref_spectrogram_dynamicRange (dynamicRange);
+		my setInstancePref_spectrogram_unit (unit);
 		my d_spectrogramList. reset();
 		FunctionEditor_redraw (my functionEditor());
 	EDITOR_END
@@ -1132,7 +1147,7 @@ static void menu_cb_paintVisibleSpectrogram (SoundAnalysisArea me, EDITOR_ARGS) 
 			my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo(),
 			my instancePref_spectrogram_maximum(), my instancePref_spectrogram_autoscaling(),
 			my instancePref_spectrogram_dynamicRange(), my instancePref_spectrogram_preemphasis(),
-			my instancePref_spectrogram_dynamicCompression(),
+			my instancePref_spectrogram_dynamicCompression(), my instancePref_spectrogram_unit(),
 			my instancePref_spectrogram_colourMap(), my instancePref_spectrogram_invertColours(),
 			garnish
 		);
@@ -2626,7 +2641,7 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 			my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo(),
 			my instancePref_spectrogram_maximum(), my instancePref_spectrogram_autoscaling(),
 			my instancePref_spectrogram_dynamicRange(), my instancePref_spectrogram_preemphasis(),
-			my instancePref_spectrogram_dynamicCompression(),
+			my instancePref_spectrogram_dynamicCompression(), my instancePref_spectrogram_unit(),
 			my instancePref_spectrogram_colourMap(), my instancePref_spectrogram_invertColours()
 		);
 		/*
@@ -2659,7 +2674,7 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 					(char32) Melder_iround (1e4 * mat [2] [273'490]),
 					delimiter
 				};
-				Graphics_text (my graphics(), 0.5 * (my startWindow() + my endWindow()), my instancePref_spectrogram_viewTo(), annotation);
+				Graphics_text (my graphics(), 0.5 * (my startWindow() + my endWindow()), frequencyToDrawingY (my instancePref_spectrogram_viewTo(), my instancePref_spectrogram_unit()), annotation);
 				Graphics_setFontSize (my graphics(), 12);
 			}
 			Graphics_setFont (my graphics(), kGraphics_font::HELVETICA);
@@ -2821,21 +2836,25 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 		}
 	}
 	if (my instancePref_spectrogram_show() || my instancePref_formant_show()) {
+		const kSpectrogram_unit unit = my instancePref_spectrogram_unit();
+		const double drawingViewFrom = frequencyToDrawingY (my instancePref_spectrogram_viewFrom(), unit);
+		const double drawingViewTo = frequencyToDrawingY (my instancePref_spectrogram_viewTo(), unit);
+		const double drawingCursor = frequencyToDrawingY (my d_spectrogram_cursor, unit);
 		const bool frequencyCursorVisible = ( my d_spectrogram_cursor > my instancePref_spectrogram_viewFrom() && my d_spectrogram_cursor < my instancePref_spectrogram_viewTo() );
-		Graphics_setWindow (my graphics(), my startWindow(), my endWindow(), my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo());
+		Graphics_setWindow (my graphics(), my startWindow(), my endWindow(), drawingViewFrom, drawingViewTo);
 		/*
 			Range marks.
 		*/
 		Graphics_setLineType (my graphics(), Graphics_DRAWN);
 		Graphics_setColour (my graphics(), DataGuiColour_NONEDITABLE);
-		if (! frequencyCursorVisible || Graphics_dyWCtoMM (my graphics(), my d_spectrogram_cursor - my instancePref_spectrogram_viewFrom()) > 5.0) {
+		if (! frequencyCursorVisible || Graphics_dyWCtoMM (my graphics(), drawingCursor - drawingViewFrom) > 5.0) {
 			Graphics_setTextAlignment (my graphics(), Graphics_RIGHT, Graphics_HALF);
-			Graphics_text (my graphics(), my startWindow(), my instancePref_spectrogram_viewFrom() - Graphics_dyMMtoWC (my graphics(), 0.5),
+			Graphics_text (my graphics(), my startWindow(), drawingViewFrom - Graphics_dyMMtoWC (my graphics(), 0.5),
 					Melder_graphicalHalf (my instancePref_spectrogram_viewFrom()), U" Hz");
 		}
-		if (! frequencyCursorVisible || Graphics_dyWCtoMM (my graphics(), my instancePref_spectrogram_viewTo() - my d_spectrogram_cursor) > 5.0) {
+		if (! frequencyCursorVisible || Graphics_dyWCtoMM (my graphics(), drawingViewTo - drawingCursor) > 5.0) {
 			Graphics_setTextAlignment (my graphics(), Graphics_RIGHT, Graphics_HALF);
-			Graphics_text (my graphics(), my startWindow(), my instancePref_spectrogram_viewTo(),
+			Graphics_text (my graphics(), my startWindow(), drawingViewTo,
 					Melder_graphicalHalf (my instancePref_spectrogram_viewTo()), U" Hz");
 		}
 		/*
@@ -2844,9 +2863,9 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 		Graphics_setLineType (my graphics(), Graphics_DOTTED);
 		Graphics_setColour (my graphics(), DataGuiColour_NONEDITABLE_SELECTED);
 		if (frequencyCursorVisible) {
-			const double x = my startWindow(), y = my d_spectrogram_cursor;
+			const double x = my startWindow(), y = drawingCursor;
 			Graphics_setTextAlignment (my graphics(), Graphics_RIGHT, Graphics_HALF);
-			Graphics_text (my graphics(), x, y,   Melder_graphicalHalf (y), U" Hz");
+			Graphics_text (my graphics(), x, y,   Melder_graphicalHalf (my d_spectrogram_cursor), U" Hz");
 			Graphics_line (my graphics(), x, y, my endWindow(), y);
 		}
 		/*
@@ -2866,10 +2885,30 @@ void structSoundAnalysisArea :: v_draw_analysis_formants () {
 		tryToHaveFormants (this);
 	if (our instancePref_formant_show() && our d_formant) {
 		Graphics_setSpeckleSize (our graphics(), our instancePref_formant_dotSize());
-		Formant_drawSpeckles_inside (our d_formant.get(), our graphics(), our startWindow(), our endWindow(),
-			our instancePref_spectrogram_viewFrom(), our instancePref_spectrogram_viewTo(), our instancePref_formant_dynamicRange(),
-			Melder_RED, Melder_PINK, true
-		);
+		const kSpectrogram_unit unit = our instancePref_spectrogram_unit();
+		if (unit == kSpectrogram_unit::MEL) {
+			/*
+				The formants share the frequency axis of the spectrogram,
+				so for a Mel axis their frequencies have to be converted to Mel as well.
+			*/
+			autoFormant melFormant = Data_copy (our d_formant.get());
+			for (integer iframe = 1; iframe <= melFormant -> nx; iframe ++) {
+				const Formant_Frame frame = & melFormant -> frames [iframe];
+				for (integer iformant = 1; iformant <= frame -> numberOfFormants; iformant ++)
+					frame -> formant [iformant]. frequency = NUMhertzToMel (frame -> formant [iformant]. frequency);
+			}
+			Formant_drawSpeckles_inside (melFormant.get(), our graphics(), our startWindow(), our endWindow(),
+				NUMhertzToMel (our instancePref_spectrogram_viewFrom()),
+				NUMhertzToMel (our instancePref_spectrogram_viewTo()),
+				our instancePref_formant_dynamicRange(),
+				Melder_RED, Melder_PINK, true
+			);
+		} else {
+			Formant_drawSpeckles_inside (our d_formant.get(), our graphics(), our startWindow(), our endWindow(),
+				our instancePref_spectrogram_viewFrom(), our instancePref_spectrogram_viewTo(), our instancePref_formant_dynamicRange(),
+				Melder_RED, Melder_PINK, true
+			);
+		}
 		Graphics_setColour (our graphics(), Melder_BLACK);
 	}
 }

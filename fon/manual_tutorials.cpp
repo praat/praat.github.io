@@ -758,6 +758,10 @@ DEFINITION (U"All values that are more than %%Dynamic range% dB below the maximu
 	"peak in the spectrogram has a height of 30 dB/Hz, and the dynamic range is 50 dB (which is the standard value), "
 	"then values below -20 dB/Hz will be drawn in white, and values between -20 dB/Hz and 30 dB/Hz will be drawn "
 	"in various shades of grey.")
+TERM (U"%%Unit%")
+DEFINITION (U"the unit of the vertical frequency axis. With the standard value of “Hertz (linear)”, "
+	"the vertical axis is linear in Hz. With “Mel”, the vertical axis is linear in Mel, "
+	"a perceptual scale that gives relatively more room to the lower frequencies.")
 ENTRY (U"The bandwidth")
 NORMAL (U"To see how the window length influences the bandwidth, "
 	"first create a 1000-Hz sine wave with @@Create Sound from formula...@ "

@@ -63,12 +63,12 @@ autoSpectrogram Spectrogram_create (double tmin, double tmax, integer nt, double
 
 void Spectrogram_paintInside (constSpectrogram me, Graphics g,
 	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
-	double dynamicRange, double preemphasis, double dynamicCompression, 
-	kSpectrogram_colourMap colourMap, bool invertColours);
+	double dynamicRange, double preemphasis, double dynamicCompression,
+	kSpectrogram_unit unit, kSpectrogram_colourMap colourMap, bool invertColours);
 void Spectrogram_paint (constSpectrogram me, Graphics g,
 	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
 	double dynamicRange, double preemphasis, double dynamicCompression,
-	kSpectrogram_colourMap colourMap, bool invertColours,
+	kSpectrogram_unit unit, kSpectrogram_colourMap colourMap, bool invertColours,
 	bool garnish);
 /*
 	Function:
@@ -102,12 +102,12 @@ Collection_define (SpectrogramList, OrderedOf, Spectrogram) {
 
 void SpectrogramList_paintInside (constSpectrogramList me, Graphics g,
 	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
-	double dynamicRange, double preemphasis, double dynamicCompression, 
-	kSpectrogram_colourMap colourMap, bool invertColours);
+	double dynamicRange, double preemphasis, double dynamicCompression,
+	kSpectrogram_unit unit, kSpectrogram_colourMap colourMap, bool invertColours);
 void SpectrogramList_paint (constSpectrogramList me, Graphics g,
 	double tmin, double tmax, double fmin, double fmax, double maximum, bool autoscaling,
 	double dynamicRange, double preemphasis, double dynamicCompression,
-	kSpectrogram_colourMap colourMap, bool invertColours,
+	kSpectrogram_unit unit, kSpectrogram_colourMap colourMap, bool invertColours,
 	bool garnish);
 
 /* End of file Spectrogram.h */

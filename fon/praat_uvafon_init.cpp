@@ -2146,7 +2146,7 @@ DO
 	GRAPHICS_EACH (Spectrogram)
 		Spectrogram_paint (me, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
 			maximum, autoscaling, dynamicRange, preEmphasis, dynamicCompression,
-			kSpectrogram_colourMap::GREY, false,
+			kSpectrogram_unit::HERTZ, kSpectrogram_colourMap::GREY, false,
 			garnish
 		);
 	GRAPHICS_EACH_END

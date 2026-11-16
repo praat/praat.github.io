@@ -31,7 +31,7 @@ void structSpectrogramArea :: v_drawInside () {
 
 	Graphics_setWindow (our graphics(), our startWindow(), our endWindow(), 0.0, our maximum);
 	Spectrogram_paintInside (our spectrogram(), our graphics(), our startWindow(), our endWindow(), 0, 0, 0.0, true,
-			60, 6.0, 0, kSpectrogram_colourMap::GREY, false);
+			60, 6.0, 0, kSpectrogram_unit::HERTZ, kSpectrogram_colourMap::GREY, false);
 
 	/*
 		Horizontal scaling lines.
