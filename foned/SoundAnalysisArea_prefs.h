@@ -36,6 +36,7 @@ Prefs_begin (SoundAnalysisArea)
 	InstancePrefs_addDouble  (SoundAnalysisArea, spectrogram_preemphasis,         2, U"6.0")   // dB/octave
 	InstancePrefs_addDouble  (SoundAnalysisArea, spectrogram_dynamicCompression,  2, U"0.0")   // 0..1
 	InstancePrefs_addBool    (SoundAnalysisArea, spectrogram_picture_garnish,     1, true)
+	InstancePrefs_addEnum    (SoundAnalysisArea, spectrogram_unit,                1, kSpectrogram_unit, HERTZ)
 	InstancePrefs_addEnum    (SoundAnalysisArea, spectrogram_colourMap,           1, kSpectrogram_colourMap, GREY)
 	InstancePrefs_addBool    (SoundAnalysisArea, spectrogram_invertColours,       1, false)
 	InstancePrefs_addBool    (SoundAnalysisArea, spectrogram_threeChannelsIsRGB,  1, true)
