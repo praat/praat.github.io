@@ -795,7 +795,12 @@ GuiText GuiText_create (GuiForm parent, int left, int right, int top, int bottom
 				[my d_cocoaScrollView setFocusRingType: NSFocusRingTypeExterior];
 			//[my d_cocoaScrollView setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
 			NSSize contentSize = [my d_cocoaScrollView contentSize];
-			my d_cocoaTextView = [[GuiCocoaTextView alloc] initWithFrame: NSMakeRect (0, 0, contentSize. width, contentSize. height)];
+			if (@available (macOS 13.0, *)) {
+				my d_cocoaTextView = [[GuiCocoaTextView alloc] initUsingTextLayoutManager: NO];
+				[my d_cocoaTextView setFrame: NSMakeRect (0, 0, contentSize. width, contentSize. height)];
+			} else {
+				my d_cocoaTextView = [[GuiCocoaTextView alloc] initWithFrame: NSMakeRect (0, 0, contentSize. width, contentSize. height)];
+			}
 			[my d_cocoaTextView setUserData: me.get()];
 			if (Melder_systemVersion < 101100) {
 				[my d_cocoaTextView setMinSize: NSMakeSize (0.0, contentSize.height)];
