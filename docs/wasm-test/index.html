@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>praat-wasm Browser Integration Test</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 900px; margin: 0 auto; background: #fafafa; }
+    h1 { margin-bottom: .5rem; }
+    .subtitle { color: #666; margin-bottom: 1.5rem; }
+    #log { font-family: 'SF Mono', Menlo, monospace; font-size: 13px; white-space: pre-wrap;
+           background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 6px;
+           max-height: 70vh; overflow-y: auto; line-height: 1.5; }
+    .pass { color: #4ec962; }
+    .fail { color: #f44; }
+    .info { color: #6cb6ff; }
+    .section { color: #e5c07b; font-weight: bold; }
+    #summary { margin-top: 1rem; padding: 1rem; border-radius: 6px; font-weight: bold; font-size: 1.1rem; }
+    #summary.pass { background: #d4edda; color: #155724; }
+    #summary.fail { background: #f8d7da; color: #721c24; }
+    #loading { color: #888; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>praat-wasm Browser Test</h1>
+  <p class="subtitle">Tests the direct API and Web Worker integration in-browser</p>
+  <div id="loading">Loading WASM module (~5 MB)...</div>
+  <div id="log" style="display:none"></div>
+  <div id="summary"></div>
+
+<script type="module">
+const logEl = document.getElementById('log')
+const loadingEl = document.getElementById('loading')
+const summaryEl = document.getElementById('summary')
+
+const PRAAT_WASM_VERSION = '6.4.6200'
+const PRAAT_WASM_BASE = `https://cdn.jsdelivr.net/npm/praat-wasm@${PRAAT_WASM_VERSION}/js`
+
+function createWorkerBootstrapUrl (workerModuleUrl) {
+  /* Worker() requires a same-origin script URL; bootstrap from a same-origin blob. */
+  const source = `import ${JSON.stringify(workerModuleUrl)}\n`
+  const blob = new Blob([source], { type: 'text/javascript' })
+  return URL.createObjectURL(blob)
+}
+
+let passed = 0, failed = 0
+
+function log (msg, cls) {
+  const span = document.createElement('span')
+  span.className = cls || ''
+  span.textContent = msg + '\n'
+  logEl.appendChild(span)
+  logEl.scrollTop = logEl.scrollHeight
+}
+
+function section (name) { log('\n=== ' + name + ' ===', 'section') }
+
+function assert (condition, label) {
+  if (condition) {
+    passed++
+    log('  PASS: ' + label, 'pass')
+  } else {
+    failed++
+    log('  FAIL: ' + label, 'fail')
+  }
+}
+
+function assertClose (actual, expected, tolerance, label) {
+  const ok = Math.abs(actual - expected) < tolerance
+  if (ok) {
+    passed++
+    log('  PASS: ' + label + ' (' + actual.toFixed(4) + ')', 'pass')
+  } else {
+    failed++
+    log('  FAIL: ' + label + ' (got ' + actual + ', expected ~' + expected + ')', 'fail')
+  }
+}
+
+async function generateTone (freq, dur, sr) {
+  /* Generate a WAV file as ArrayBuffer in JS (pure tone) */
+  const numSamples = Math.floor(sr * dur)
+  const buffer = new ArrayBuffer(44 + numSamples * 2)
+  const view = new DataView(buffer)
+  /* WAV header */
+  const writeStr = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)) }
+  writeStr(0, 'RIFF')
+  view.setUint32(4, 36 + numSamples * 2, true)
+  writeStr(8, 'WAVE')
+  writeStr(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true) // PCM
+  view.setUint16(22, 1, true) // mono
+  view.setUint32(24, sr, true)
+  view.setUint32(28, sr * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  writeStr(36, 'data')
+  view.setUint32(40, numSamples * 2, true)
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sr
+    const sample = Math.sin(2 * Math.PI * freq * t) * 0.8
+    view.setInt16(44 + i * 2, Math.round(sample * 32767), true)
+  }
+  return buffer
+}
+
+/* ============================================================ */
+/*  DIRECT API TESTS                                            */
+/* ============================================================ */
+
+async function testDirectAPI () {
+  section('Direct API — Loading Module')
+
+  const { createPraatWasm, Sound, Pitch, TextGrid, PraatObject } = await import(`${PRAAT_WASM_BASE}/praat-wasm.mjs`)
+  const praat = await createPraatWasm()
+
+  log('  Module loaded', 'info')
+  assert(!!praat, 'createPraatWasm returns instance')
+  assert(typeof praat.run === 'function', 'instance has run()')
+  assert(typeof praat.call === 'function', 'instance has call()')
+
+  section('Direct API — Script Execution')
+
+  const result = praat.run('writeInfoLine: 42 + 58')
+  assert(result.trim() === '100', 'run() basic arithmetic: ' + result.trim())
+
+  praat.run('Create Sound as pure tone: "test", 1, 0, 0.5, 44100, 440, 0.2, 0.01, 0.01')
+  const objects = praat.list()
+  assert(objects.length >= 1, 'list() returns objects after creation')
+  assert(objects[0].type === 'Sound' || objects[0].className === 'Sound', 'first object is Sound')
+
+  section('Direct API — Sound Analysis')
+
+  const sound = objects[0]
+  assert(sound instanceof PraatObject, 'objects are PraatObject instances')
+
+  /* To Pitch */
+  const pitch = praat.call(sound, 'To Pitch...', 0, 75, 600)
+  assert(pitch instanceof PraatObject, 'call() returns PraatObject')
+  assert(pitch.type === 'Pitch' || pitch.className === 'Pitch', 'result is Pitch type')
+
+  /* Query pitch */
+  praat.select(sound.id)
+  const dur = praat.call(sound, 'Get total duration')
+  assert(typeof dur === 'number' && dur > 0, 'duration query: ' + dur)
+  assertClose(dur, 0.5, 0.01, 'duration is ~0.5s')
+
+  /* Formant */
+  const formant = praat.call(sound, 'To Formant (burg)...', 0, 5, 5500, 0.025, 50)
+  assert(formant.type === 'Formant' || formant.className === 'Formant', 'To Formant (burg) works')
+
+  /* Intensity */
+  const intensity = praat.call(sound, 'To Intensity...', 75, 0, 'yes')
+  assert(intensity.type === 'Intensity' || intensity.className === 'Intensity', 'To Intensity works')
+
+  /* Spectrum */
+  const spectrum = praat.call(sound, 'To Spectrum', 'yes')
+  assert(spectrum.type === 'Spectrum' || spectrum.className === 'Spectrum', 'To Spectrum works')
+
+  /* Spectrogram */
+  const spectrogram = praat.call(sound, 'To Spectrogram...', 0.005, 5000, 0.002, 20, 'Gaussian')
+  assert(spectrogram.type === 'Spectrogram' || spectrogram.className === 'Spectrogram', 'To Spectrogram works')
+
+  section('Direct API — Class Methods (Parselmouth-style)')
+
+  /* Sound class methods */
+  if (sound.toPitch) {
+    const p2 = sound.toPitch()
+    assert(p2 instanceof PraatObject, 'sound.toPitch() works')
+    assert(p2.type === 'Pitch' || p2.className === 'Pitch', 'sound.toPitch() returns Pitch')
+  } else {
+    log('  SKIP: sound.toPitch() not available (Sound not wrapped)', 'info')
+  }
+
+  section('Direct API — WAV Audio Loading')
+
+  const wavBuf = await generateTone(440, 0.3, 22050)
+  praat.removeAll()
+  const loaded = praat.readAudio(wavBuf, '/tmp/tone440.wav')
+  assert(loaded != null, 'readAudio returns object')
+  assert(loaded.type === 'Sound' || loaded.className === 'Sound', 'loaded audio is Sound')
+
+  const loadedDur = praat.call(loaded, 'Get total duration')
+  assertClose(loadedDur, 0.3, 0.01, 'loaded duration is ~0.3s')
+
+  const loadedSr = praat.call(loaded, 'Get sampling frequency')
+  assertClose(loadedSr, 22050, 1, 'sample rate is 22050')
+
+  section('Direct API — TextGrid')
+
+  const tg = praat.createTextGrid(0, 1, 'words phones', 'phones')
+  assert(tg != null, 'createTextGrid returns object')
+  assert(tg.type === 'TextGrid' || tg.className === 'TextGrid', 'object is TextGrid')
+
+  praat.call(tg, 'Insert boundary...', 1, 0.5)
+  praat.call(tg, 'Set interval text...', 1, 1, 'hello')
+  const text = praat.call(tg, 'Get label of interval...', 1, 1)
+  assert(text === 'hello', 'TextGrid interval text: ' + text)
+
+  section('Direct API — File I/O Round-trip')
+
+  praat.select(tg.id)
+  praat.saveAsText('/tmp/test.TextGrid')
+  const bytes = praat.getFile('/tmp/test.TextGrid')
+  assert(bytes.length > 50, 'TextGrid file has content (' + bytes.length + ' bytes)')
+  const content = new TextDecoder().decode(bytes)
+  assert(content.includes('TextGrid'), 'file contains TextGrid header')
+  assert(content.includes('hello'), 'file contains interval text')
+
+  section('Direct API — Error Handling')
+
+  let caught = false
+  try {
+    praat.call('Nonexistent command that should fail')
+  } catch (e) {
+    caught = true
+    assert(e.message.length > 0, 'error has message: ' + e.message.substring(0, 80))
+  }
+  assert(caught, 'invalid command throws exception')
+
+  praat.removeAll()
+  return praat
+}
+
+/* ============================================================ */
+/*  WEB WORKER TESTS                                            */
+/* ============================================================ */
+
+async function testWorkerAPI () {
+  section('Web Worker — Loading')
+
+  const { createPraatWorker } = await import(`${PRAAT_WASM_BASE}/worker-client.mjs`)
+  const workerBootstrapUrl = createWorkerBootstrapUrl(`${PRAAT_WASM_BASE}/worker.mjs`)
+
+  let worker
+  try {
+    worker = await createPraatWorker(
+      workerBootstrapUrl
+    )
+    assert(true, 'Worker created and initialized')
+  } catch (e) {
+    log('  Worker init failed: ' + e.message, 'fail')
+    failed++
+    URL.revokeObjectURL(workerBootstrapUrl)
+    return
+  }
+
+  URL.revokeObjectURL(workerBootstrapUrl)
+
+  section('Web Worker — Script Execution')
+
+  const r1 = await worker.run('writeInfoLine: 2 * 21')
+  assert(r1.trim() === '42', 'worker.run() returns info: ' + r1.trim())
+
+  section('Web Worker — Object Creation & Listing')
+
+  await worker.run('Create Sound as pure tone: "workerTone", 1, 0, 0.4, 44100, 330, 0.2, 0.01, 0.01')
+  const list = await worker.list()
+  assert(list.length >= 1, 'worker.list() returns objects')
+  assert(list[0].type === 'Sound', 'first object is Sound')
+
+  section('Web Worker — call()')
+
+  const dur = await worker.call('Get total duration')
+  assert(typeof dur === 'number' || (typeof dur === 'string' && parseFloat(dur) > 0),
+    'worker.call() query: ' + dur)
+
+  section('Web Worker — Audio Transfer')
+
+  const wavBuf = await generateTone(220, 0.2, 16000)
+  const snd = await worker.readAudio(wavBuf, '/tmp/w_test.wav')
+  assert(snd != null, 'worker.readAudio returns object')
+  assert(snd.type === 'Sound', 'transferred audio is Sound')
+
+  section('Web Worker — File I/O')
+
+  await worker.select(snd.id)
+  await worker.saveAsText('/tmp/worker_test.txt')
+  const data = await worker.getFile('/tmp/worker_test.txt')
+  assert(data instanceof Uint8Array, 'worker.getFile returns Uint8Array')
+  assert(data.length > 10, 'file has content')
+
+  section('Web Worker — Cleanup')
+
+  await worker.removeAll()
+  const emptyList = await worker.list()
+  assert(emptyList.length === 0, 'removeAll clears objects')
+
+  worker.destroy()
+  assert(true, 'worker.destroy() completes')
+}
+
+/* ============================================================ */
+/*  RUN ALL                                                     */
+/* ============================================================ */
+
+async function main () {
+  try {
+    logEl.style.display = 'block'
+    loadingEl.style.display = 'none'
+
+    await testDirectAPI()
+    await testWorkerAPI()
+
+    section('Results')
+    log(passed + ' passed, ' + failed + ' failed', failed > 0 ? 'fail' : 'pass')
+
+    summaryEl.textContent = passed + ' passed, ' + failed + ' failed'
+    summaryEl.className = failed > 0 ? 'fail' : 'pass'
+
+  } catch (e) {
+    failed++
+    log('\nFATAL: ' + e.message + '\n' + e.stack, 'fail')
+    summaryEl.textContent = 'Test suite crashed: ' + e.message
+    summaryEl.className = 'fail'
+  }
+}
+
+main()
+</script>
+</body>
+</html>
