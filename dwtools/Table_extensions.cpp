@@ -1,6 +1,6 @@
 /* Table_extensions.cpp
  *
- * Copyright (C) 1997-2023 David Weenink, 2011-2021,2023,2024,2026 Paul Boersma
+ * Copyright (C) 1997-2026 David Weenink, 2011-2021,2023,2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,52 @@
 #include "Strings_extensions.h"
 #include "Covariance.h"
 #include "Table_extensions.h"
+#include <fcntl.h>
+#include "xlsxio_read.h"
+
+autoTable Table_readFromXLSXFile (MelderFile file) {
+	try {
+		autoTable me = Thing_new (Table);
+		xlsxioreader xlsxioread;
+		Melder_require ((xlsxioread = xlsxioread_open (Melder_peek32to8 (file->path))),
+			U"Cannot open xlsx file.");
+		/*
+			Read values from first sheet 
+			TODO: or use XLSXIOREAD_SKIP_NONE??
+		*/
+		xlsxioreadersheet sheet = xlsxioread_sheet_open (xlsxioread, NULL, XLSXIOREAD_SKIP_EMPTY_ROWS);
+		integer irow = -1, ncol = 0;
+		autoSTRVEC header;
+		while (xlsxioread_sheet_next_row(sheet)) {
+			integer icol = 1;
+			if (irow > 0)
+				Table_appendRow (me.get());
+			else if (irow == 0) {
+				ncol = header.size;
+				if (ncol < 1)
+					return me;
+				me = Table_createWithColumnNames (1, header.get()); // yes, 1 row to start with
+			}
+			irow ++;
+			char *value; // UTF-8 always
+			while ((value = xlsxioread_sheet_next_cell (sheet)) != NULL) {
+				conststring32 val32 = Melder_peek8to32_u (value);
+				if (irow == 0) {
+					header.insert (0, val32);
+				} else {
+					Melder_require (icol <= ncol,
+						U"In row ", irow, U" the number of cells is larger than the number of columns (", ncol, U").");
+					Table_setStringValue (me.get(), irow, icol ++, val32);
+				}
+				xlsxioread_free (value);
+			}
+		}
+		xlsxioread_sheet_close(sheet);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot read a Table from an Excel file.");
+	}
+}
 
 autoTable FileInMemorySet_downto_Table (FileInMemorySet me, bool openFilesOnly) {
 	try {
