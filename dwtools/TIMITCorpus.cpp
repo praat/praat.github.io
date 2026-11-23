@@ -46,16 +46,17 @@ Thing_implement (TIMITCorpus, Corpus, 0);
 autoSound structTIMITCorpus :: extractSound (integer number) {
 	autoMelderString fileName;
 	MelderString_append (& fileName, folderWithSoundFiles.get());
-	/* 2: use, dr, speaker, sound */
-	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 2_integer)); // use
-	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 3_integer)); // dr
-	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 4_integer)); // speaker
-	conststring32 soundName = Table_getStringValue_a (recordings.get(), number, 5_integer); // sound name
-	MelderString_append (& fileName, U"/", soundName, U".wav");
+	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 2_integer));	// use
+	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 3_integer));	// dr
+	conststring32 speaker = Table_getStringValue_a (recordings.get(), number, 4_integer); 					// speaker
+	conststring32 sound = Table_getStringValue_a (recordings.get(), number, 5_integer); 					// sound
+	MelderString_append (& fileName, U"/", speaker, U"/", sound, U".wav"); 
 	structMelderFile file;
 	Melder_pathToFile (fileName.string, & file);
 	autoSound me = Data_readFromFile (& file).static_cast_move <structSound>();
-	Thing_setName (me.get(), soundName);
+	autoMelderString soundName;
+	MelderString_append (& soundName, speaker, U"_", sound);
+	Thing_setName (me.get(), soundName.string);
 	return me;
 }
 
