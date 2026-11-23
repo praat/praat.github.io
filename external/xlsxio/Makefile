@@ -1,7 +1,7 @@
 # Makefile of the library "external/xlsxio"
 # David Weenink, 22 November 2026
 
-CPPFLAGS += -I ../../melder
+CPPFLAGS += -I ../../melder -I ../expat -DUSE_MINIZIP
 
 OBJECTS = xlsxio_read.o xlsxio_read_sharedstrings.o
 
@@ -13,7 +13,7 @@ clean:
 	$(RM) $(OBJECTS)
 	$(RM) libxlsxio.a
 
-libnum.a: $(OBJECTS)
+libxlsxio.a: $(OBJECTS)
 	touch libxlsxio.a
 	rm libxlsxio.a
 	$(AR) cq libxlsxio.a $(OBJECTS)
