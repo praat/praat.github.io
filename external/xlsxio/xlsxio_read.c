@@ -89,6 +89,7 @@ static void xlsxio_recordError (const char *message, const XML_Char *partName) {
 #define PARSE_BUFFER_SIZE 256
 //#define PARSE_BUFFER_SIZE 4
 
+
 static const XLSXIOCHAR* xlsx_content_type = X("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml");
 static const XLSXIOCHAR* xlsm_content_type = X("application/vnd.ms-excel.sheet.macroEnabled.main+xml");
 static const XLSXIOCHAR* xltx_content_type = X("application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml");
@@ -170,7 +171,6 @@ static ZIPFILEENTRYTYPE* XML_Char_openzip (ZIPFILETYPE* archive, const XML_Char*
 }
 
 #endif
-
 
 DLL_EXPORT_XLSXIO void xlsxioread_get_version (int* pmajor, int* pminor, int* pmicro)
 {
@@ -1020,14 +1020,14 @@ void data_sheet_callback_data_initialize (struct data_sheet_callback_data* data,
   data->callbackdata = callbackdata;
 }
 
-void data_sheet_callback_data_cleanup (struct data_sheet_callback_data* data)
+static void data_sheet_callback_data_cleanup (struct data_sheet_callback_data* data)
 {
   sharedstringlist_destroy(data->sharedstrings);
   free(data->celldata);
   free(data->skiptag);
 }
 
-void data_sheet_expat_callback_skip_tag_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
+static void data_sheet_expat_callback_skip_tag_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
   if (name && XML_Char_icmp_ins(name, data->skiptag) == 0) {
@@ -1036,7 +1036,7 @@ void data_sheet_expat_callback_skip_tag_start (void* callbackdata, const XML_Cha
   }
 }
 
-void data_sheet_expat_callback_skip_tag_end (void* callbackdata, const XML_Char* name)
+static void data_sheet_expat_callback_skip_tag_end (void* callbackdata, const XML_Char* name)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
   if (!name || XML_Char_icmp_ins(name, data->skiptag) == 0) {
@@ -1440,7 +1440,7 @@ struct xlsxio_read_sheetlist_struct {
   XML_Char* nextsheetname;
 };
 
-int xlsxioread_list_sheets_resumable_callback (const XLSXIOCHAR* name, void* callbackdata)
+static int xlsxioread_list_sheets_resumable_callback (const XLSXIOCHAR* name, void* callbackdata)
 {
   //struct main_sheet_list_callback_data* data = (struct main_sheet_list_callback_data*)callbackdata;
   xlsxioreadersheetlist data = (xlsxioreadersheetlist)callbackdata;
@@ -1449,7 +1449,7 @@ int xlsxioread_list_sheets_resumable_callback (const XLSXIOCHAR* name, void* cal
   return 0;
 }
 
-void xlsxioread_find_main_sheet_file_callback (ZIPFILETYPE* zip, const XML_Char* filename, const XML_Char* contenttype, void* callbackdata)
+static void xlsxioread_find_main_sheet_file_callback (ZIPFILETYPE* zip, const XML_Char* filename, const XML_Char* contenttype, void* callbackdata)
 {
   XML_Char** data = (XML_Char**)callbackdata;
   *data = XML_Char_dup(filename);
