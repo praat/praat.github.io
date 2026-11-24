@@ -8,6 +8,39 @@
 #include <string.h>
 #include "expat.h"
 
+/* djmw 20261124: start add */
+
+static _Thread_local char xlsxio_lastError [512];   // per-thread, so parallel reads don't clash
+
+DLL_EXPORT_XLSXIO const char *xlsxioread_get_last_error (void) {
+	return xlsxio_lastError;
+}
+
+DLL_EXPORT_XLSXIO void xlsxioread_clear_last_error (void) {
+	xlsxio_lastError [0] = '\0';
+}
+
+static void xlsxio_recordExpatError (XML_Parser parser, const XML_Char *partName) {
+	enum XML_Error code = XML_GetErrorCode (parser);
+	if (code == XML_ERROR_NONE || code == XML_ERROR_ABORTED ||
+		code == XML_ERROR_FINISHED || code == XML_ERROR_NOT_SUSPENDED)
+			return;   // deliberate stop by xlsxio or by the user callback, not an error
+	if (xlsxio_lastError [0] == '\0')	// keep the first (root-cause) error
+		snprintf (xlsxio_lastError, sizeof xlsxio_lastError,
+			"XML error in \"%s\" at line %" PRIu64 ", column %" PRIu64 ": %s",
+			partName ? partName : "?", XML_GetCurrentLineNumber64 (parser),
+			XML_GetCurrentColumnNumber64 (parser), XML_ErrorString (code));
+}
+
+static void xlsxio_recordError (const char *message, const XML_Char *partName) {
+  if (xlsxio_lastError [0] == '\0')
+	snprintf (xlsxio_lastError, sizeof xlsxio_lastError, "%s \"%s\"", message, partName ? partName : "?");
+}
+
+/* djmw 20261114: end add code */
+
+
+
 #if defined(USE_MINIZIP) || defined(USE_MINIZIP_NG)
 #  ifdef USE_MINIZIP_NG
 #    include <minizip-ng/unzip.h>
@@ -171,6 +204,10 @@ int expat_process_zip_file (ZIPFILETYPE* zip, const XML_Char* filename, XML_Star
     return -1;
   }
   parser = XML_ParserCreate(NULL);
+  if (! parser) { // djmw 20261114
+	  xlsxio_recordError ("Out of memory while creating XML parser for ", filename);
+	  return -1;
+  }
   XML_SetUserData(parser, callbackdata);
   XML_SetElementHandler(parser, start_handler, end_handler);
   XML_SetCharacterDataHandler(parser, data_handler);
@@ -184,6 +221,7 @@ int expat_process_zip_file (ZIPFILETYPE* zip, const XML_Char* filename, XML_Star
 #endif
       done = buflen < PARSE_BUFFER_SIZE;
       if ((status = XML_ParseBuffer(parser, (int)buflen, (done ? 1 : 0))) == XML_STATUS_ERROR) {
+		xlsxio_recordExpatError (parser, filename); // 20261114: djmw added this line
         break;
       }
       if (xmlparser && status == XML_STATUS_SUSPENDED)
@@ -192,6 +230,12 @@ int expat_process_zip_file (ZIPFILETYPE* zip, const XML_Char* filename, XML_Star
         break;
       buf = XML_GetBuffer(parser, PARSE_BUFFER_SIZE);
     }
+  /* 20261114: djmw added */
+  if (buflen < 0)
+	  xlsxio_recordError ("Cannot decompress", filename);   // UNZ_* error from minizip
+  int failed = (xlsxio_lastError [0] != '\0');
+  /* 20261114: djmw add end */
+
   XML_ParserFree(parser);
 #ifdef USE_MINIZIP
   unzCloseCurrentFile(zip);
@@ -219,8 +263,10 @@ enum XML_Status expat_process_zip_file_resume (ZIPFILEENTRYTYPE* zipfile, XML_Pa
   status = XML_ResumeParser(xmlparser);
   if (status == XML_STATUS_SUSPENDED)
     return status;
-  if (status == XML_STATUS_ERROR && XML_GetErrorCode(xmlparser) != XML_ERROR_NOT_SUSPENDED)
+  if (status == XML_STATUS_ERROR && XML_GetErrorCode(xmlparser) != XML_ERROR_NOT_SUSPENDED) {
+	xlsxio_recordExpatError (xmlparser, X("worksheet")); // 20261114 djmw 
     return status;
+  }
   void* buf;
 #ifdef USE_MINIZIP
   int buflen;
@@ -235,8 +281,10 @@ enum XML_Status expat_process_zip_file_resume (ZIPFILEENTRYTYPE* zipfile, XML_Pa
   while (buf && (buflen = zip_fread(zipfile, buf, PARSE_BUFFER_SIZE)) >= 0) {
 #endif
     done = buflen < PARSE_BUFFER_SIZE;
-    if ((status = XML_ParseBuffer(xmlparser, (int)buflen, (done ? 1 : 0))) == XML_STATUS_ERROR)
+    if ((status = XML_ParseBuffer(xmlparser, (int)buflen, (done ? 1 : 0))) == XML_STATUS_ERROR) { 
+      xlsxio_recordExpatError (xmlparser, X("worksheet")); // 20261114 djmw
       return status;
+	}
     if (status == XML_STATUS_SUSPENDED)
       return status;
     if (done)

@@ -319,6 +319,10 @@ DLL_EXPORT_XLSXIO int xlsxioread_sheet_next_cell_datetime (xlsxioreadersheet she
  */
 DLL_EXPORT_XLSXIO void xlsxioread_free (XLSXIOCHAR* data);
 
+/*! \brief Praat addition 20261124: make error tracing possible: text of the last XML/zip error in this thread, or "" if none */
+DLL_EXPORT_XLSXIO const char *xlsxioread_get_last_error (void);
+DLL_EXPORT_XLSXIO void xlsxioread_clear_last_error (void);
+
 #ifdef __cplusplus
 }
 #endif
