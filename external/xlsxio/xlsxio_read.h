@@ -58,6 +58,11 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 /*! \cond PRIVATE */
+/* Praat: xlsxio is always linked statically into Praat, so never use __declspec(dllimport) */
+#ifndef BUILD_XLSXIO_STATIC
+#define BUILD_XLSXIO_STATIC
+#endif
+
 #ifndef DLL_EXPORT_XLSXIO
 #ifdef _WIN32
 #if defined(BUILD_XLSXIO_DLL) || defined(BUILD_XLSXIO_SHARED) || defined(xlsxio_write_SHARED_EXPORTS)

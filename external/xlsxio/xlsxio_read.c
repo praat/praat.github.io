@@ -39,7 +39,9 @@ static void xlsxio_recordError (const char *message, const XML_Char *partName) {
 
 /* djmw 20261114: end add code */
 
-
+#if ! defined(USE_MINIZIP) && ! defined(USE_MINIZIP_NG) && ! defined(USE_LIBZIP)
+	#define USE_MINIZIP 1   /* Praat: always use the bundled minizip (external/expat/unzip.c), also in Xcode */
+#endif
 
 #if defined(USE_MINIZIP) || defined(USE_MINIZIP_NG)
 #  ifdef USE_MINIZIP_NG
@@ -194,7 +196,7 @@ int expat_process_zip_file (ZIPFILETYPE* zip, const XML_Char* filename, XML_Star
   XML_Parser parser;
   void* buf;
 #ifdef USE_MINIZIP
-  int buflen;
+  int buflen = 0; // Praat: defined even if XML_GetBuffer() fails
 #else
   zip_int64_t buflen;
 #endif

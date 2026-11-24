@@ -1,5 +1,5 @@
 # meson.build for library "xlsxio".
-# David Weenink 21 November 2026
+# David Weenink 24 November 2026
 
 sources = '''
 	xlsxio_read.c xlsxio_read_sharedstrings.c'''.split()
@@ -7,8 +7,8 @@ sources = '''
 libxlsxio = static_library (
 	'xlsxio',
 	sources : sources,
-	c_args : ['-DUSE_MINIZIP'],
-	include_directories : [expat_inc, sys_inc, melder_inc, kar_inc]
+	c_args : ['-DUSE_MINIZIP', '-Wno-missing-prototypes'],
+	include_directories : [expat_inc, zlib_inc, sys_inc, melder_inc, kar_inc]
 )
 
 libxlsxio_dep = declare_dependency (

@@ -1,9 +1,9 @@
 # Makefile of the library "dwtools"
-# David Weenink and Paul Boersma, 11 November 2026
+# David Weenink and Paul Boersma, 24 November 2026
 
 CPPFLAGS += -I . -I ../kar -I ../melder -I ../sys -I ../dwsys -I ../stat -I ../fon -I ../LPC -I ../foned -I ../EEG \
 	-I ../external/clapack -I ../external/vorbis -I ../external/opusfile -I ../external/portaudio -I ../external/espeak \
-	-I ..external/num
+	-I ../external/xlsxio -I ..external/num
 
 OBJECTS = ActivationList.o AffineTransform.o AnalyticSound.o \
 	Categories.o CategoriesEditor.o \
@@ -75,4 +75,5 @@ libdwtools.a: $(OBJECTS)
 	$(RANLIB) libdwtools.a
 
 $(OBJECTS): *.h ../kar/*.h ../melder/*.h ../sys/*.h ../dwsys/*.h ../stat/*.h ../fon/*.h ../foned/*.h ../LPC/*.h ../EEG/*.h \
-	../external/clapack/*.h ../external/vorbis/*.h ../external/opusfile/*.h ../external/portaudio/*.h ../external/espeak/*.h
+	../external/clapack/*.h ../external/vorbis/*.h ../external/opusfile/*.h ../external/portaudio/*.h ../external/espeak/*.h \
+	../external/xlsxio/*.h
