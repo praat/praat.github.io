@@ -190,7 +190,7 @@ DLL_EXPORT_XLSXIO const XLSXIOCHAR* xlsxioread_get_version_string ()
 ////////////////////////////////////////////////////////////////////////
 
 //process XML file contents
-int expat_process_zip_file (ZIPFILETYPE* zip, const XML_Char* filename, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler, XML_CharacterDataHandler data_handler, void* callbackdata, XML_Parser* xmlparser)
+static int expat_process_zip_file (ZIPFILETYPE* zip, const XML_Char* filename, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler, XML_CharacterDataHandler data_handler, void* callbackdata, XML_Parser* xmlparser)
 {
   ZIPFILEENTRYTYPE* zipfile;
   XML_Parser parser;
@@ -248,7 +248,7 @@ int expat_process_zip_file (ZIPFILETYPE* zip, const XML_Char* filename, XML_Star
   return 0;
 }
 
-XML_Parser expat_process_zip_file_suspendable (ZIPFILEENTRYTYPE* zipfile, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler, XML_CharacterDataHandler data_handler, void* callbackdata)
+static XML_Parser expat_process_zip_file_suspendable (ZIPFILEENTRYTYPE* zipfile, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler, XML_CharacterDataHandler data_handler, void* callbackdata)
 {
   XML_Parser result;
   if ((result = XML_ParserCreate(NULL)) != NULL) {
@@ -259,7 +259,7 @@ XML_Parser expat_process_zip_file_suspendable (ZIPFILEENTRYTYPE* zipfile, XML_St
   return result;
 }
 
-enum XML_Status expat_process_zip_file_resume (ZIPFILEENTRYTYPE* zipfile, XML_Parser xmlparser)
+static enum XML_Status expat_process_zip_file_resume (ZIPFILEENTRYTYPE* zipfile, XML_Parser xmlparser)
 {
   enum XML_Status status;
   status = XML_ResumeParser(xmlparser);
@@ -301,7 +301,7 @@ enum XML_Status expat_process_zip_file_resume (ZIPFILEENTRYTYPE* zipfile, XML_Pa
 #ifdef ASSUME_NO_NAMESPACE
 #define XML_Char_icmp_ins XML_Char_icmp
 #else
-int XML_Char_icmp_ins (const XML_Char* value, const XML_Char* name)
+static int XML_Char_icmp_ins (const XML_Char* value, const XML_Char* name)
 {
   size_t valuelen;
   size_t namelen;
@@ -323,7 +323,7 @@ int XML_Char_icmp_ins (const XML_Char* value, const XML_Char* name)
 #endif
 
 //get expat attribute by name, returns NULL if not found
-const XML_Char* get_expat_attr_by_name (const XML_Char** atts, const XML_Char* name)
+static const XML_Char* get_expat_attr_by_name (const XML_Char** atts, const XML_Char* name)
 {
   const XML_Char** p = atts;
   if (p) {
@@ -338,7 +338,7 @@ const XML_Char* get_expat_attr_by_name (const XML_Char** atts, const XML_Char* n
 }
 
 //generate .rels filename, returns NULL on error, caller must free result
-XML_Char* get_relationship_filename (const XML_Char* filename)
+static XML_Char* get_relationship_filename (const XML_Char* filename)
 {
   XML_Char* result;
   size_t filenamelen = XML_Char_len(filename);
@@ -381,7 +381,7 @@ XML_Char* join_basepath_filename (const XML_Char* basepath, const XML_Char* file
 }
 
 //determine column number based on cell coordinate (e.g. "A1"), returns 1-based column number or 0 on error
-size_t get_col_nr (const XML_Char* A1col)
+static size_t get_col_nr (const XML_Char* A1col)
 {
   const XML_Char* p = A1col;
   size_t result = 0;
@@ -447,14 +447,14 @@ struct minizip_io_filehandle_data {
   int filehandle;
 };
 
-voidpf ZCALLBACK minizip_io_filehandle_open_file_fn (voidpf opaque, const char* filename, int mode)
+static voidpf ZCALLBACK minizip_io_filehandle_open_file_fn (voidpf opaque, const char* filename, int mode)
 {
   if (!opaque || ((struct minizip_io_filehandle_data*)opaque)->filehandle < 0)
     return NULL;
   return &((struct minizip_io_filehandle_data*)opaque)->filehandle;
 }
 
-uLong ZCALLBACK minizip_io_filehandle_read_file_fn (voidpf opaque, voidpf stream, void* buf, uLong size)
+static uLong ZCALLBACK minizip_io_filehandle_read_file_fn (voidpf opaque, voidpf stream, void* buf, uLong size)
 {
   IOSIZETYPE len;
   if (!opaque || !stream || !buf || size == 0)
@@ -471,7 +471,7 @@ uLong ZCALLBACK minizip_io_filehandle_write_file_fn (voidpf opaque, voidpf strea
 }
 */
 
-int ZCALLBACK minizip_io_filehandle_close_file_fn (voidpf opaque, voidpf stream)
+static int ZCALLBACK minizip_io_filehandle_close_file_fn (voidpf opaque, voidpf stream)
 {
   if (stream)
     close(*(int*)stream);
@@ -479,17 +479,17 @@ int ZCALLBACK minizip_io_filehandle_close_file_fn (voidpf opaque, voidpf stream)
   return 0;
 }
 
-int ZCALLBACK minizip_io_filehandle_testerror_file_fn (voidpf opaque, voidpf stream)
+static int ZCALLBACK minizip_io_filehandle_testerror_file_fn (voidpf opaque, voidpf stream)
 {
   return 0;
 }
 
-long ZCALLBACK minizip_io_filehandle_tell_file_fn (voidpf opaque, voidpf stream)
+static long ZCALLBACK minizip_io_filehandle_tell_file_fn (voidpf opaque, voidpf stream)
 {
   return IOFN(lseek)(*(int*)stream, 0, SEEK_CUR);
 }
 
-long ZCALLBACK minizip_io_filehandle_seek_file_fn (voidpf opaque, voidpf stream, uLong offset, int origin)
+static long ZCALLBACK minizip_io_filehandle_seek_file_fn (voidpf opaque, voidpf stream, uLong offset, int origin)
 {
   int whence;
   if (!opaque || !stream)
@@ -554,7 +554,7 @@ struct minizip_io_memory_handle {
   uint64_t pos;
 };
 
-voidpf ZCALLBACK minizip_io_memory_open_file_fn (voidpf opaque, const char* filename, int mode)
+static voidpf ZCALLBACK minizip_io_memory_open_file_fn (voidpf opaque, const char* filename, int mode)
 {
   struct minizip_io_memory_handle* result;
   if (!opaque || !((struct minizip_io_memory_data*)opaque)->data)
@@ -565,7 +565,7 @@ voidpf ZCALLBACK minizip_io_memory_open_file_fn (voidpf opaque, const char* file
   return result;
 }
 
-uLong ZCALLBACK minizip_io_memory_read_file_fn (voidpf opaque, voidpf stream, void* buf, uLong size)
+static uLong ZCALLBACK minizip_io_memory_read_file_fn (voidpf opaque, voidpf stream, void* buf, uLong size)
 {
   uLong len;
   if (!opaque || !stream || !buf || size == 0)
@@ -588,7 +588,7 @@ uLong ZCALLBACK minizip_io_memory_write_file_fn (voidpf opaque, voidpf stream, c
 }
 */
 
-int ZCALLBACK minizip_io_memory_close_file_fn (voidpf opaque, voidpf stream)
+static int ZCALLBACK minizip_io_memory_close_file_fn (voidpf opaque, voidpf stream)
 {
   free(stream);
   if (opaque && ((struct minizip_io_memory_data*)opaque)->freedata)
@@ -597,7 +597,7 @@ int ZCALLBACK minizip_io_memory_close_file_fn (voidpf opaque, voidpf stream)
   return 0;
 }
 
-int ZCALLBACK minizip_io_memory_testerror_file_fn (voidpf opaque, voidpf stream)
+static int ZCALLBACK minizip_io_memory_testerror_file_fn (voidpf opaque, voidpf stream)
 {
   return 0;
 }
@@ -609,7 +609,7 @@ long ZCALLBACK minizip_io_memory_tell_file_fn (voidpf opaque, voidpf stream)
   return ((struct minizip_io_memory_handle*)stream)->pos;
 }
 
-long ZCALLBACK minizip_io_memory_seek_file_fn (voidpf opaque, voidpf stream, uLong offset, int origin)
+static long ZCALLBACK minizip_io_memory_seek_file_fn (voidpf opaque, voidpf stream, uLong offset, int origin)
 {
   switch (origin) {
     case ZLIB_FILEFUNC_SEEK_CUR :
@@ -844,7 +844,7 @@ void main_sheet_list_expat_callback_element_start (void* callbackdata, const XML
 }
 
 //process contents each sheet listed in main sheet
-void xlsxioread_list_sheets_callback (ZIPFILETYPE* zip, const XML_Char* filename, const XML_Char* contenttype, void* callbackdata)
+static void xlsxioread_list_sheets_callback (ZIPFILETYPE* zip, const XML_Char* filename, const XML_Char* contenttype, void* callbackdata)
 {
   //get sheet information from file
   expat_process_zip_file(zip, filename, main_sheet_list_expat_callback_element_start, NULL, NULL, callbackdata, &((struct main_sheet_list_callback_data*)callbackdata)->xmlparser);
@@ -881,7 +881,7 @@ struct main_sheet_get_rels_callback_data {
 };
 
 //determine relationship id for specific sheet name
-void main_sheet_get_relid_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
+static void main_sheet_get_relid_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct main_sheet_get_rels_callback_data* data = (struct main_sheet_get_rels_callback_data*)callbackdata;
   if (XML_Char_icmp_ins(name, X("sheet")) == 0) {
@@ -930,7 +930,7 @@ void main_sheet_get_sheetfile_expat_callback_element_start (void* callbackdata, 
 }
 
 //determine the file name for a specified sheet name
-void main_sheet_get_sheetfile_callback (ZIPFILETYPE* zip, const XML_Char* filename, const XML_Char* contenttype, void* callbackdata)
+static void main_sheet_get_sheetfile_callback (ZIPFILETYPE* zip, const XML_Char* filename, const XML_Char* contenttype, void* callbackdata)
 {
   struct main_sheet_get_rels_callback_data* data = (struct main_sheet_get_rels_callback_data*)callbackdata;
   if (!data->sheetrelid) {
