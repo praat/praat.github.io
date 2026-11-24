@@ -1,5 +1,5 @@
 # build system for praat
-# David Weenink and Paul Boersma, 18 July 2026
+# David Weenink and Paul Boersma, 21 November 2026
 
 project(
   'praat',
@@ -55,6 +55,7 @@ sys_inc = include_directories ('sys')
 
 clapack_inc = include_directories ('external/clapack')
 espeak_inc = include_directories ('external/espeak')
+expat_inc = include_directories ('external/expat')
 flac_inc = include_directories ('external/flac')
 gsl_inc = include_directories ('external/gsl')
 mp3_inc = include_directories ('external/mp3')
@@ -64,6 +65,7 @@ portaudio_inc = include_directories ('external/portaudio')
 vorbis_inc = include_directories ('external/vorbis')
 whisper_inc = include_directories ('external/whispercpp')
 blake3_inc = include_directories ('external/blake3')
+xlsxio_inc = include_directories ('external/xlsxio')
 zlib_inc = include_directories ('external/zlib')
 
 threads_dep = dependency('threads')
@@ -74,7 +76,7 @@ add_project_arguments (compiler_arguments_c, language: 'c')
 add_project_arguments (compiler_arguments_cpp, language: 'cpp')
 
 praat_dirs = ['artsynth', 'dwsys', 'dwtools', 'EEG', 'FFNet', 'fon', 'foned', 'gram', 'kar', 'LPC', 'melder', 'sensors', 'stat', 'sys']
-praat_external_dirs = ['clapack', 'espeak', 'flac', 'gsl', 'glpk', 'lame', 'num', 'mp3', 'opusfile', 'portaudio', 'vorbis', 'whispercpp', 'blake3', 'zlib']
+praat_external_dirs = ['clapack', 'espeak', 'expat', 'flac', 'gsl', 'glpk', 'lame', 'num', 'mp3', 'opusfile', 'portaudio', 'vorbis', 'whispercpp', 'blake3', 'xlsxio', 'zlib']
 
 foreach dir : praat_dirs
 	subdir (dir)
@@ -84,6 +86,6 @@ foreach dir : praat_external_dirs
 endforeach
 
 praat_libs_dep = [libartsynth_dep, libdwsys_dep, libdwtools_dep, libEEG_dep, libFFNet_dep, libfon_dep, libfoned_dep, libgram_dep, libkar_dep, libLPC_dep, libmelder_dep, libsensors_dep, libstat_dep, libsys_dep]
-praat_external_libs_dep = [libclapack_dep, libblake3_dep, libespeak_dep, libflac_dep, libgsl_dep, libglpk_dep, liblame_dep, libmp3_dep, libnum_dep, libopusfile_dep, libportaudio_dep, libvorbis_dep, libwhisper_dep, libzlib_dep]
+praat_external_libs_dep = [libclapack_dep, libblake3_dep, libespeak_dep, libflac_dep, libgsl_dep, libglpk_dep, liblame_dep, libmp3_dep, libnum_dep, libopusfile_dep, libportaudio_dep, libvorbis_dep, libwhisper_dep, libxlsxio_dep, libexpat_dep, libzlib_dep]
 
 subdir ('main')
