@@ -602,7 +602,7 @@ static int ZCALLBACK minizip_io_memory_testerror_file_fn (voidpf opaque, voidpf 
   return 0;
 }
 
-long ZCALLBACK minizip_io_memory_tell_file_fn (voidpf opaque, voidpf stream)
+static long ZCALLBACK minizip_io_memory_tell_file_fn (voidpf opaque, voidpf stream)
 {
   if (!opaque || !stream)
     return 0;
@@ -719,7 +719,7 @@ struct iterate_files_by_contenttype_callback_data {
 };
 
 //expat callback function for element start used by iterate_files_by_contenttype
-void iterate_files_by_contenttype_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
+static void iterate_files_by_contenttype_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct iterate_files_by_contenttype_callback_data* data = (struct iterate_files_by_contenttype_callback_data*)callbackdata;
   if (XML_Char_icmp_ins(name, X("Override")) == 0) {
@@ -798,7 +798,7 @@ unzGetGlobalInfo(data->zip, &zipglobalinfo);
 }
 
 //list file names by content type
-int iterate_files_by_contenttype (ZIPFILETYPE* zip, const XML_Char* contenttype, contenttype_file_callback_fn filecallbackfn, void* filecallbackdata, XML_Parser* xmlparser)
+static int iterate_files_by_contenttype (ZIPFILETYPE* zip, const XML_Char* contenttype, contenttype_file_callback_fn filecallbackfn, void* filecallbackdata, XML_Parser* xmlparser)
 {
   struct iterate_files_by_contenttype_callback_data callbackdata = {
     .zip = zip,
@@ -819,7 +819,7 @@ struct main_sheet_list_callback_data {
 };
 
 //callback used by xlsxioread_list_sheets
-void main_sheet_list_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
+static void main_sheet_list_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct main_sheet_list_callback_data* data = (struct main_sheet_list_callback_data*)callbackdata;
   if (data && data->callback) {
@@ -898,7 +898,7 @@ static void main_sheet_get_relid_expat_callback_element_start (void* callbackdat
 }
 
 //determine file names for specific relationship id
-void main_sheet_get_sheetfile_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
+static void main_sheet_get_sheetfile_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct main_sheet_get_rels_callback_data* data = (struct main_sheet_get_rels_callback_data*)callbackdata;
   if (data->sheetrelid) {
@@ -998,7 +998,7 @@ struct data_sheet_callback_data {
   void* callbackdata;
 };
 
-void data_sheet_callback_data_initialize (struct data_sheet_callback_data* data, struct sharedstringlist* sharedstrings, unsigned int flags, xlsxioread_process_cell_callback_fn cell_callback, xlsxioread_process_row_callback_fn row_callback, void* callbackdata)
+static void data_sheet_callback_data_initialize (struct data_sheet_callback_data* data, struct sharedstringlist* sharedstrings, unsigned int flags, xlsxioread_process_cell_callback_fn cell_callback, xlsxioread_process_row_callback_fn row_callback, void* callbackdata)
 {
   data->xmlparser = NULL;
   data->sharedstrings = sharedstrings;
