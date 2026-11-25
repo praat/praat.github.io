@@ -46,16 +46,27 @@ Thing_implement (TIMITCorpus, Corpus, 0);
 autoSound structTIMITCorpus :: extractSound (integer number) {
 	autoMelderString fileName;
 	MelderString_append (& fileName, folderWithSoundFiles.get());
-	/* 2: use, dr, speaker, sound */
-	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 2_integer));
-	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 3_integer));
-	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 4_integer));
-	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 5_integer));
-	MelderString_append (& fileName, U".wav");
+	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 2_integer));	// use
+	MelderString_append (& fileName, U"/", Table_getStringValue_a (recordings.get(), number, 3_integer));	// dr
+	conststring32 speaker = Table_getStringValue_a (recordings.get(), number, 4_integer); 					// speaker
+	conststring32 sound = Table_getStringValue_a (recordings.get(), number, 5_integer); 					// sound
+	MelderString_append (& fileName, U"/", speaker, U"/", sound, U".wav"); 
 	structMelderFile file;
 	Melder_pathToFile (fileName.string, & file);
 	autoSound me = Data_readFromFile (& file).static_cast_move <structSound>();
+	autoMelderString soundName;
+	MelderString_append (& soundName, speaker, U"_", sound);
+	Thing_setName (me.get(), soundName.string);
 	return me;
+}
+
+autoTextGrid structTIMITCorpus :: extractTextGrid (integer number) {
+	autoTextGrid thee = Data_copy (textGrids.at [number]);
+	autoMelderString textgridName;
+	MelderString_append (& textgridName, Table_getStringValue_a (recordings.get(), number, 4_integer),
+		U"_", Table_getStringValue_a (recordings.get(), number, 5_integer));
+	Thing_setName (thee.get(), textgridName.string);
+	return thee;
 }
 
 static autoTable Table_readSpeakerInfoFromTIMITTextFile (MelderFile speakersFile) {

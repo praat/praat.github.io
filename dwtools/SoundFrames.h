@@ -66,14 +66,14 @@ public:
 		Calculate the output sampling from the input parameters,
 		this is the default case
 	*/
-	void initForToSampled (constSound input, double effectiveAnalysisWidth, double timeStep,
+	void init (constSound input, double effectiveAnalysisWidth, double timeStep,
 		kSound_windowShape windowShape, bool subtractChannelMean);
 	
 	/*
 		In special cases we need the sampling (x1, dx, nx) of the output Sampled:
 		like for the FormantPath.
 	*/
-	void initForIntoSampled (constSound input, mutableSampled output, double effectiveAnalysisWidth,
+	void init_fixedSampling (constSound input, mutableSampled output, double effectiveAnalysisWidth,
 		kSound_windowShape windowShape, bool subtractChannelMean);
 	
 	Sound getFrame (integer iframe);
@@ -81,7 +81,7 @@ public:
 	VEC getMonoFrame (integer iframe);
 };
 
-autoSoundFrames SoundFrames_createForIntoSampled (constSound input, mutableSampled output, double effectiveAnalysisWidth,
+autoSoundFrames SoundFrames_create_fixedSampling (constSound input, mutableSampled output, double effectiveAnalysisWidth,
 	kSound_windowShape windowShape, bool subtractChannelMean);
 
 autoSoundFrames SoundFrames_createForToSampled (constSound input, double effectiveAnalysisWidth, double timeStep,

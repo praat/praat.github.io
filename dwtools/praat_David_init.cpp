@@ -8680,7 +8680,7 @@ DIRECT (CREATION_WINDOW__VowelEditor_create) {
 
 static autoDaata cmuAudioFileRecognizer (integer nread, const char *header, MelderFile file) {
 	return nread < 12 || header [0] != 6 || header [1] != 0 ?
-	       autoSound () : Sound_readFromCmuAudioFile (file);
+		autoSound () : Sound_readFromCmuAudioFile (file);
 }
 
 static autoDaata oggFileRecognizer (integer nread, const char *header, MelderFile file) {
@@ -8704,6 +8704,14 @@ static autoDaata oggFileRecognizer (integer nread, const char *header, MelderFil
 		Leave rest of checking to libVorbis
 	*/
 	return Sound_readFromOggVorbisFile (file);
+}
+
+static autoDaata xlsxFileRecognizer (integer nread, const char *header, MelderFile file) {
+	if (nread < 5)
+		return autoDaata ();
+	if (header [0] == 0x50 && header [1] == 0x4B && header [2] == 0x03 && header [3] == 0x04)
+		return Table_readFromXLSXFile (file);
+	return autoDaata ();
 }
 
 void praat_CC_init (ClassInfo klas) {
@@ -9019,6 +9027,7 @@ void praat_David_init () {
 
 	Data_recognizeFileType (cmuAudioFileRecognizer);
 	Data_recognizeFileType (oggFileRecognizer);
+	Data_recognizeFileType (xlsxFileRecognizer);
 
 	Thing_recognizeClassesByName (classActivationList, classBarkFilter, classBarkSpectrogram,
 		classCategories, classCepstrum, classCCA,

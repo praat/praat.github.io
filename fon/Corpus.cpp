@@ -45,6 +45,11 @@ autoSound structCorpus :: extractSound (integer recordingNumber) {
 	return sound;
 }
 
+autoTextGrid structCorpus :: extractTextGrid (integer recordingNumber) {
+	autoTextGrid textgrid;
+	return textgrid;
+}
+
 autoCorpus Corpus_create (conststring32 folderWithSoundFiles, conststring32 soundFileExtension,
 	conststring32 folderWithAnnotationFiles, conststring32 annotationFileExtension)
 {
@@ -89,6 +94,12 @@ autoSound structCGNCorpus :: extractSound (integer recordingNumber) {
 	structMelderFile soundFile { };
 	MelderFolder_getFile (& countryFolder, Table_getStringValue_a (recordings.get(), recordingNumber, 3), & soundFile);
 	autoSound thee = Sound_readFromSoundFile (& soundFile);
+	Thing_setName (thee.get(), Table_getStringValue_a (recordings.get(), recordingNumber, 3));
+	return thee;
+}
+
+autoTextGrid structCGNCorpus :: extractTextGrid (integer recordingNumber) {
+	autoTextGrid thee = Data_copy (textGrids.at [recordingNumber]);
 	Thing_setName (thee.get(), Table_getStringValue_a (recordings.get(), recordingNumber, 3));
 	return thee;
 }
@@ -181,9 +192,9 @@ autoTextGrid Corpus_extractTextGrid_number (Corpus me, integer recordingNumber) 
 		U"The recording number (", recordingNumber, U") should be at least 1.");
 	Melder_require (recordingNumber <= my recordings -> rows.size,
 		U"The recording number (", recordingNumber, U") should be at most the number of recordings (", my recordings -> rows.size, U").");
-	autoTextGrid thee = Data_copy (my textGrids.at [recordingNumber]);
-	Thing_setName (thee.get(), Table_getStringValue_a (my recordings.get(), recordingNumber, 3));
-	return thee;
+	Melder_require (my textGrids.size > 0, 
+		U"This corpus has no TextGrids.");
+	return my extractTextGrid (recordingNumber);
 }
 
 autoSound Corpus_extractSound_number (Corpus me, integer recordingNumber) {

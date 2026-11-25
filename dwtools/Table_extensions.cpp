@@ -1,6 +1,6 @@
 /* Table_extensions.cpp
  *
- * Copyright (C) 1997-2023 David Weenink, 2011-2021,2023,2024,2026 Paul Boersma
+ * Copyright (C) 1997-2026 David Weenink, 2011-2021,2023,2024,2026 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,81 @@
 #include "Strings_extensions.h"
 #include "Covariance.h"
 #include "Table_extensions.h"
+#include <fcntl.h>
+#include "xlsxio_read.h"
+
+struct _xlsxReader_deleter {
+	void operator() (xlsxioreader h) const { xlsxioread_close (h); }
+};
+struct _xlsxSheet_deleter {
+	void operator() (xlsxioreadersheet h) const { xlsxioread_sheet_close (h); } 
+};
+struct _xlsxString_deleter {
+	void operator() (char *p) const { xlsxioread_free (p); }
+};
+using autoXLSXReader = std::unique_ptr <std::remove_pointer_t <xlsxioreader>, _xlsxReader_deleter>;
+using autoXLSXSheet = std::unique_ptr <std::remove_pointer_t <xlsxioreadersheet>, _xlsxSheet_deleter>;
+using autoXLSXString = std::unique_ptr <char, _xlsxString_deleter>;
+
+static void xlsx_throwIfError (conststring32 context) {
+	const char *error = xlsxioread_get_last_error ();
+	if (error && error [0] != '\0') {
+		autostring32 error32 = Melder_8to32_e (error);   // copy before clearing the C buffer
+		xlsxioread_clear_last_error ();
+		Melder_throw (context, U"\n", error32.get());
+	}
+}
+
+autoTable Table_readFromXLSXFile (MelderFile file) {
+	try {
+		autoTable me = Thing_new (Table);
+		autoXLSXReader reader (xlsxioread_open (Melder_peek32to8 (file->path)));
+		if (! reader)
+			Melder_throw (U"Cannot open xlsx file ", MelderFile_messageName (file));
+		/*
+			Read values from first sheet 
+			TODO: or use XLSXIOREAD_SKIP_NONE??
+		*/
+		autoXLSXSheet sheet (xlsxioread_sheet_open (reader.get(), NULL, XLSXIOREAD_SKIP_EMPTY_ROWS));
+		if (! sheet)
+			Melder_throw (U"Cannot open sheet");
+		/*
+			If an error occurs during reading a row, 'xlsxioread_sheet_next_row' returns 0, but also at the end!
+			Therefore we have to clear the error buffer before we start!
+		*/
+		xlsxioread_clear_last_error ();
+		integer irow = -1, ncol = 0;
+		autoSTRVEC header;
+		while (xlsxioread_sheet_next_row (sheet.get())) {
+			integer icol = 1;
+			if (irow > 0)
+				Table_appendRow (me.get());
+			else if (irow == 0) {
+				ncol = header.size;
+				if (ncol < 1)
+					return me;
+				me = Table_createWithColumnNames (1, header.get()); // yes, 1 row to start with
+			}
+			irow ++;
+			char *value; // UTF-8 always
+			while ((value = xlsxioread_sheet_next_cell (sheet.get())) != NULL) {
+				conststring32 val32 = Melder_peek8to32_u (value);
+				if (irow == 0) {
+					header.insert (0, val32);
+				} else {
+					Melder_require (icol <= ncol,
+						U"In row ", irow, U" the number of cells is larger than the number of columns (", ncol, U").");
+					Table_setStringValue (me.get(), irow, icol ++, val32);
+				}
+				xlsxioread_free (value);
+			}
+		}
+		xlsx_throwIfError (Melder_cat (U"Error after row ", irow, U"."));   // next_row returns 0 on error *and* at the end
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Cannot read a Table from an Excel file.");
+	}
+}
 
 autoTable FileInMemorySet_downto_Table (FileInMemorySet me, bool openFilesOnly) {
 	try {

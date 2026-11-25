@@ -50,7 +50,7 @@ autoPowerCepstrogram Sound_to_PowerCepstrogram (constSound me, double pitchFloor
 		const double powerScaling = input -> dx * input -> dx; // =amplitude_scaling^2
 
 		MelderThread_PARALLEL (nFrames, 10) {
-			autoSoundFrames soundFrames = SoundFrames_createForIntoSampled (input.get(), output.get(), effectiveAnalysisWidth, windowShape, subtractFrameMean);
+			autoSoundFrames soundFrames = SoundFrames_create_fixedSampling (input.get(), output.get(), effectiveAnalysisWidth, windowShape, subtractFrameMean);
 			autoVEC fourierSamples = raw_VEC (numberOfFourierSamples);
 			autoVEC onesidedPowerSpectrum = raw_VEC (numberOfFrequencies);
 			autoNUMFourierTable fourierTable = NUMFourierTable_create (numberOfFourierSamples);		// of dimension numberOfFourierSamples;

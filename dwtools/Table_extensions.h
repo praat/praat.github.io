@@ -2,7 +2,7 @@
 #define _Table_extensions_h_
 /* Table_extensions.h
  *
- * Copyright (C) 1993-2023 David Weenink
+ * Copyright (C) 1993-2026 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -143,5 +143,7 @@ autoTable Table_extractMahalanobis (Table me, INTVEC const& columnNumbers,
 void Table_printAsAnovaTable (Table me);
 
 void Table_printAsMeansTable (Table me);
+
+autoTable Table_readFromXLSXFile (MelderFile file);
 
 #endif // _Table_extensions_h_

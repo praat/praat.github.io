@@ -20,7 +20,7 @@
 
 Thing_implement (SoundFrames, Thing, 0);
 
-void structSoundFrames :: initForToSampled (constSound input, double effectiveAnalysisWidth, double timeStep,
+void structSoundFrames :: init (constSound input, double effectiveAnalysisWidth, double timeStep,
 	kSound_windowShape windowShape, bool subtractChannelMean)
 {
 	our inputSound = input;
@@ -33,7 +33,7 @@ void structSoundFrames :: initForToSampled (constSound input, double effectiveAn
 	initCommon (windowShape, subtractChannelMean);
 }
 	
-void structSoundFrames :: initForIntoSampled (constSound input, mutableSampled output, double effectiveAnalysisWidth,
+void structSoundFrames :: init_fixedSampling (constSound input, mutableSampled output, double effectiveAnalysisWidth,
 	kSound_windowShape windowShape, bool subtractChannelMean)
 {
 	Melder_assert (input -> xmin == output -> xmin && input -> xmax == output -> xmax);
@@ -82,12 +82,12 @@ VEC structSoundFrames :: getMonoFrame (integer iframe) {
 	return soundFrame.get();
 }
 
-autoSoundFrames SoundFrames_createForIntoSampled (constSound input, mutableSampled output, double effectiveAnalysisWidth,
+autoSoundFrames SoundFrames_create_fixedSampling (constSound input, mutableSampled output, double effectiveAnalysisWidth,
 	kSound_windowShape windowShape, bool subtractFrameMean)
 {
 	try {
 		autoSoundFrames me = Thing_new (SoundFrames);
-		my initForIntoSampled (input, output, effectiveAnalysisWidth, windowShape, subtractFrameMean);
+		my init_fixedSampling (input, output, effectiveAnalysisWidth, windowShape, subtractFrameMean);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"SoundFrames (with Sampled) could not be created.");
@@ -100,7 +100,7 @@ autoSoundFrames SoundFrames_create (constSound input, double effectiveAnalysisWi
 {
 	try {
 		autoSoundFrames me = Thing_new (SoundFrames);
-		my initForToSampled (input, effectiveAnalysisWidth, timeStep, windowShape, subtractFrameChannelMean);
+		my init (input, effectiveAnalysisWidth, timeStep, windowShape, subtractFrameChannelMean);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"SoundFrames could not be created.");

@@ -31,6 +31,8 @@ Thing_define (TIMITCorpus, Corpus) {
 	*/
 	autoSound extractSound (integer number)
 		override;
+	autoTextGrid extractTextGrid (integer number)
+		override;
 };
 
 autoTIMITCorpus TIMITCorpus_create (conststring32 folderWithSoundFiles,
