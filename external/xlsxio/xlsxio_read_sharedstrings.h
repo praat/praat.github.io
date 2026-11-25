@@ -13,7 +13,7 @@ struct sharedstringlist {
   size_t numstrings;
 };
 
-struct sharedstringlist* sharedstringlist_create ();
+struct sharedstringlist* sharedstringlist_create (void);
 void sharedstringlist_destroy (struct sharedstringlist* sharedstrings);
 size_t sharedstringlist_size (struct sharedstringlist* sharedstrings);
 int sharedstringlist_add_buffer (struct sharedstringlist* sharedstrings, const XML_Char* data, size_t datalen);

@@ -11,7 +11,7 @@
 #define wcscasecmp _wcsicmp
 #endif
 
-struct sharedstringlist* sharedstringlist_create ()
+struct sharedstringlist* sharedstringlist_create (void)
 {
   struct sharedstringlist* sharedstrings;
   if ((sharedstrings = (struct sharedstringlist*)malloc(sizeof(struct sharedstringlist))) != NULL) {
