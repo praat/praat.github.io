@@ -358,7 +358,7 @@ static XML_Char* get_relationship_filename (const XML_Char* filename)
 }
 
 //join basepath and filename (caller must free result)
-XML_Char* join_basepath_filename (const XML_Char* basepath, const XML_Char* filename)
+static XML_Char* join_basepath_filename (const XML_Char* basepath, const XML_Char* filename)
 {
   XML_Char* result = NULL;
   if (filename && *filename) {
@@ -402,7 +402,7 @@ static size_t get_col_nr (const XML_Char* A1col)
 }
 
 //determine row number based on cell coordinate (e.g. "A1"), returns 1-based row number or 0 on error
-size_t get_row_nr (const XML_Char* A1col)
+static size_t get_row_nr (const XML_Char* A1col)
 {
   const XML_Char* p = A1col;
   size_t result = 0;
