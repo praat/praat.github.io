@@ -1,7 +1,7 @@
 # File: Makefile
 
 # Makefile for Praat
-# Paul Boersma, 24 November 2026, David Weenink
+# Paul Boersma, 25 November 2026, David Weenink
 
 ##########################
 #
@@ -406,7 +406,7 @@ all: all-external all-self
 		external/opusfile/libopusfile.a \
 		external/whispercpp/libwhisper.a \
 		external/blake3/libblake3.a \
-		external/xlsio/libxlsxio.a \
+		external/xlsxio/libxlsxio.a \
 		external/expat/libexpat.a \
 		external/zlib/libzlib.a \
                $(NON_PRAAT_LIBRARIES) $(LDFLAGS)
