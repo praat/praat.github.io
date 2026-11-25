@@ -94,7 +94,7 @@ DLL_EXPORT_XLSXIO void xlsxioread_get_version (int* pmajor, int* pminor, int* pm
  * \return version string
  * \sa     xlsxiowrite_get_version()
  */
-DLL_EXPORT_XLSXIO const XLSXIOCHAR* xlsxioread_get_version_string ();
+DLL_EXPORT_XLSXIO const XLSXIOCHAR* xlsxioread_get_version_string (void);
 
 /*! \brief read handle for .xlsx object */
 typedef struct xlsxio_read_struct* xlsxioreader;

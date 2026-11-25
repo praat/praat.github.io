@@ -182,7 +182,7 @@ DLL_EXPORT_XLSXIO void xlsxioread_get_version (int* pmajor, int* pminor, int* pm
     *pmicro = XLSXIO_VERSION_MICRO;
 }
 
-DLL_EXPORT_XLSXIO const XLSXIOCHAR* xlsxioread_get_version_string ()
+DLL_EXPORT_XLSXIO const XLSXIOCHAR* xlsxioread_get_version_string (void)
 {
   return (const XLSXIOCHAR*)XLSXIO_VERSION_STRING;
 }
