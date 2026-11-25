@@ -86,7 +86,7 @@ autoPowerCepstrogram Sound_to_PowerCepstrogram (constSound me, double pitchFloor
 					fourierSamples [2 * i - 2] = log (onesidedPowerSpectrum [i] + 1e-300);
 					fourierSamples [2 * i - 1] = 0.0;
 				}
-				fourierSamples [numberOfFourierSamples] = log (onesidedPowerSpectrum [numberOfFrequencies]);
+				fourierSamples [numberOfFourierSamples] = log (onesidedPowerSpectrum [numberOfFrequencies] + 1e-300);
 				/*
 					Inverse transform
 				*/
