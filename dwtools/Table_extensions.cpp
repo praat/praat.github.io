@@ -69,15 +69,15 @@ autoTable Table_readFromXLSXFile (MelderFile file) {
 	try {
 		autoTable me = Thing_new (Table);
 		autoXLSXReader reader (xlsxioread_open (Melder_peek32to8 (file->path)));
-		if (! reader)
-			Melder_throw (U"Cannot open xlsx file ", MelderFile_messageName (file));
+		Melder_require (reader,
+			U"Cannot open xlsx file ", MelderFile_messageName (file));
 		/*
 			Read values from first sheet 
 			TODO: or use XLSXIOREAD_SKIP_NONE??
 		*/
 		autoXLSXSheet sheet (xlsxioread_sheet_open (reader.get(), NULL, XLSXIOREAD_SKIP_EMPTY_ROWS));
-		if (! sheet)
-			Melder_throw (U"Cannot open sheet");
+		Melder_require (sheet,
+			U"Cannot open sheet");
 		/*
 			If an error occurs during reading a row, 'xlsxioread_sheet_next_row' returns 0, but also at the end!
 			Therefore we have to clear the error buffer before we start!
@@ -101,6 +101,11 @@ autoTable Table_readFromXLSXFile (MelderFile file) {
 				conststring32 val32 = Melder_peek8to32_u (value);
 				if (irow == 0) {
 					header.insert (0, val32);
+					// trim trailing whitespace
+					integer length = Melder_length (val32);
+					while (length > 0 && Melder_isHorizontalSpace (val32 [length - 1]))
+						-- length;
+					header [header.size] [length] = U'\0';
 				} else {
 					Melder_require (icol <= ncol,
 						U"In row ", irow, U" the number of cells is larger than the number of columns (", ncol, U").");
