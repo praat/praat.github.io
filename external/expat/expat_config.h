@@ -33,14 +33,18 @@
 	#define BYTEORDER  1234
 #endif
 
-/* Features: xlsx parts have no DTD and no user-defined entities. */
+/*
+	Features: xlsx parts have no DTD and no user-defined entities.
+*/
 #define XML_GE  0               /* must be 0 or 1 */
 /* #undef XML_DTD */            /* must stay undefined if XML_GE == 0 */
 /* #undef XML_NS */
 #define XML_CONTEXT_BYTES  1024
 
-/* Entropy source for the hash salt; exactly one family per platform.
-   _WIN32 needs nothing here: xmlparse.c then uses rand_s() from random_rand_s.c. */
+/*
+	Entropy source for the hash salt; exactly one family per platform.
+   _WIN32 needs nothing here: xmlparse.c then uses rand_s() from random_rand_s.c.
+*/
 #if defined (_WIN32)
 	/* rand_s */
 #elif defined (__APPLE__) || defined (__FreeBSD__) || defined (__OpenBSD__) || defined (__NetBSD__)
